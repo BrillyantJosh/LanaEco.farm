@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { getDb, closeDb } from './db/connection.js';
 import { startHeartbeat, stopHeartbeat } from './heartbeat.js';
 import { createSystemParamsRouter } from './routes/systemParams.js';
+import { createUploadsRouter } from './routes/uploads.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,7 +25,8 @@ app.use(cors({
 }));
 
 // Body parsers
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Security headers
 app.use((req, res, next) => {
@@ -55,6 +57,7 @@ const db = getDb();
 
 // Routes
 app.use('/api/system-params', createSystemParamsRouter(db));
+app.use('/api/uploads', createUploadsRouter());
 
 // Health check
 app.get('/health', (req, res) => {
