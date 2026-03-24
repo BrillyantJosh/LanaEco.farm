@@ -7,6 +7,7 @@ import { getDb, closeDb } from './db/connection.js';
 import { startHeartbeat, stopHeartbeat } from './heartbeat.js';
 import { createSystemParamsRouter } from './routes/systemParams.js';
 import { createUploadsRouter } from './routes/uploads.js';
+import { createEcoUnitsRouter } from './routes/ecoUnits.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,6 +59,7 @@ const db = getDb();
 // Routes
 app.use('/api/system-params', createSystemParamsRouter(db));
 app.use('/api/uploads', createUploadsRouter());
+app.use('/api/eco-units', createEcoUnitsRouter(db));
 
 // Health check
 app.get('/health', (req, res) => {

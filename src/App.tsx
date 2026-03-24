@@ -16,6 +16,7 @@ const ProductsPage = lazy(() => import("./pages/ProductsPage.tsx"));
 const GuidelinesPage = lazy(() => import("./pages/GuidelinesPage.tsx"));
 const LoginPage = lazy(() => import("./pages/LoginPage.tsx"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage.tsx"));
+const UnitDetailPage = lazy(() => import("./pages/UnitDetailPage.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const PageLoader = () => (
@@ -40,6 +41,7 @@ const App = () => (
                 <Route path="/kmetje/:id" element={<FarmerDetailPage />} />
                 <Route path="/izdelki" element={<ProductsPage />} />
                 <Route path="/smernice" element={<GuidelinesPage />} />
+                <Route path="/enota/:unitId" element={<UnitDetailPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route
                   path="/dashboard"
