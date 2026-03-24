@@ -17,6 +17,7 @@ const GuidelinesPage = lazy(() => import("./pages/GuidelinesPage.tsx"));
 const LoginPage = lazy(() => import("./pages/LoginPage.tsx"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage.tsx"));
 const UnitDetailPage = lazy(() => import("./pages/UnitDetailPage.tsx"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const PageLoader = () => (
@@ -43,6 +44,7 @@ const App = () => (
                 <Route path="/smernice" element={<GuidelinesPage />} />
                 <Route path="/enota/:unitId" element={<UnitDetailPage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
                 <Route
                   path="/dashboard"
                   element={

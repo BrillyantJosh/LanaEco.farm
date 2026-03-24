@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSystemParams } from '@/contexts/SystemParamsContext';
 import { KeyRound, Loader2, Eye, EyeOff, Leaf } from 'lucide-react';
@@ -139,8 +139,18 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {/* Register link */}
+          <div className="mt-5 text-center">
+            <p className="text-sm text-muted-foreground font-sans">
+              Nimate še profila?{' '}
+              <Link to="/register" className="text-primary hover:underline font-medium">
+                Registracija
+              </Link>
+            </p>
+          </div>
+
           {/* Footer */}
-          <div className="mt-6 pt-5 border-t text-center">
+          <div className="mt-4 pt-4 border-t text-center">
             <p className="text-xs text-muted-foreground font-sans">
               {params?.relays
                 ? `Povezano z ${params.relays.length} relejem`

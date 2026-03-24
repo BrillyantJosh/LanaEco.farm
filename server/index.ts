@@ -8,6 +8,7 @@ import { startHeartbeat, stopHeartbeat } from './heartbeat.js';
 import { createSystemParamsRouter } from './routes/systemParams.js';
 import { createUploadsRouter } from './routes/uploads.js';
 import { createEcoUnitsRouter } from './routes/ecoUnits.js';
+import { createRegisterRouter } from './routes/register.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -60,6 +61,10 @@ const db = getDb();
 app.use('/api/system-params', createSystemParamsRouter(db));
 app.use('/api/uploads', createUploadsRouter());
 app.use('/api/eco-units', createEcoUnitsRouter(db));
+
+// Registration with strict rate limiting
+const registerLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
+app.use('/api/register', registerLimiter, createRegisterRouter());
 
 // Health check
 app.get('/health', (req, res) => {
