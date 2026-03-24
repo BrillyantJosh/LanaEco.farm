@@ -1,7 +1,9 @@
 import { ArrowRight, Leaf, Sprout, TreePine } from "lucide-react";
 import { Link } from "react-router-dom";
-import heroImage from "@/assets/hero-farm.jpg";
-import productsImage from "@/assets/products-bg.jpg";
+import heroImageWebp from "@/assets/hero-farm.webp";
+import heroImageJpg from "@/assets/hero-farm.jpg";
+import productsImageWebp from "@/assets/products-bg.webp";
+import productsImageJpg from "@/assets/products-bg.jpg";
 import { farmers } from "@/data/farmers";
 import FarmerCard from "@/components/FarmerCard";
 
@@ -13,11 +15,17 @@ const Index = () => {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
-          <img
-            src={heroImage}
-            alt="Ekološka kmetija"
-            className="w-full h-full object-cover"
-          />
+          <picture>
+            <source srcSet={heroImageWebp} type="image/webp" />
+            <img
+              src={heroImageJpg}
+              alt="Ekološka kmetija s svežo zelenjavo na Gorenjskem"
+              className="w-full h-full object-cover"
+              fetchPriority="high"
+              width={1920}
+              height={1080}
+            />
+          </picture>
           <div className="absolute inset-0 bg-foreground/60" />
         </div>
         <div className="relative container mx-auto px-4 py-28 md:py-40">
@@ -121,11 +129,17 @@ const Index = () => {
       {/* Products CTA */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
-          <img
-            src={productsImage}
-            alt="Sveži izdelki"
-            className="w-full h-full object-cover"
-          />
+          <picture>
+            <source srcSet={productsImageWebp} type="image/webp" />
+            <img
+              src={productsImageJpg}
+              alt="Sveži lokalni ekološki pridelki"
+              className="w-full h-full object-cover"
+              loading="lazy"
+              width={1920}
+              height={1080}
+            />
+          </picture>
           <div className="absolute inset-0 bg-foreground/70" />
         </div>
         <div className="relative container mx-auto px-4 py-20 text-center">
