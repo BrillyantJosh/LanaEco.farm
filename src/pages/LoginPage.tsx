@@ -139,14 +139,17 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Register link */}
-          <div className="mt-5 text-center">
-            <p className="text-sm text-muted-foreground font-sans">
-              Nimate še profila?{' '}
-              <Link to="/register" className="text-primary hover:underline font-medium">
-                Registracija
-              </Link>
+          {/* Register button */}
+          <div className="mt-5">
+            <p className="text-sm text-muted-foreground font-sans text-center mb-3">
+              Nimate še profila?
             </p>
+            <Link
+              to="/register"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-sans font-medium"
+            >
+              Registracija
+            </Link>
           </div>
 
           {/* Footer */}
