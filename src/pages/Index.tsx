@@ -23,7 +23,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/eco-units')
+    fetch('/api/eco-units?category=Eco Farm,Eco Farming')
       .then(res => res.json())
       .then((data: EcoUnit[]) => {
         setUnits(data.filter(u => u.status === 'active'));

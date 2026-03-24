@@ -71,7 +71,6 @@ async function fetchAllEcoUnits(relays: string[], timeout = 12000): Promise<Nost
       ws.on('open', () => {
         ws.send(JSON.stringify(['REQ', subId, {
           kinds: [30901],
-          '#category': ['Eco Farming'],
         }]));
       });
 
@@ -147,10 +146,19 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
       }
 
       const events = await fetchAllEcoUnits(relays);
-      const units = events
+      const categoryFilter = (req.query.category as string) || '';
+      const allUnits = events
         .map(parseUnit)
-        .filter(u => u.status === 'active' && u.name)
-        .sort((a, b) => a.name.localeCompare(b.name));
+        .filter(u => u.status === 'active' && u.name);
+
+      // If category filter specified, filter by it (supports comma-separated)
+      let units = allUnits;
+      if (categoryFilter) {
+        const cats = categoryFilter.split(',').map(c => c.trim().toLowerCase());
+        units = allUnits.filter(u => cats.includes(u.category.toLowerCase()));
+      }
+
+      units.sort((a, b) => a.name.localeCompare(b.name));
 
       cachedUnits = units;
       cacheTimestamp = Date.now();

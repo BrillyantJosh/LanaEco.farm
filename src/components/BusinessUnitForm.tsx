@@ -9,11 +9,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSystemParams } from '@/contexts/SystemParamsContext';
 
 const CATEGORIES = [
-  'Eco Farming',
-  'Café / Restaurant',
-  'Retail',
+  'Eco Farm',
+  'Shop',
+  'Café & Restaurant',
+  'Beauty & Wellness',
+  'Fashion',
+  'Furniture',
+  'Construction',
+  'Event & Workshop',
+  'Accommodation',
+  'Pet',
   'Service',
-  'Grocery',
   'Online',
   'Other'
 ];
