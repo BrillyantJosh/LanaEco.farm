@@ -5,7 +5,11 @@ import path from "path";
 export default defineConfig({
   server: {
     host: "::",
-    port: 8080,
+    port: 5173,
+    proxy: {
+      '/api': 'http://localhost:3007',
+      '/health': 'http://localhost:3007',
+    },
   },
   plugins: [react()],
   resolve: {
