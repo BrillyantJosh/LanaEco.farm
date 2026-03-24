@@ -32,7 +32,7 @@ export default function LoginPage() {
 
     try {
       await login(wif, params.relays, rememberMe);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Neveljaven WIF ključ.');
     } finally {
