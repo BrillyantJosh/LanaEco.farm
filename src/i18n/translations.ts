@@ -272,6 +272,21 @@ const en = {
   'delivery.farmers_market': 'Farmers market',
   'delivery.shipping': 'Shipping',
   'delivery.box_scheme': 'Box scheme',
+
+  // Unit categories
+  'cat.eco_farm': 'Eco Farm',
+  'cat.shop': 'Shop',
+  'cat.cafe': 'Café & Restaurant',
+  'cat.beauty': 'Beauty & Wellness',
+  'cat.fashion': 'Fashion',
+  'cat.furniture': 'Furniture',
+  'cat.construction': 'Construction',
+  'cat.event': 'Event & Workshop',
+  'cat.accommodation': 'Accommodation',
+  'cat.pet': 'Pet',
+  'cat.service': 'Service',
+  'cat.online': 'Online',
+  'cat.other': 'Other',
 };
 
 const sl: typeof en = {
@@ -546,6 +561,21 @@ const sl: typeof en = {
   'delivery.farmers_market': 'Tržnica',
   'delivery.shipping': 'Pošiljanje',
   'delivery.box_scheme': 'Zabojček',
+
+  // Unit categories
+  'cat.eco_farm': 'Eko kmetija',
+  'cat.shop': 'Trgovina',
+  'cat.cafe': 'Kavarna in restavracija',
+  'cat.beauty': 'Lepota in dobro počutje',
+  'cat.fashion': 'Moda',
+  'cat.furniture': 'Pohištvo',
+  'cat.construction': 'Gradbeništvo',
+  'cat.event': 'Dogodek in delavnica',
+  'cat.accommodation': 'Nastanitev',
+  'cat.pet': 'Živali',
+  'cat.service': 'Storitev',
+  'cat.online': 'Spletno',
+  'cat.other': 'Drugo',
 };
 
 export const translations: Record<Locale, typeof en> = { en, sl };

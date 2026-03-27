@@ -7,21 +7,23 @@ import { signNostrEvent } from '@/lib/nostrSigning';
 import { publishToRelays, type BusinessUnit } from '@/lib/nostr';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSystemParams } from '@/contexts/SystemParamsContext';
+import { useLanguage } from '@/i18n/LanguageContext';
+import type { TranslationKey } from '@/i18n/translations';
 
-const CATEGORIES = [
-  'Eco Farm',
-  'Shop',
-  'Café & Restaurant',
-  'Beauty & Wellness',
-  'Fashion',
-  'Furniture',
-  'Construction',
-  'Event & Workshop',
-  'Accommodation',
-  'Pet',
-  'Service',
-  'Online',
-  'Other'
+const CATEGORY_KEYS: { value: string; tKey: TranslationKey }[] = [
+  { value: 'Eco Farm', tKey: 'cat.eco_farm' },
+  { value: 'Shop', tKey: 'cat.shop' },
+  { value: 'Café & Restaurant', tKey: 'cat.cafe' },
+  { value: 'Beauty & Wellness', tKey: 'cat.beauty' },
+  { value: 'Fashion', tKey: 'cat.fashion' },
+  { value: 'Furniture', tKey: 'cat.furniture' },
+  { value: 'Construction', tKey: 'cat.construction' },
+  { value: 'Event & Workshop', tKey: 'cat.event' },
+  { value: 'Accommodation', tKey: 'cat.accommodation' },
+  { value: 'Pet', tKey: 'cat.pet' },
+  { value: 'Service', tKey: 'cat.service' },
+  { value: 'Online', tKey: 'cat.online' },
+  { value: 'Other', tKey: 'cat.other' },
 ];
 
 interface BusinessUnitFormProps {
@@ -68,6 +70,7 @@ interface FormData {
 
 export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProps) {
   const { session } = useAuth();
+  const { t } = useLanguage();
   const { params } = useSystemParams();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +94,7 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
     latitude: unit?.latitude || '',
     country: unit?.country || '',
     currency: unit?.currency || session?.profileCurrency || 'EUR',
-    category: unit?.category || CATEGORIES[0],
+    category: unit?.category || CATEGORY_KEYS[0].value,
     categoryDetail: unit?.categoryDetail || '',
     images: unit?.images?.length ? [...unit.images] : [],
     status: unit?.status || 'active',
@@ -361,7 +364,7 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
             <div>
               <label className={labelClass('category')}>Category *</label>
               <select className={inputClass('category')} value={form.category} onChange={e => updateField('category', e.target.value)}>
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {CATEGORY_KEYS.map(c => <option key={c.value} value={c.value}>{t(c.tKey)}</option>)}
               </select>
             </div>
             <div data-invalid={invalidFields.has('categoryDetail') || undefined}>
