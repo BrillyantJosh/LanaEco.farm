@@ -19,6 +19,7 @@ const UnitDetailPage = lazy(() => import("./pages/UnitDetailPage.tsx"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage.tsx"));
 const ListingsPage = lazy(() => import("./pages/ListingsPage.tsx"));
 const ListingDetailPage = lazy(() => import("./pages/ListingDetailPage.tsx"));
+const AbundancePage = lazy(() => import("./pages/AbundancePage.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const PageLoader = () => (
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/enota/:unitId" element={<UnitDetailPage />} />
                 <Route path="/ponudbe" element={<ListingsPage />} />
                 <Route path="/ponudba/:pubkey/:listingId" element={<ListingDetailPage />} />
+                <Route path="/ekonomija-obilja" element={<AbundancePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route

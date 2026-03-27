@@ -27,12 +27,32 @@ const en = {
   'common.refresh': 'Refresh',
 
   // Footer
+  // Abundance Economy page
+  'abundance.title': 'Economy of Abundance',
+  'abundance.whatTitle': 'What is the Economy of Abundance?',
+  'abundance.whatDesc': 'When you choose the best products for yourself, you don\'t just do something good for your body — you also receive a refund as a percentage shown on the card. The same percentage of the purchase value is also paid out to the farmer.',
+  'abundance.howTitle': 'How does it work?',
+  'abundance.howP1': 'On your first purchase, you receive a Lana private key that gives you access to your wallet on the Lana blockchain. When you make a purchase, Lana coins are deposited into your wallet. Then you have three options:',
+  'abundance.howOpt1': 'Exchange the Lana for euros and withdraw them,',
+  'abundance.howOpt2': 'Use them for your next purchase at any provider in the Economy of Abundance,',
+  'abundance.howOpt3': 'Collect them until you reach the equivalent of €100 and join Lana8Wonder, where the story truly begins.',
+  'abundance.briefTitle': 'The Economy of Abundance in brief',
+  'abundance.briefDesc': 'It is based on living money that mimics the workings of nature. It is a financial system that brings a new way of understanding money — its circulation becomes natural and effortless, like breathing. If you are interested in how it works in more depth, you can join us in exploring. But you don\'t need to understand everything — just as most people drive a car without knowing how it works. If it serves you, use it.',
+  'abundance.selfTitle': 'Unconditional self-responsibility',
+  'abundance.selfDesc': 'This system is based on complete personal responsibility. In case of a dispute, the parties openly share their side, then each takes responsibility, apologises and expresses how they will grow going forward. If they do not, the account is temporarily frozen until they move from blame to responsibility.',
+  'abundance.selfP2': 'We strive for transparency and an open heart — it is not always the easiest path, but it is liberating for all.',
+  'abundance.cautionTitle': 'What to be aware of',
+  'abundance.cautionP1': 'In the Economy of Abundance there is no manipulative marketing or hidden terms. However, carefully guard your private key, as it provides access to your wallet. Keys are stored exclusively with you — if you lose it, you lose access to your funds.',
+  'abundance.cautionP2': 'Your money, your responsibility.',
+
   'footer.tagline': 'Connecting local organic producers with the community. Support local!',
 
   // Hero
   'hero.subtitle': 'Producer directory',
   'hero.title': 'From farm to your table',
-  'hero.desc1': 'The Economy of Abundance supports local organic farmers, their stories and fresh produce.',
+  'hero.desc1.before': 'The ',
+  'hero.desc1.link': 'Economy of Abundance',
+  'hero.desc1.after': ' supports local organic farmers, their stories and fresh produce.',
   'hero.desc2': '',
   'hero.explore': 'Explore farms',
   'hero.signin': 'Sign in',
@@ -339,12 +359,32 @@ const sl: typeof en = {
   'common.refresh': 'Osveži',
 
   // Footer
+  // Abundance Economy page
+  'abundance.title': 'Ekonomija obilja',
+  'abundance.whatTitle': 'Kaj je Ekonomija obilja?',
+  'abundance.whatDesc': 'Ko izberete najboljše izdelke zase, ne naredite le nekaj dobrega za svoje telo – prejmete tudi povračilo v odstotku, označenem na kartici. Enak odstotek vrednosti nakupa pa hkrati izplačamo tudi kmetu.',
+  'abundance.howTitle': 'Kako poteka?',
+  'abundance.howP1': 'Ob prvem nakupu prejmete Lana zasebni ključ, ki vam omogoča dostop do vaše denarnice na Lana blockchainu. Ob nakupu se vam na denarnico nakažejo Lane. Nato imate tri možnosti:',
+  'abundance.howOpt1': 'Lane zamenjate za evre in si jih izplačate,',
+  'abundance.howOpt2': 'jih porabite pri naslednjem nakupu pri katerem koli ponudniku v Ekonomiji obilja,',
+  'abundance.howOpt3': 'ali jih zbirate do protivrednosti 100 € in se vključite v Lana8Wonder, kjer se zgodba zares začne.',
+  'abundance.briefTitle': 'Ekonomija obilja na kratko',
+  'abundance.briefDesc': 'Temelji na živem denarju, ki posnema delovanje narave. Gre za finančni sistem, ki prinaša nov način razumevanja denarja – njegovo kroženje postane naravno in lahkotno, kot dihanje. Če vas delovanje zanima bolj poglobljeno, se nam lahko pridružite pri raziskovanju. Ni pa potrebno razumeti vsega – tako kot večina ljudi vozi avto, ne da bi poznala njegovo delovanje. Če vam služi, ga uporabljajte.',
+  'abundance.selfTitle': 'Brezpogojna samoodgovornost',
+  'abundance.selfDesc': 'Ta sistem temelji na popolni osebni odgovornosti. Ob morebitnem sporu si strani odkrito povesta svoje, nato pa vsak prevzame odgovornost, se opraviči in izrazi, kako bo rastel naprej. Če tega ne stori, se račun začasno zamrzne, dokler ne preide iz obtoževanja v odgovornost.',
+  'abundance.selfP2': 'Stremimo k transparentnosti in odprtemu srcu – ni vedno najlažje, je pa osvobajajoče za vse.',
+  'abundance.cautionTitle': 'Na kaj bodite pozorni',
+  'abundance.cautionP1': 'V Ekonomiji obilja ni manipulativnega marketinga ali skritih pogojev. Kljub temu pa skrbno varujte svoj zasebni ključ, saj omogoča dostop do vaše denarnice. Ključi se hranijo izključno pri vas – če ga izgubite, izgubite tudi dostop do sredstev.',
+  'abundance.cautionP2': 'Vaš denar, vaša odgovornost.',
+
   'footer.tagline': 'Povezujemo lokalne ekološke pridelovalce s skupnostjo. Podprite lokalno!',
 
   // Hero
   'hero.subtitle': 'Imenik pridelovalcev',
   'hero.title': 'Od njive do vaše mize',
-  'hero.desc1': 'Ekonomija Obilja podpira lokalne ekološke kmete, njihove zgodbe in sveže pridelke.',
+  'hero.desc1.before': '',
+  'hero.desc1.link': 'Ekonomija Obilja',
+  'hero.desc1.after': ' podpira lokalne ekološke kmete, njihove zgodbe in sveže pridelke.',
   'hero.desc2': '',
   'hero.explore': 'Razišči kmete',
   'hero.signin': 'Prijava',

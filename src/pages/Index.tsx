@@ -94,8 +94,11 @@ const Index = () => {
               {t('hero.title')}
             </h1>
             <p className="mt-4 text-lg text-primary-foreground/80 font-sans max-w-lg">
-              {t('hero.desc1')}{' '}
-              {t('hero.desc2')}
+              {t('hero.desc1.before')}
+              <Link to="/ekonomija-obilja" className="text-white font-bold underline underline-offset-4 decoration-2 hover:text-green-200 transition-colors text-xl">
+                {t('hero.desc1.link')}
+              </Link>
+              {t('hero.desc1.after')}
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <a
