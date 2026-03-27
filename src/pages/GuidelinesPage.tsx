@@ -127,6 +127,18 @@ function GuidelinesPage() {
           ))}
         </div>
 
+        {/* Path to Abundance */}
+        <div className="mt-12 bg-primary/5 border border-primary/20 rounded-lg p-6 md:p-8">
+          <h2 className="font-display text-2xl font-bold text-primary mb-4">
+            {t('guidelines.abundanceTitle')}
+          </h2>
+          <div className="space-y-4 text-sm font-sans text-foreground leading-relaxed">
+            <p>{t('guidelines.abundanceP1')}</p>
+            <p>{t('guidelines.abundanceP2')}</p>
+            <p className="font-medium italic text-primary">{t('guidelines.abundanceP3')}</p>
+          </div>
+        </div>
+
         {/* Community Role */}
         <div className="mt-8 bg-accent/10 border border-accent/20 rounded-lg p-6 md:p-8">
           <div className="flex items-center gap-3 mb-4">
