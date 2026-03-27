@@ -19,6 +19,7 @@ interface EcoListing {
   images: string[];
   eco: string[];
   tags: string[];
+  cashbackPercent: number;
 }
 
 interface EcoUnit {
@@ -31,6 +32,7 @@ interface EcoUnit {
   images: string[];
   content: string;
   status: string;
+  cashbackPercent: number;
 }
 
 const Index = () => {
@@ -207,7 +209,10 @@ const Index = () => {
                       {unit.content}
                     </p>
                   )}
-                  <div className="mt-4 flex items-center gap-2">
+                  <div className="mt-4 flex items-center gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2.5 py-1 rounded-full text-xs font-sans font-bold">
+                      {unit.cashbackPercent}% cashback
+                    </span>
                     <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2.5 py-1 rounded-full text-xs font-sans font-medium">
                       <Leaf className="w-3 h-3" />
                       {unit.category}
@@ -253,7 +258,10 @@ const Index = () => {
                 </div>
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-sans font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full capitalize">{listing.type}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-sans font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full capitalize">{listing.type}</span>
+                      <span className="text-xs font-sans font-bold text-green-800 bg-green-100 px-2 py-0.5 rounded-full">{listing.cashbackPercent || 5}%</span>
+                    </div>
                     <span className="text-sm font-semibold font-sans">{listing.price} {listing.priceCurrency}/{listing.unit}</span>
                   </div>
                   <h3 className="font-display text-base font-semibold truncate">{listing.title}</h3>

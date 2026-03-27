@@ -116,8 +116,63 @@ async function fetchAllEcoUnits(relays: string[], timeout = 12000): Promise<Nost
   return Array.from(byDTag.values());
 }
 
-// Cache to avoid hammering relays on every page load
-let cachedUnits: ReturnType<typeof parseUnit>[] = [];
+const PROCESSOR_PUBKEY = '79730aba75d71584e8a4f9d0cc1173085e75590ce489760078d2bf6f5210d692';
+const DEFAULT_CASHBACK = 5;
+
+async function fetchFeePolicies(relays: string[], timeout = 12000): Promise<NostrEvent[]> {
+  const fetchFromRelay = (relayUrl: string): Promise<NostrEvent[]> => {
+    return new Promise((resolve) => {
+      const events: NostrEvent[] = [];
+      const timeoutId = setTimeout(() => { try { ws.close(); } catch {} resolve(events); }, timeout);
+      let ws: WebSocket;
+      try { ws = new WebSocket(relayUrl); } catch { clearTimeout(timeoutId); resolve([]); return; }
+      const subId = `fee_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+      ws.on('open', () => {
+        ws.send(JSON.stringify(['REQ', subId, { kinds: [30902], authors: [PROCESSOR_PUBKEY] }]));
+      });
+      ws.on('message', (data: Buffer) => {
+        try {
+          const msg = JSON.parse(data.toString());
+          if (msg[0] === 'EVENT' && msg[1] === subId) events.push(msg[2] as NostrEvent);
+          else if (msg[0] === 'EOSE') { clearTimeout(timeoutId); ws.close(); resolve(events); }
+        } catch {}
+      });
+      ws.on('error', () => { clearTimeout(timeoutId); resolve(events); });
+    });
+  };
+
+  const results = await Promise.all(relays.map(r => fetchFromRelay(r)));
+  // Deduplicate by d-tag, keep newest
+  const byDTag = new Map<string, NostrEvent>();
+  const seenIds = new Set<string>();
+  for (const relayEvents of results) {
+    for (const event of relayEvents) {
+      if (seenIds.has(event.id)) continue;
+      seenIds.add(event.id);
+      const dTag = event.tags.find(t => t[0] === 'd')?.[1] || '';
+      const existing = byDTag.get(dTag);
+      if (!existing || event.created_at > existing.created_at) byDTag.set(dTag, event);
+    }
+  }
+  return Array.from(byDTag.values());
+}
+
+function buildCashbackMap(policies: NostrEvent[]): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const event of policies) {
+    const unitId = getTag(event, 'unit_id');
+    const status = getTag(event, 'status');
+    if (!unitId || status !== 'active') continue;
+    const lanaDiscount = parseFloat(getTag(event, 'lana_discount_per') || '0');
+    if (lanaDiscount > 0 && lanaDiscount <= 20) {
+      map.set(unitId, lanaDiscount);
+    }
+  }
+  return map;
+}
+
+// Cache
+let cachedUnits: (ReturnType<typeof parseUnit> & { cashbackPercent: number })[] = [];
 let cacheTimestamp = 0;
 const CACHE_TTL = 60_000; // 1 minute
 
@@ -145,13 +200,20 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
         return;
       }
 
-      const events = await fetchAllEcoUnits(relays);
+      const [events, feeEvents] = await Promise.all([
+        fetchAllEcoUnits(relays),
+        fetchFeePolicies(relays),
+      ]);
+      const cashbackMap = buildCashbackMap(feeEvents);
+
       const categoryFilter = (req.query.category as string) || '';
       const allUnits = events
-        .map(parseUnit)
+        .map(e => ({
+          ...parseUnit(e),
+          cashbackPercent: cashbackMap.get(parseUnit(e).unitId) || DEFAULT_CASHBACK,
+        }))
         .filter(u => u.status === 'active' && u.name);
 
-      // If category filter specified, filter by it (supports comma-separated)
       let units = allUnits;
       if (categoryFilter) {
         const cats = categoryFilter.split(',').map(c => c.trim().toLowerCase());

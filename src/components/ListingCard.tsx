@@ -51,9 +51,14 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
       <div className="p-4">
         {/* Type badge + price */}
         <div className="flex items-center justify-between mb-2">
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-sans font-medium ${TYPE_COLORS[listing.type] || 'bg-muted text-muted-foreground'}`}>
-            {TYPE_LABELS[listing.type] || listing.type}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-sans font-medium ${TYPE_COLORS[listing.type] || 'bg-muted text-muted-foreground'}`}>
+              {TYPE_LABELS[listing.type] || listing.type}
+            </span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-sans font-bold bg-green-100 text-green-800">
+              {(listing as any).cashbackPercent || 5}% cashback
+            </span>
+          </div>
           {listing.price && (
             <span className="text-sm font-semibold text-foreground font-sans">
               {listing.price} {listing.priceCurrency}

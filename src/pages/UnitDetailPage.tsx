@@ -250,9 +250,14 @@ export default function UnitDetailPage() {
                       )}
                       <div className="p-3">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] font-sans font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                            {TYPE_LABELS[listing.type] || listing.type}
-                          </span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-sans font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                              {TYPE_LABELS[listing.type] || listing.type}
+                            </span>
+                            <span className="text-[10px] font-sans font-bold text-green-800 bg-green-100 px-1.5 py-0.5 rounded-full">
+                              {(listing as any).cashbackPercent || 5}%
+                            </span>
+                          </div>
                           <span className="text-sm font-semibold font-sans">
                             {listing.price} {listing.priceCurrency}
                             {listing.unit && <span className="text-xs font-normal text-muted-foreground">/{listing.unit}</span>}

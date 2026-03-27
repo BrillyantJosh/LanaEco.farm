@@ -138,8 +138,47 @@ async function fetchAllListings(relays: string[], timeout = 12000): Promise<Nost
   return Array.from(byKey.values());
 }
 
+const PROCESSOR_PUBKEY = '79730aba75d71584e8a4f9d0cc1173085e75590ce489760078d2bf6f5210d692';
+const DEFAULT_CASHBACK = 5;
+
+async function fetchFeePolicies(relays: string[], timeout = 12000): Promise<NostrEvent[]> {
+  const fetchFromRelay = (relayUrl: string): Promise<NostrEvent[]> => {
+    return new Promise((resolve) => {
+      const events: NostrEvent[] = [];
+      const timeoutId = setTimeout(() => { try { ws.close(); } catch {} resolve(events); }, timeout);
+      let ws: WebSocket;
+      try { ws = new WebSocket(relayUrl); } catch { clearTimeout(timeoutId); resolve([]); return; }
+      const subId = `fee_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+      ws.on('open', () => {
+        ws.send(JSON.stringify(['REQ', subId, { kinds: [30902], authors: [PROCESSOR_PUBKEY] }]));
+      });
+      ws.on('message', (data: Buffer) => {
+        try {
+          const msg = JSON.parse(data.toString());
+          if (msg[0] === 'EVENT' && msg[1] === subId) events.push(msg[2] as NostrEvent);
+          else if (msg[0] === 'EOSE') { clearTimeout(timeoutId); ws.close(); resolve(events); }
+        } catch {}
+      });
+      ws.on('error', () => { clearTimeout(timeoutId); resolve(events); });
+    });
+  };
+  const results = await Promise.all(relays.map(r => fetchFromRelay(r)));
+  const byDTag = new Map<string, NostrEvent>();
+  const seenIds = new Set<string>();
+  for (const relayEvents of results) {
+    for (const event of relayEvents) {
+      if (seenIds.has(event.id)) continue;
+      seenIds.add(event.id);
+      const dTag = event.tags.find(t => t[0] === 'd')?.[1] || '';
+      const existing = byDTag.get(dTag);
+      if (!existing || event.created_at > existing.created_at) byDTag.set(dTag, event);
+    }
+  }
+  return Array.from(byDTag.values());
+}
+
 // Cache
-let cachedListings: ReturnType<typeof parseListing>[] = [];
+let cachedListings: (ReturnType<typeof parseListing> & { cashbackPercent: number })[] = [];
 let cacheTimestamp = 0;
 const CACHE_TTL = 60_000; // 1 minute
 
@@ -160,9 +199,28 @@ export function createListingsRouter(db: Database.Database): Router {
       const relays: string[] = JSON.parse(row.relays || '[]');
       if (relays.length === 0) { res.json([]); return; }
 
-      const events = await fetchAllListings(relays);
+      const [events, feeEvents] = await Promise.all([
+        fetchAllListings(relays),
+        fetchFeePolicies(relays),
+      ]);
+
+      // Build cashback map: unitId → lana_discount_per
+      const cashbackMap = new Map<string, number>();
+      for (const fe of feeEvents) {
+        const unitId = getTag(fe, 'unit_id');
+        const status = getTag(fe, 'status');
+        if (!unitId || status !== 'active') continue;
+        const pct = parseFloat(getTag(fe, 'lana_discount_per') || '0');
+        if (pct > 0 && pct <= 20) cashbackMap.set(unitId, pct);
+      }
+
       cachedListings = events
-        .map(parseListing)
+        .map(e => {
+          const parsed = parseListing(e);
+          // Extract unitId from the a-tag: "30901:<pubkey>:<unitId>"
+          const unitIdFromRef = parsed.unitRef.split(':')[2] || '';
+          return { ...parsed, cashbackPercent: cashbackMap.get(unitIdFromRef) || DEFAULT_CASHBACK };
+        })
         .filter(l => l.status === 'active' && l.title);
       cacheTimestamp = Date.now();
 
