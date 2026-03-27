@@ -267,7 +267,7 @@ const en = {
   'status.archived': 'Archived',
 
   // Abundance badge
-  'badge.abundance': 'Abundance',
+  'badge.abundance': 'for Abundance',
 
   // Delivery options
   'delivery.pickup': 'Pickup',
@@ -559,7 +559,7 @@ const sl: typeof en = {
   'status.archived': 'Arhivirano',
 
   // Abundance badge
-  'badge.abundance': 'Obilje',
+  'badge.abundance': 'za Obilje',
 
   // Delivery options
   'delivery.pickup': 'Prevzem',
