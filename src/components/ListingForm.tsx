@@ -313,7 +313,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
         {/* === PRICING === */}
         <section className="bg-card border rounded-xl p-5 space-y-4">
           <h3 className="font-display font-semibold text-sm">{t('form.priceUnit')}</h3>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.price')} *</label>
               <input type="number" step="0.01" value={form.price} onChange={e => updateField('price', e.target.value)} placeholder="2.50" className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
@@ -339,7 +339,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
         {/* === STOCK === */}
         <section className="bg-card border rounded-xl p-5 space-y-4">
           <h3 className="font-display font-semibold text-sm">{t('form.stockOrders')}</h3>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.stock')}</label>
               <input type="number" value={form.stock} onChange={e => updateField('stock', e.target.value)} placeholder="200" className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
@@ -478,7 +478,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
         {form.type === 'experience' && (
           <section className="bg-card border rounded-xl p-5 space-y-4">
             <h3 className="font-display font-semibold text-sm">{t('form.experience')}</h3>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.capacity')}</label>
                 <input type="number" value={form.capacity} onChange={e => updateField('capacity', e.target.value)} placeholder="12" className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
@@ -501,7 +501,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
 
           {/* Image grid */}
           {form.images.length > 0 && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {form.images.map((img, i) => (
                 <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-muted group">
                   <img src={img} alt={`Image ${i + 1}`} className="w-full h-full object-cover" />

@@ -84,13 +84,13 @@ export function BusinessUnitCard({ unit, onEdit, onDelete, onStaff, onListings, 
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mt-2">
+        <div className="flex flex-wrap gap-2 mt-2">
           <button
             onClick={() => onEdit(unit)}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
+            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
           >
             <Edit className="w-4 h-4" />
-            Edit
+            <span className="hidden sm:inline">{t('common.edit')}</span>
           </button>
           {onListings && (
             <button
@@ -99,21 +99,21 @@ export function BusinessUnitCard({ unit, onEdit, onDelete, onStaff, onListings, 
               title={t('common.listings')}
             >
               <ShoppingBag className="w-4 h-4" />
-              <span className="text-xs">{t('common.listings')}</span>
+              <span className="hidden sm:inline text-xs">{t('common.listings')}</span>
             </button>
           )}
           <button
             onClick={() => onStaff(unit)}
             className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition text-sm font-medium"
-            title="Osebje"
+            title={t('common.staff')}
           >
             <Users className="w-4 h-4" />
-            <span className="text-xs">{t('common.staff')}</span>
+            <span className="hidden sm:inline text-xs">{t('common.staff')}</span>
           </button>
           <button
             onClick={() => onDelete(unit)}
             disabled={isDeleting}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition text-sm font-medium disabled:opacity-50"
+            className="flex items-center justify-center px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition text-sm font-medium disabled:opacity-50"
             title={t('common.delete')}
           >
             {isDeleting ? (
