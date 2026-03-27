@@ -271,7 +271,8 @@ function applyFilters(listings: ReturnType<typeof parseListing>[], query: any) {
   }
 
   // Sort newest first by default
-  result.sort((a, b) => b.createdAt - a.createdAt);
+  // Sort by cashback desc (best deals first), then by date
+  result.sort((a, b) => ((b as any).cashbackPercent || 5) - ((a as any).cashbackPercent || 5) || b.createdAt - a.createdAt);
 
   return result;
 }

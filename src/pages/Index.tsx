@@ -54,7 +54,9 @@ const Index = () => {
     fetch('/api/listings')
       .then(res => res.json())
       .then((data: EcoListing[]) => {
-        setListings(data.slice(0, 6));
+        // Sort by cashback % descending — best deals first
+        const sorted = [...data].sort((a: any, b: any) => (b.cashbackPercent || 5) - (a.cashbackPercent || 5));
+        setListings(sorted.slice(0, 6));
         setListingsLoading(false);
       })
       .catch(() => setListingsLoading(false));
@@ -241,11 +243,13 @@ const Index = () => {
             </Link>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {listings.map((listing) => (
+            {listings.map((listing) => {
+              const isTopDeal = (listing.cashbackPercent || 5) >= 15;
+              return (
               <Link
                 key={`${listing.pubkey}-${listing.listingId}`}
                 to={`/ponudba/${listing.pubkey}/${listing.listingId}`}
-                className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
+                className={`group rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 ${isTopDeal ? 'bg-green-50 border-2 border-green-300 ring-2 ring-green-100' : 'bg-card border'}`}
               >
                 <div className="aspect-[16/10] overflow-hidden bg-muted">
                   {listing.images[0] ? (
@@ -259,8 +263,8 @@ const Index = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-sans font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full capitalize">{listing.type}</span>
-                      <span className="text-xs font-sans font-bold text-green-800 bg-green-100 px-2 py-0.5 rounded-full">{listing.cashbackPercent || 5}%</span>
+                      <span className="text-xs font-sans font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{t(`type.${listing.type}` as any)}</span>
+                      <span className={`text-xs font-sans font-bold px-2 py-0.5 rounded-full ${(listing.cashbackPercent || 5) >= 15 ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800'}`}>{listing.cashbackPercent || 5}% cashback</span>
                     </div>
                     <span className="text-sm font-semibold font-sans">{listing.price} {listing.priceCurrency}/{listing.unit}</span>
                   </div>
@@ -279,7 +283,8 @@ const Index = () => {
                   )}
                 </div>
               </Link>
-            ))}
+              );
+            })}
           </div>
           <div className="mt-6 md:hidden text-center">
             <Link to="/ponudbe" className="inline-flex items-center gap-1 text-primary font-sans text-sm font-medium">

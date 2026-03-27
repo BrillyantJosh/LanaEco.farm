@@ -49,6 +49,8 @@ export default function ListingsPage() {
     }
     if (typeFilter) result = result.filter(l => l.type === typeFilter);
     if (categoryFilter) result = result.filter(l => l.tags.includes(categoryFilter));
+    // Sort by cashback % descending — best deals first
+    result.sort((a: any, b: any) => (b.cashbackPercent || 5) - (a.cashbackPercent || 5));
     setFiltered(result);
   }, [search, typeFilter, categoryFilter, listings]);
 

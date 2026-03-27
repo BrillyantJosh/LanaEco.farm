@@ -30,8 +30,10 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
 
   const mainImage = listing.images[0] || listing.thumbs[0];
 
+  const isTopDeal = ((listing as any).cashbackPercent || 5) >= 15;
+
   const card = (
-    <div className="bg-card border rounded-xl overflow-hidden hover:shadow-md transition group">
+    <div className={`rounded-xl overflow-hidden hover:shadow-md transition group ${isTopDeal ? 'bg-green-50 border-2 border-green-300 ring-2 ring-green-100' : 'bg-card border'}`}>
       {/* Image */}
       {mainImage ? (
         <div className="aspect-[4/3] overflow-hidden bg-muted">
@@ -55,7 +57,7 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-sans font-medium ${TYPE_COLORS[listing.type] || 'bg-muted text-muted-foreground'}`}>
               {TYPE_LABELS[listing.type] || listing.type}
             </span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-sans font-bold bg-green-100 text-green-800">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-sans font-bold ${((listing as any).cashbackPercent || 5) >= 15 ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800'}`}>
               {(listing as any).cashbackPercent || 5}% cashback
             </span>
           </div>
