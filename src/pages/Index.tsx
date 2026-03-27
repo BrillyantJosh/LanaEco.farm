@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowRight, Leaf, Sprout, TreePine, MapPin, Loader2, ShoppingBag, Tag } from "lucide-react";
+import { ArrowRight, Leaf, Sprout, ShieldCheck, MapPin, Loader2, ShoppingBag, Tag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from '@/i18n/LanguageContext';
 import heroImageWebp from "@/assets/hero-farm.webp";
@@ -130,7 +130,7 @@ const Index = () => {
               desc: t('values.supply.desc'),
             },
             {
-              icon: <TreePine className="h-8 w-8 text-primary" />,
+              icon: <ShieldCheck className="h-8 w-8 text-primary" />,
               title: t('values.bio.title'),
               desc: t('values.bio.desc'),
             },
