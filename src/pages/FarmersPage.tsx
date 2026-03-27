@@ -136,8 +136,8 @@ export default function FarmersPage() {
                   </p>
                 )}
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-sans font-bold">
-                    {unit.cashbackPercent}% {t('badge.abundance')}
+                  <span className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-full text-sm font-sans font-bold shadow-sm">
+                    🌿 {unit.cashbackPercent}% {t('badge.abundance')}
                   </span>
                   {unit.category && (
                     <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-sans font-medium">

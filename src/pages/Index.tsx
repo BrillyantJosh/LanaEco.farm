@@ -212,8 +212,8 @@ const Index = () => {
                     </p>
                   )}
                   <div className="mt-4 flex items-center gap-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2.5 py-1 rounded-full text-xs font-sans font-bold">
-                      {unit.cashbackPercent}% {t('badge.abundance')}
+                    <span className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-full text-sm font-sans font-bold shadow-sm">
+                      🌿 {unit.cashbackPercent}% {t('badge.abundance')}
                     </span>
                     <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2.5 py-1 rounded-full text-xs font-sans font-medium">
                       <Leaf className="w-3 h-3" />
@@ -264,7 +264,7 @@ const Index = () => {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-sans font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{t(`type.${listing.type}` as any)}</span>
-                      <span className={`text-xs font-sans font-bold px-2 py-0.5 rounded-full ${(listing.cashbackPercent || 5) >= 15 ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800'}`}>{listing.cashbackPercent || 5}% {t('badge.abundance')}</span>
+                      <span className={`text-sm font-sans font-bold px-3 py-1 rounded-full shadow-sm ${(listing.cashbackPercent || 5) >= 15 ? 'bg-green-600 text-white' : 'bg-green-600 text-white'}`}>🌿 {listing.cashbackPercent || 5}% {t('badge.abundance')}</span>
                     </div>
                     <span className="text-sm font-semibold font-sans">{listing.price} {listing.priceCurrency}/{listing.unit}</span>
                   </div>

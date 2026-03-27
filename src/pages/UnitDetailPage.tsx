@@ -254,8 +254,8 @@ export default function UnitDetailPage() {
                             <span className="text-[10px] font-sans font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                               {TYPE_LABELS[listing.type] || listing.type}
                             </span>
-                            <span className="text-[10px] font-sans font-bold text-green-800 bg-green-100 px-1.5 py-0.5 rounded-full">
-                              {(listing as any).cashbackPercent || 5}%
+                            <span className="text-xs font-sans font-bold text-white bg-green-600 px-2.5 py-1 rounded-full shadow-sm">
+                              🌿 {(listing as any).cashbackPercent || 5}%
                             </span>
                           </div>
                           <span className="text-sm font-semibold font-sans">
