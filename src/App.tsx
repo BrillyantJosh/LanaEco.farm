@@ -12,8 +12,6 @@ import Footer from "@/components/Footer";
 import Index from "./pages/Index.tsx";
 
 const FarmersPage = lazy(() => import("./pages/FarmersPage.tsx"));
-const FarmerDetailPage = lazy(() => import("./pages/FarmerDetailPage.tsx"));
-const ProductsPage = lazy(() => import("./pages/ProductsPage.tsx"));
 const GuidelinesPage = lazy(() => import("./pages/GuidelinesPage.tsx"));
 const LoginPage = lazy(() => import("./pages/LoginPage.tsx"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage.tsx"));
@@ -43,8 +41,6 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/kmetje" element={<FarmersPage />} />
-                <Route path="/kmetje/:id" element={<FarmerDetailPage />} />
-                <Route path="/izdelki" element={<ProductsPage />} />
                 <Route path="/smernice" element={<GuidelinesPage />} />
                 <Route path="/enota/:unitId" element={<UnitDetailPage />} />
                 <Route path="/ponudbe" element={<ListingsPage />} />

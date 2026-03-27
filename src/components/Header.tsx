@@ -8,7 +8,6 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 const navKeys = [
   { key: 'nav.home' as const, path: "/" },
   { key: 'nav.farms' as const, path: "/kmetje" },
-  { key: 'nav.products' as const, path: "/izdelki" },
   { key: 'nav.listings' as const, path: "/ponudbe" },
   { key: 'nav.guidelines' as const, path: "/smernice" },
 ];
