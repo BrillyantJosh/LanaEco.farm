@@ -32,19 +32,19 @@ const en = {
   // Hero
   'hero.subtitle': 'Producer directory',
   'hero.title': 'From farm to your table',
-  'hero.desc1': 'Discover local organic farmers, their stories and fresh produce.',
-  'hero.desc2': 'Support sustainable farming in your region.',
+  'hero.desc1': 'The Economy of Abundance supports local organic farmers, their stories and fresh produce.',
+  'hero.desc2': '',
   'hero.explore': 'Explore farms',
   'hero.signin': 'Sign in',
   'hero.browseProducts': 'Browse products',
 
   // Values
-  'values.organic.title': 'Organic farming',
-  'values.organic.desc': 'No pesticides or chemical fertilizers — for healthy food and a clean environment.',
-  'values.supply.title': 'Short supply chains',
-  'values.supply.desc': 'Directly from farmer to you — fresh, local, fair.',
-  'values.bio.title': 'Biodiversity',
-  'values.bio.desc': 'Preserving heritage varieties, mixed crops and caring for pollinators.',
+  'values.organic.title': 'Path to Abundance',
+  'values.organic.desc': 'We strive for the best that exists.',
+  'values.supply.title': 'Choose the highest share of Abundance',
+  'values.supply.desc': 'You receive more, the farmer receives more — and the highest quality lands on your plate.',
+  'values.bio.title': 'Unconditional self-responsibility',
+  'values.bio.desc': 'No marketing — you stand behind every word you say. Otherwise, unconditional self-responsibility follows.',
 
   // Eco farms section
   'eco.title': 'Eco farms',
@@ -324,19 +324,19 @@ const sl: typeof en = {
   // Hero
   'hero.subtitle': 'Imenik pridelovalcev',
   'hero.title': 'Od njive do vaše mize',
-  'hero.desc1': 'Odkrijte lokalne ekološke kmete, njihove zgodbe in sveže pridelke.',
-  'hero.desc2': 'Podprite trajnostno kmetijstvo v vaši regiji.',
+  'hero.desc1': 'Ekonomija Obilja podpira lokalne ekološke kmete, njihove zgodbe in sveže pridelke.',
+  'hero.desc2': '',
   'hero.explore': 'Razišči kmete',
   'hero.signin': 'Prijava',
   'hero.browseProducts': 'Prebrskaj izdelke',
 
   // Values
-  'values.organic.title': 'Ekološka pridelava',
-  'values.organic.desc': 'Brez pesticidov in kemičnih gnojil – za zdravo hrano in čisto okolje.',
-  'values.supply.title': 'Kratke dobavne verige',
-  'values.supply.desc': 'Neposredno od kmeta do vas – sveže, lokalno, pravično.',
-  'values.bio.title': 'Biotska raznovrstnost',
-  'values.bio.desc': 'Ohranjanje starih sort, mešani posevki in skrb za opraševalce.',
+  'values.organic.title': 'Pot do obilja',
+  'values.organic.desc': 'Stremimo k najboljšemu, kar obstaja.',
+  'values.supply.title': 'Izberite najvišji delež obilja',
+  'values.supply.desc': 'Vi prejmete več, kmet prejme več – na vaš krožnik pa pride najvišja kakovost.',
+  'values.bio.title': 'Brezpogojna samoodgovornost',
+  'values.bio.desc': 'Brez marketinga – za vsako izrečeno besedo stojite. Sicer sledi brezpogojna samoodgovornost.',
 
   // Eco farms section
   'eco.title': 'Ekološke kmetije',
