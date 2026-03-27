@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Globe, Tag, Leaf, ChevronLeft, ChevronRight, X, ExternalLink } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Globe, Tag, Leaf, ChevronLeft, ChevronRight, X, ExternalLink, ShoppingBag, Loader2 } from 'lucide-react';
 
 interface EcoUnit {
   eventId: string;
@@ -28,6 +28,25 @@ interface EcoUnit {
   content: string;
 }
 
+interface EcoListing {
+  listingId: string;
+  pubkey: string;
+  title: string;
+  type: string;
+  price: string;
+  priceCurrency: string;
+  unit: string;
+  content: string;
+  images: string[];
+  eco: string[];
+  tags: string[];
+  status: string;
+}
+
+const TYPE_LABELS: Record<string, string> = {
+  product: 'Product', subscription: 'Subscription', service: 'Service', experience: 'Experience',
+};
+
 interface OpeningHours {
   [day: string]: { enabled: boolean; from: string; to: string };
 }
@@ -47,6 +66,8 @@ export default function UnitDetailPage() {
   const [unit, setUnit] = useState<EcoUnit | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [listings, setListings] = useState<EcoListing[]>([]);
+  const [listingsLoading, setListingsLoading] = useState(true);
 
   useEffect(() => {
     const fetchUnit = async () => {
@@ -62,6 +83,13 @@ export default function UnitDetailPage() {
       }
     };
     fetchUnit();
+
+    // Fetch listings for this unit
+    fetch('/api/listings?unit=' + unitId)
+      .then(r => r.json())
+      .then((data: EcoListing[]) => setListings(data.filter(l => l.status === 'active')))
+      .catch(() => {})
+      .finally(() => setListingsLoading(false));
   }, [unitId]);
 
   if (isLoading) {
@@ -197,6 +225,58 @@ export default function UnitDetailPage() {
                   ))}
                 </div>
               </section>
+            )}
+
+            {/* Listings */}
+            {!listingsLoading && listings.length > 0 && (
+              <section>
+                <h2 className="font-display text-xl font-semibold mb-4 flex items-center gap-2">
+                  <ShoppingBag className="w-5 h-5 text-primary" />
+                  Listings ({listings.length})
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {listings.map(listing => (
+                    <Link
+                      key={`${listing.pubkey}-${listing.listingId}`}
+                      to={`/ponudba/${listing.pubkey}/${listing.listingId}`}
+                      className="group bg-card border rounded-xl overflow-hidden hover:shadow-md transition"
+                    >
+                      {listing.images[0] && (
+                        <div className="aspect-[16/9] overflow-hidden bg-muted">
+                          <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                        </div>
+                      )}
+                      <div className="p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-sans font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                            {TYPE_LABELS[listing.type] || listing.type}
+                          </span>
+                          <span className="text-sm font-semibold font-sans">
+                            {listing.price} {listing.priceCurrency}
+                            {listing.unit && <span className="text-xs font-normal text-muted-foreground">/{listing.unit}</span>}
+                          </span>
+                        </div>
+                        <h3 className="font-display text-sm font-semibold truncate">{listing.title}</h3>
+                        {listing.eco.length > 0 && (
+                          <div className="flex gap-1 mt-1.5">
+                            {listing.eco.slice(0, 2).map(e => (
+                              <span key={e} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-[9px] font-sans">
+                                <Leaf className="w-2 h-2" />{e.replace(/_/g, ' ')}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {listingsLoading && (
+              <div className="flex items-center gap-2 text-muted-foreground text-sm font-sans py-4">
+                <Loader2 className="w-4 h-4 animate-spin" /> Loading listings...
+              </div>
             )}
 
             {/* Video */}
