@@ -153,7 +153,7 @@ function GuidelinesPage() {
           </ol>
         </div>
 
-        {/* Premium Q&A */}
+        {/* Q&A combined */}
         <div className="mt-8 bg-card border rounded-lg p-6 md:p-8 space-y-6">
           <div>
             <h3 className="font-display text-lg font-semibold mb-2">{t('guidelines.premiumQTitle')}</h3>
@@ -163,6 +163,11 @@ function GuidelinesPage() {
             <h3 className="font-display text-lg font-semibold mb-2">{t('guidelines.cashQTitle')}</h3>
             <p className="text-sm font-sans text-muted-foreground leading-relaxed">{t('guidelines.cashQDesc')}</p>
           </div>
+          <div>
+            <h3 className="font-display text-lg font-semibold mb-2">{t('guidelines.limitsTitle')}</h3>
+            <p className="text-sm font-sans text-muted-foreground leading-relaxed">{t('guidelines.limitsP1')}</p>
+            <p className="text-sm font-sans text-muted-foreground leading-relaxed mt-2 font-medium italic">{t('guidelines.limitsP2')}</p>
+          </div>
         </div>
 
         {/* Trust */}
@@ -171,15 +176,6 @@ function GuidelinesPage() {
           <div className="space-y-3 text-sm font-sans text-foreground leading-relaxed">
             <p>{t('guidelines.trustP1')}</p>
             <p className="italic">{t('guidelines.trustP2')}</p>
-          </div>
-        </div>
-
-        {/* Limits */}
-        <div className="mt-8 bg-card border rounded-lg p-6 md:p-8">
-          <h3 className="font-display text-lg font-semibold mb-3">{t('guidelines.limitsTitle')}</h3>
-          <div className="space-y-3 text-sm font-sans text-foreground leading-relaxed">
-            <p>{t('guidelines.limitsP1')}</p>
-            <p className="font-medium italic text-primary">{t('guidelines.limitsP2')}</p>
           </div>
         </div>
 
