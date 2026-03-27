@@ -58,7 +58,7 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
               {TYPE_LABELS[listing.type] || listing.type}
             </span>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-sans font-bold ${((listing as any).cashbackPercent || 5) >= 15 ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800'}`}>
-              {(listing as any).cashbackPercent || 5}% cashback
+              {(listing as any).cashbackPercent || 5}% {t('badge.abundance')}
             </span>
           </div>
           {listing.price && (

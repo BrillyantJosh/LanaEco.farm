@@ -137,7 +137,7 @@ export default function FarmersPage() {
                 )}
                 <div className="flex flex-wrap gap-1.5">
                   <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-sans font-bold">
-                    {unit.cashbackPercent}% cashback
+                    {unit.cashbackPercent}% {t('badge.abundance')}
                   </span>
                   {unit.category && (
                     <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-sans font-medium">

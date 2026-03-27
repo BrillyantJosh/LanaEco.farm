@@ -266,6 +266,9 @@ const en = {
   'status.seasonal': 'Seasonal',
   'status.archived': 'Archived',
 
+  // Abundance badge
+  'badge.abundance': 'Abundance',
+
   // Delivery options
   'delivery.pickup': 'Pickup',
   'delivery.local_delivery': 'Local delivery',
@@ -554,6 +557,9 @@ const sl: typeof en = {
   'status.sold_out': 'Razprodano',
   'status.seasonal': 'Sezonsko',
   'status.archived': 'Arhivirano',
+
+  // Abundance badge
+  'badge.abundance': 'Obilje',
 
   // Delivery options
   'delivery.pickup': 'Prevzem',
