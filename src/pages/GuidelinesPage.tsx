@@ -139,6 +139,50 @@ function GuidelinesPage() {
           </div>
         </div>
 
+        {/* How it works */}
+        <div className="mt-12 bg-card border rounded-lg p-6 md:p-8">
+          <h2 className="font-display text-2xl font-bold mb-5">
+            {t('guidelines.howTitle')}
+          </h2>
+          <ol className="space-y-4 text-sm font-sans text-foreground leading-relaxed list-decimal list-inside">
+            <li>{t('guidelines.howStep1')}</li>
+            <li>{t('guidelines.howStep2')}</li>
+            <li>{t('guidelines.howStep3')}</li>
+            <li>{t('guidelines.howStep4')}</li>
+            <li>{t('guidelines.howStep5')}</li>
+          </ol>
+        </div>
+
+        {/* Premium Q&A */}
+        <div className="mt-8 bg-card border rounded-lg p-6 md:p-8 space-y-6">
+          <div>
+            <h3 className="font-display text-lg font-semibold mb-2">{t('guidelines.premiumQTitle')}</h3>
+            <p className="text-sm font-sans text-muted-foreground leading-relaxed">{t('guidelines.premiumQDesc')}</p>
+          </div>
+          <div>
+            <h3 className="font-display text-lg font-semibold mb-2">{t('guidelines.cashQTitle')}</h3>
+            <p className="text-sm font-sans text-muted-foreground leading-relaxed">{t('guidelines.cashQDesc')}</p>
+          </div>
+        </div>
+
+        {/* Trust */}
+        <div className="mt-8 bg-primary/5 border border-primary/20 rounded-lg p-6 md:p-8">
+          <h2 className="font-display text-xl font-bold text-primary mb-3">{t('guidelines.trustTitle')}</h2>
+          <div className="space-y-3 text-sm font-sans text-foreground leading-relaxed">
+            <p>{t('guidelines.trustP1')}</p>
+            <p className="italic">{t('guidelines.trustP2')}</p>
+          </div>
+        </div>
+
+        {/* Limits */}
+        <div className="mt-8 bg-card border rounded-lg p-6 md:p-8">
+          <h3 className="font-display text-lg font-semibold mb-3">{t('guidelines.limitsTitle')}</h3>
+          <div className="space-y-3 text-sm font-sans text-foreground leading-relaxed">
+            <p>{t('guidelines.limitsP1')}</p>
+            <p className="font-medium italic text-primary">{t('guidelines.limitsP2')}</p>
+          </div>
+        </div>
+
         {/* Community Role */}
         <div className="mt-8 bg-accent/10 border border-accent/20 rounded-lg p-6 md:p-8">
           <div className="flex items-center gap-3 mb-4">
