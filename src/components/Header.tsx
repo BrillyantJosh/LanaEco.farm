@@ -4,11 +4,11 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
-  { label: "Domov", path: "/" },
-  { label: "Kmetje", path: "/kmetje" },
-  { label: "Izdelki", path: "/izdelki" },
-  { label: "Ponudbe", path: "/ponudbe" },
-  { label: "Smernice", path: "/smernice" },
+  { label: "Home", path: "/" },
+  { label: "Farms", path: "/kmetje" },
+  { label: "Products", path: "/izdelki" },
+  { label: "Listings", path: "/ponudbe" },
+  { label: "Guidelines", path: "/smernice" },
 ];
 
 const Header = () => {
@@ -29,7 +29,7 @@ const Header = () => {
         <Link to="/" className="flex items-center gap-2">
           <Leaf className="h-7 w-7 text-primary" />
           <span className="font-display text-xl font-bold text-foreground">
-            Eko Imenik
+            Eco Directory
           </span>
         </Link>
 
@@ -66,7 +66,7 @@ const Header = () => {
                 className="inline-flex items-center gap-1.5 font-sans text-sm font-medium text-muted-foreground hover:text-destructive transition-colors"
               >
                 <LogOut className="h-4 w-4" />
-                Odjava
+                Logout
               </button>
             </>
           ) : (
@@ -79,7 +79,7 @@ const Header = () => {
               }`}
             >
               <LogIn className="h-4 w-4" />
-              Prijava
+              Login
             </Link>
           )}
         </nav>
@@ -125,7 +125,7 @@ const Header = () => {
                 className="block mt-2 font-sans text-sm font-medium text-muted-foreground hover:text-destructive transition-colors"
               >
                 <LogOut className="h-4 w-4 inline mr-1.5" />
-                Odjava
+                Logout
               </button>
             </>
           ) : (
@@ -135,7 +135,7 @@ const Header = () => {
               className="inline-flex items-center gap-1.5 mt-2 font-sans text-sm font-medium px-4 py-2 rounded-lg bg-primary text-primary-foreground"
             >
               <LogIn className="h-4 w-4" />
-              Prijava
+              Login
             </Link>
           )}
         </nav>

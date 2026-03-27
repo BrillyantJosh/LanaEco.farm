@@ -19,9 +19,9 @@ const FarmersPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-10">
-      <h1 className="font-display text-3xl md:text-4xl font-bold">Naši kmetje</h1>
+      <h1 className="font-display text-3xl md:text-4xl font-bold">Our farmers</h1>
       <p className="mt-2 text-muted-foreground font-sans">
-        Raziščite lokalne ekološke pridelovalce po regijah
+        Explore local organic producers by region
       </p>
 
       {/* Filters */}
@@ -30,7 +30,7 @@ const FarmersPage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Išči po imenu ali izdelku..."
+            placeholder="Search by name or product..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 rounded-lg border bg-card text-foreground font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -41,7 +41,7 @@ const FarmersPage = () => {
           onChange={(e) => setSelectedRegion(e.target.value)}
           className="px-4 py-2.5 rounded-lg border bg-card text-foreground font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
         >
-          <option value="">Vse regije</option>
+          <option value="">All regions</option>
           {allRegions.map((r) => (
             <option key={r} value={r}>
               {r}
@@ -59,7 +59,7 @@ const FarmersPage = () => {
 
       {filtered.length === 0 && (
         <p className="mt-12 text-center text-muted-foreground font-sans">
-          Ni rezultatov. Poskusite z drugim iskanjem.
+          No results. Try a different search.
         </p>
       )}
     </div>

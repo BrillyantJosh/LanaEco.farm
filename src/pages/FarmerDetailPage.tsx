@@ -26,9 +26,9 @@ const FarmerDetailPage = () => {
   if (!farmer) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
-        <p className="text-muted-foreground font-sans">Kmet ni najden.</p>
+        <p className="text-muted-foreground font-sans">Farmer not found.</p>
         <Link to="/kmetje" className="text-primary font-sans mt-4 inline-block">
-          ← Nazaj na seznam
+          ← Back to list
         </Link>
       </div>
     );
@@ -46,7 +46,7 @@ const FarmerDetailPage = () => {
         to="/kmetje"
         className="inline-flex items-center gap-1 text-muted-foreground hover:text-primary font-sans text-sm mb-6"
       >
-        <ArrowLeft className="h-4 w-4" /> Nazaj na vse kmete
+        <ArrowLeft className="h-4 w-4" /> Back to all farmers
       </Link>
 
       <div className="grid lg:grid-cols-3 gap-8">
@@ -80,7 +80,7 @@ const FarmerDetailPage = () => {
 
           {/* Products */}
           <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-            Izdelki ({farmer.products.length})
+            Products ({farmer.products.length})
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
             {farmer.products.map((product) => (
@@ -99,7 +99,7 @@ const FarmerDetailPage = () => {
             <div className="flex items-center gap-2 mb-4">
               <Sprout className="h-5 w-5 text-primary" />
               <h3 className="font-display text-lg font-semibold">
-                Trajnostna ocena
+                Sustainability score
               </h3>
             </div>
             <div className="text-center mb-6">
@@ -109,10 +109,10 @@ const FarmerDetailPage = () => {
               <span className="text-muted-foreground text-lg">/20</span>
             </div>
             <div className="space-y-3">
-              <ScoreRow label="Lokalnost" value={farmer.score.lokalnost} />
-              <ScoreRow label="Trajnostna pridelava" value={farmer.score.trajnostna} />
-              <ScoreRow label="Biodiverziteta" value={farmer.score.biodiverziteta} />
-              <ScoreRow label="Embalaža & transport" value={farmer.score.embalaza} />
+              <ScoreRow label="Locality" value={farmer.score.lokalnost} />
+              <ScoreRow label="Sustainable production" value={farmer.score.trajnostna} />
+              <ScoreRow label="Biodiversity" value={farmer.score.biodiverziteta} />
+              <ScoreRow label="Packaging & transport" value={farmer.score.embalaza} />
             </div>
           </div>
 
@@ -121,11 +121,11 @@ const FarmerDetailPage = () => {
               <div className="flex items-center gap-2 mb-2">
                 <Users className="h-5 w-5 text-accent" />
                 <h3 className="font-display text-base font-semibold text-accent">
-                  Aktiven v skupnosti
+                  Community active
                 </h3>
               </div>
               <p className="text-sm text-muted-foreground font-sans">
-                Ta pridelovalec aktivno sodeluje z lokalnimi restavracijami in skupnostnimi projekti, kar mu omogoča trajnostni pribitek do 20%.
+                This producer actively collaborates with local restaurants and community projects, enabling a sustainability premium of up to 20%.
               </p>
             </div>
           )}

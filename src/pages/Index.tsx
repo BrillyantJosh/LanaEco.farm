@@ -67,7 +67,7 @@ const Index = () => {
             <source srcSet={heroImageWebp} type="image/webp" />
             <img
               src={heroImageJpg}
-              alt="Ekološka kmetija s svežo zelenjavo na Gorenjskem"
+              alt="Organic farm with fresh vegetables"
               className="w-full h-full object-cover"
               fetchPriority="high"
               width={1920}
@@ -81,28 +81,28 @@ const Index = () => {
             <div className="flex items-center gap-2 mb-4">
               <Leaf className="h-6 w-6 text-primary-foreground" />
               <span className="text-primary-foreground/80 font-sans text-sm tracking-wider uppercase">
-                Imenik pridelovalcev
+                Producer directory
               </span>
             </div>
             <h1 className="font-display text-4xl md:text-6xl font-bold text-primary-foreground leading-tight">
-              Od njive do vaše mize
+              From farm to your table
             </h1>
             <p className="mt-4 text-lg text-primary-foreground/80 font-sans max-w-lg">
-              Odkrijte lokalne ekološke kmete, njihove zgodbe in sveže pridelke.
-              Podprite trajnostno kmetijstvo v vaši regiji.
+              Discover local organic farmers, their stories and fresh produce.
+              Support sustainable farming in your region.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <a
                 href="#kmetje"
                 className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-sans font-medium transition-transform hover:scale-105"
               >
-                Razišči kmete <ArrowRight className="h-4 w-4" />
+                Explore farms <ArrowRight className="h-4 w-4" />
               </a>
               <Link
                 to="/login"
                 className="inline-flex items-center gap-2 bg-primary-foreground/10 text-primary-foreground border border-primary-foreground/20 px-6 py-3 rounded-lg font-sans font-medium backdrop-blur-sm transition-transform hover:scale-105"
               >
-                Prijava za kmete
+                Sign in
               </Link>
             </div>
           </div>
@@ -115,18 +115,18 @@ const Index = () => {
           {[
             {
               icon: <Leaf className="h-8 w-8 text-primary" />,
-              title: "Ekološka pridelava",
-              desc: "Brez pesticidov in kemičnih gnojil – za zdravo hrano in čisto okolje.",
+              title: "Organic farming",
+              desc: "No pesticides or chemical fertilizers — for healthy food and a clean environment.",
             },
             {
               icon: <Sprout className="h-8 w-8 text-primary" />,
-              title: "Kratke dobavne verige",
-              desc: "Neposredno od kmeta do vas – sveže, lokalno, pravično.",
+              title: "Short supply chains",
+              desc: "Directly from farmer to you — fresh, local, fair.",
             },
             {
               icon: <TreePine className="h-8 w-8 text-primary" />,
-              title: "Biotska raznovrstnost",
-              desc: "Ohranjanje starih sort, mešani posevki in skrb za opraševalce.",
+              title: "Biodiversity",
+              desc: "Preserving heritage varieties, mixed crops and caring for pollinators.",
             },
           ].map((item) => (
             <div key={item.title} className="text-center p-6 rounded-lg bg-card border">
@@ -142,9 +142,9 @@ const Index = () => {
       <section id="kmetje" className="container mx-auto px-4 pb-16">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h2 className="font-display text-3xl font-bold">Ekološke kmetije</h2>
+            <h2 className="font-display text-3xl font-bold">Eco farms</h2>
             <p className="text-muted-foreground font-sans mt-1">
-              Žive enote registrirane na Lana Eco Farm omrežju
+              Live units registered on the Lana Eco Farm network
             </p>
           </div>
         </div>
@@ -152,7 +152,7 @@ const Index = () => {
         {isLoading && (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
-            <span className="text-muted-foreground font-sans text-sm">Nalaganje iz relejev...</span>
+            <span className="text-muted-foreground font-sans text-sm">Loading from relays...</span>
           </div>
         )}
 
@@ -160,8 +160,8 @@ const Index = () => {
           <div className="text-center py-16">
             <Leaf className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-muted-foreground font-sans">
-              Še ni registriranih eko kmetij.
-              <Link to="/login" className="text-primary ml-1 hover:underline">Registrirajte svojo!</Link>
+              No eco farms registered yet.
+              <Link to="/login" className="text-primary ml-1 hover:underline">Register yours!</Link>
             </p>
           </div>
         )}
@@ -226,11 +226,11 @@ const Index = () => {
         <section className="container mx-auto px-4 py-16">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <h2 className="font-display text-3xl font-bold">Najnovejše ponudbe</h2>
-              <p className="text-muted-foreground font-sans mt-1">Sveži izdelki, naročnine in doživetja</p>
+              <h2 className="font-display text-3xl font-bold">Latest listings</h2>
+              <p className="text-muted-foreground font-sans mt-1">Fresh products, subscriptions and experiences</p>
             </div>
             <Link to="/ponudbe" className="hidden md:inline-flex items-center gap-1 text-primary font-sans text-sm font-medium hover:underline">
-              Vse ponudbe <ArrowRight className="h-4 w-4" />
+              All listings <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -273,7 +273,7 @@ const Index = () => {
           </div>
           <div className="mt-6 md:hidden text-center">
             <Link to="/ponudbe" className="inline-flex items-center gap-1 text-primary font-sans text-sm font-medium">
-              Vse ponudbe <ArrowRight className="h-4 w-4" />
+              All listings <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </section>
@@ -286,7 +286,7 @@ const Index = () => {
             <source srcSet={productsImageWebp} type="image/webp" />
             <img
               src={productsImageJpg}
-              alt="Sveži lokalni ekološki pridelki"
+              alt="Fresh local organic produce"
               className="w-full h-full object-cover"
               loading="lazy"
               width={1920}
@@ -297,16 +297,16 @@ const Index = () => {
         </div>
         <div className="relative container mx-auto px-4 py-20 text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground">
-            Postanite del eko skupnosti
+            Become part of the eco community
           </h2>
           <p className="mt-3 text-primary-foreground/80 font-sans max-w-md mx-auto">
-            Registrirajte svojo kmetijo in dosezite nove stranke prek Lana Eco Farm omrežja.
+            Register your farm and reach new customers through the Lana Eco Farm network.
           </p>
           <Link
             to="/login"
             className="mt-6 inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-sans font-medium transition-transform hover:scale-105"
           >
-            Prijava <ArrowRight className="h-4 w-4" />
+            Sign in <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>

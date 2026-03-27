@@ -24,7 +24,7 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[50vh]">
-    <div className="animate-pulse text-muted-foreground font-sans">Nalaganje...</div>
+    <div className="animate-pulse text-muted-foreground font-sans">Loading...</div>
   </div>
 );
 

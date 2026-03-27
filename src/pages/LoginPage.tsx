@@ -19,12 +19,12 @@ export default function LoginPage() {
     setError(null);
 
     if (!wif.trim()) {
-      setError('Vnesite svoj WIF zasebni ključ.');
+      setError('Please enter your WIF private key.');
       return;
     }
 
     if (!params?.relays || params.relays.length === 0) {
-      setError('Sistem se še povezuje. Počakajte trenutek in poskusite znova.');
+      setError('System is still connecting. Please wait a moment and try again.');
       return;
     }
 
@@ -34,7 +34,7 @@ export default function LoginPage() {
       await login(wif, params.relays, rememberMe);
       navigate('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Neveljaven WIF ključ.');
+      setError(err instanceof Error ? err.message : 'Invalid WIF key.');
     } finally {
       setIsLoading(false);
     }
@@ -50,10 +50,10 @@ export default function LoginPage() {
               <Leaf className="w-7 h-7 text-primary" />
             </div>
             <h1 className="font-display text-2xl font-bold text-foreground">
-              Eko Imenik
+              Eco Directory
             </h1>
             <p className="text-sm text-muted-foreground font-sans mt-1">
-              Prijava
+              Sign in
             </p>
           </div>
 
@@ -65,13 +65,13 @@ export default function LoginPage() {
                 className="flex items-center gap-2 text-sm font-medium text-foreground mb-1.5 font-sans"
               >
                 <KeyRound className="w-4 h-4 text-primary" />
-                WIF zasebni ključ
+                WIF private key
               </label>
               <div className="relative">
                 <input
                   id="wif"
                   type={showWif ? 'text' : 'password'}
-                  placeholder="Vnesite WIF ključ..."
+                  placeholder="Enter WIF key..."
                   value={wif}
                   onChange={(e) => setWif(e.target.value)}
                   disabled={isLoading}
@@ -91,7 +91,7 @@ export default function LoginPage() {
                 </button>
               </div>
               <p className="text-xs text-muted-foreground mt-1 font-sans">
-                Vaš zasebni ključ se hrani samo lokalno.
+                Your private key is stored locally only.
               </p>
             </div>
 
@@ -108,7 +108,7 @@ export default function LoginPage() {
                 htmlFor="rememberMe"
                 className="text-sm text-muted-foreground cursor-pointer font-sans"
               >
-                Zapomni si me (90 dni, sicer 30 dni)
+                Remember me (90 days, otherwise 30 days)
               </label>
             </div>
 
@@ -126,15 +126,15 @@ export default function LoginPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Prijavljam...
+                  Signing in...
                 </>
               ) : paramsLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Povezovanje z relaji...
+                  Connecting to relays...
                 </>
               ) : (
-                'Prijava'
+                'Sign in'
               )}
             </button>
           </form>
@@ -142,13 +142,13 @@ export default function LoginPage() {
           {/* Register button */}
           <div className="mt-5">
             <p className="text-sm text-muted-foreground font-sans text-center mb-3">
-              Nimate še profila?
+              Don't have a profile?
             </p>
             <Link
               to="/register"
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-sans font-medium"
             >
-              Registracija
+              Register
             </Link>
           </div>
 
@@ -156,8 +156,8 @@ export default function LoginPage() {
           <div className="mt-4 pt-4 border-t text-center">
             <p className="text-xs text-muted-foreground font-sans">
               {params?.relays
-                ? `Povezano z ${params.relays.length} relejem`
-                : 'Povezovanje z Nostr relaji...'}
+                ? `Connected to ${params.relays.length} relays`
+                : 'Connecting to Nostr relays...'}
             </p>
           </div>
         </div>

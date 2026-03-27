@@ -93,10 +93,10 @@ export function BusinessUnitCard({ unit, onEdit, onDelete, onStaff, onListings, 
             <button
               onClick={() => onListings(unit)}
               className="flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition text-sm font-medium"
-              title="Ponudbe"
+              title="Listings"
             >
               <ShoppingBag className="w-4 h-4" />
-              <span className="text-xs">Ponudbe</span>
+              <span className="text-xs">Listings</span>
             </button>
           )}
           <button
@@ -111,7 +111,7 @@ export function BusinessUnitCard({ unit, onEdit, onDelete, onStaff, onListings, 
             onClick={() => onDelete(unit)}
             disabled={isDeleting}
             className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition text-sm font-medium disabled:opacity-50"
-            title="Izbriši"
+            title="Delete"
           >
             {isDeleting ? (
               <Loader2 className="w-4 h-4 animate-spin" />

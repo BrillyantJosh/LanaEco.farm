@@ -112,7 +112,7 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
         {/* Stock */}
         {listing.stock && (
           <div className="text-[10px] text-muted-foreground font-sans">
-            Na zalogi: {listing.stock} {listing.unit}
+            In stock: {listing.stock} {listing.unit}
           </div>
         )}
 
@@ -123,14 +123,14 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
               onClick={(e) => { e.preventDefault(); onEdit?.(listing); }}
               className="flex-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-sans font-medium hover:bg-primary/90 transition"
             >
-              Uredi
+              Edit
             </button>
             <button
               onClick={(e) => { e.preventDefault(); onDelete?.(listing); }}
               disabled={isDeleting}
               className="px-3 py-1.5 bg-destructive/10 text-destructive rounded-lg text-xs font-sans font-medium hover:bg-destructive/20 transition disabled:opacity-50"
             >
-              {isDeleting ? '...' : 'Izbriši'}
+              {isDeleting ? '...' : 'Delete'}
             </button>
           </div>
         )}

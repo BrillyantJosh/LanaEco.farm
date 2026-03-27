@@ -52,13 +52,13 @@ interface OpeningHours {
 }
 
 const DAY_LABELS: Record<string, string> = {
-  monday: 'Ponedeljek',
-  tuesday: 'Torek',
-  wednesday: 'Sreda',
-  thursday: 'Četrtek',
-  friday: 'Petek',
-  saturday: 'Sobota',
-  sunday: 'Nedelja',
+  monday: 'Monday',
+  tuesday: 'Tuesday',
+  wednesday: 'Wednesday',
+  thursday: 'Thursday',
+  friday: 'Friday',
+  saturday: 'Saturday',
+  sunday: 'Sunday',
 };
 
 export default function UnitDetailPage() {
@@ -95,7 +95,7 @@ export default function UnitDetailPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-pulse text-muted-foreground font-sans">Nalaganje...</div>
+        <div className="animate-pulse text-muted-foreground font-sans">Loading...</div>
       </div>
     );
   }
@@ -103,8 +103,8 @@ export default function UnitDetailPage() {
   if (!unit) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
-        <p className="text-lg text-muted-foreground font-sans mb-4">Enota ni bila najdena.</p>
-        <Link to="/" className="text-primary font-sans hover:underline">← Nazaj na domov</Link>
+        <p className="text-lg text-muted-foreground font-sans mb-4">Unit not found.</p>
+        <Link to="/" className="text-primary font-sans hover:underline">← Back to home</Link>
       </div>
     );
   }
@@ -138,7 +138,7 @@ export default function UnitDetailPage() {
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
             <div className="container mx-auto">
               <Link to="/" className="inline-flex items-center gap-1 text-primary-foreground/80 text-sm font-sans mb-3 hover:text-primary-foreground">
-                <ArrowLeft className="w-4 h-4" /> Nazaj
+                <ArrowLeft className="w-4 h-4" /> Back
               </Link>
               <h1 className="font-display text-3xl md:text-5xl font-bold text-primary-foreground">
                 {unit.name}
@@ -168,7 +168,7 @@ export default function UnitDetailPage() {
         <div className="bg-primary/10 py-16">
           <div className="container mx-auto px-4">
             <Link to="/" className="inline-flex items-center gap-1 text-muted-foreground text-sm font-sans mb-3 hover:text-foreground">
-              <ArrowLeft className="w-4 h-4" /> Nazaj
+              <ArrowLeft className="w-4 h-4" /> Back
             </Link>
             <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground">{unit.name}</h1>
             <div className="flex flex-wrap items-center gap-3 mt-3">
@@ -196,7 +196,7 @@ export default function UnitDetailPage() {
             {/* Description */}
             {unit.content && (
               <section>
-                <h2 className="font-display text-xl font-semibold mb-3">O nas</h2>
+                <h2 className="font-display text-xl font-semibold mb-3">About us</h2>
                 <p className="text-muted-foreground font-sans leading-relaxed whitespace-pre-line">
                   {unit.content}
                 </p>
@@ -212,7 +212,7 @@ export default function UnitDetailPage() {
             {/* Gallery */}
             {galleryImages.length > 0 && (
               <section>
-                <h2 className="font-display text-xl font-semibold mb-4">Galerija</h2>
+                <h2 className="font-display text-xl font-semibold mb-4">Gallery</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {galleryImages.map((img, idx) => (
                     <div
@@ -297,12 +297,12 @@ export default function UnitDetailPage() {
             {/* Map */}
             {hasLocation && (
               <section>
-                <h2 className="font-display text-xl font-semibold mb-3">Lokacija</h2>
+                <h2 className="font-display text-xl font-semibold mb-3">Location</h2>
                 <div className="aspect-video rounded-xl overflow-hidden border">
                   <iframe
                     src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(unit.longitude!) - 0.01},${parseFloat(unit.latitude!) - 0.005},${parseFloat(unit.longitude!) + 0.01},${parseFloat(unit.latitude!) + 0.005}&layer=mapnik&marker=${unit.latitude},${unit.longitude}`}
                     className="w-full h-full"
-                    title="Lokacija"
+                    title="Location"
                   />
                 </div>
               </section>
@@ -313,13 +313,13 @@ export default function UnitDetailPage() {
           <div className="space-y-6">
             {/* Info card */}
             <div className="bg-card border rounded-xl p-5 space-y-4">
-              <h3 className="font-display text-lg font-semibold">Podrobnosti</h3>
+              <h3 className="font-display text-lg font-semibold">Details</h3>
 
               {unit.category && (
                 <div className="flex items-start gap-3">
                   <Tag className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs text-muted-foreground font-sans">Kategorija</p>
+                    <p className="text-xs text-muted-foreground font-sans">Category</p>
                     <p className="text-sm font-sans font-medium">{unit.category}{unit.categoryDetail ? ` / ${unit.categoryDetail}` : ''}</p>
                   </div>
                 </div>
@@ -329,7 +329,7 @@ export default function UnitDetailPage() {
                 <div className="flex items-start gap-3">
                   <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs text-muted-foreground font-sans">Lokacija</p>
+                    <p className="text-xs text-muted-foreground font-sans">Location</p>
                     <p className="text-sm font-sans font-medium">{[unit.receiverCity, unit.receiverCountry || unit.country].filter(Boolean).join(', ')}</p>
                   </div>
                 </div>
@@ -339,7 +339,7 @@ export default function UnitDetailPage() {
                 <div className="flex items-start gap-3">
                   <Globe className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs text-muted-foreground font-sans">Valuta</p>
+                    <p className="text-xs text-muted-foreground font-sans">Currency</p>
                     <p className="text-sm font-sans font-medium">{unit.currency}</p>
                   </div>
                 </div>
@@ -353,7 +353,7 @@ export default function UnitDetailPage() {
                   className="inline-flex items-center gap-1.5 text-sm text-primary font-sans hover:underline"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
-                  Obišči spletno stran
+                  Visit website
                 </a>
               )}
             </div>
@@ -363,7 +363,7 @@ export default function UnitDetailPage() {
               <div className="bg-card border rounded-xl p-5">
                 <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" />
-                  Delovni čas
+                  Opening hours
                 </h3>
                 <div className="space-y-2">
                   {Object.entries(DAY_LABELS).map(([key, label]) => {
@@ -372,7 +372,7 @@ export default function UnitDetailPage() {
                       <div key={key} className="flex justify-between text-sm font-sans">
                         <span className={day?.enabled ? 'text-foreground' : 'text-muted-foreground'}>{label}</span>
                         <span className={day?.enabled ? 'text-foreground font-medium' : 'text-muted-foreground'}>
-                          {day?.enabled ? `${day.from} – ${day.to}` : 'Zaprto'}
+                          {day?.enabled ? `${day.from} – ${day.to}` : 'Closed'}
                         </span>
                       </div>
                     );

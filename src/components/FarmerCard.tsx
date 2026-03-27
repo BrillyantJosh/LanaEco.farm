@@ -79,7 +79,7 @@ const FarmerCard = ({ farmer }: { farmer: Farmer }) => {
         ))}
         {farmer.communityActive && (
           <span className="bg-accent/10 text-accent text-xs px-2 py-0.5 rounded-full font-medium">
-            Aktiven v skupnosti
+            Community active
           </span>
         )}
       </div>

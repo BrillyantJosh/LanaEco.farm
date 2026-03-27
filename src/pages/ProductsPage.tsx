@@ -23,9 +23,9 @@ const ProductsPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-10">
-      <h1 className="font-display text-3xl md:text-4xl font-bold">Izdelki</h1>
+      <h1 className="font-display text-3xl md:text-4xl font-bold">Products</h1>
       <p className="mt-2 text-muted-foreground font-sans">
-        Raziščite ekološke izdelke naših pridelovalcev
+        Explore organic products from our producers
       </p>
 
       {/* Filters */}
@@ -34,7 +34,7 @@ const ProductsPage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Išči izdelke..."
+            placeholder="Search products..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 rounded-lg border bg-card text-foreground font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -45,7 +45,7 @@ const ProductsPage = () => {
           onChange={(e) => setSelectedCategory(e.target.value)}
           className="px-4 py-2.5 rounded-lg border bg-card text-foreground font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
         >
-          <option value="">Vse kategorije</option>
+          <option value="">All categories</option>
           {allCategories.map((c) => (
             <option key={c} value={c}>
               {c}
@@ -63,7 +63,7 @@ const ProductsPage = () => {
 
       {filtered.length === 0 && (
         <p className="mt-12 text-center text-muted-foreground font-sans">
-          Ni rezultatov. Poskusite z drugim iskanjem.
+          No results. Try a different search.
         </p>
       )}
     </div>

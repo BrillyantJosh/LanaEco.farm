@@ -4,11 +4,11 @@ import { ListingCard } from '@/components/ListingCard';
 import type { EcoListing } from '@/lib/nostr';
 
 const TYPE_FILTERS = [
-  { value: '', label: 'Vse' },
-  { value: 'product', label: 'Izdelki' },
-  { value: 'subscription', label: 'Naročnine' },
-  { value: 'service', label: 'Storitve' },
-  { value: 'experience', label: 'Doživetja' },
+  { value: '', label: 'All' },
+  { value: 'product', label: 'Products' },
+  { value: 'subscription', label: 'Subscriptions' },
+  { value: 'service', label: 'Services' },
+  { value: 'experience', label: 'Experiences' },
 ];
 
 const CATEGORY_FILTERS = [
@@ -53,8 +53,8 @@ export default function ListingsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="font-display text-3xl font-bold mb-2">Ponudbe</h1>
-        <p className="text-muted-foreground font-sans">Raziščite lokalne eko izdelke, naročnine in doživetja</p>
+        <h1 className="font-display text-3xl font-bold mb-2">Listings</h1>
+        <p className="text-muted-foreground font-sans">Browse local eco products, subscriptions and experiences</p>
       </div>
 
       {/* Filters */}
@@ -63,7 +63,7 @@ export default function ListingsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text" value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Išči po imenu ali opisu..."
+            placeholder="Search by name or description..."
             className="w-full pl-10 pr-4 py-2.5 border rounded-lg text-sm font-sans"
           />
         </div>
@@ -73,7 +73,7 @@ export default function ListingsPage() {
         </select>
         <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
           className="px-3 py-2.5 border rounded-lg text-sm font-sans">
-          <option value="">Vse kategorije</option>
+          <option value="">All categories</option>
           {CATEGORY_FILTERS.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
@@ -81,21 +81,21 @@ export default function ListingsPage() {
       {isLoading && (
         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <Loader2 className="w-8 h-8 animate-spin mb-3" />
-          <p className="text-sm font-sans">Nalaganje ponudb...</p>
+          <p className="text-sm font-sans">Loading listings...</p>
         </div>
       )}
 
       {!isLoading && filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <ShoppingBag className="w-12 h-12 mb-3 text-muted-foreground/40" />
-          <p className="text-base font-medium text-foreground mb-1 font-display">Ni najdenih ponudb</p>
-          <p className="text-sm font-sans">Poskusite spremeniti iskalne filtre.</p>
+          <p className="text-base font-medium text-foreground mb-1 font-display">No listings found</p>
+          <p className="text-sm font-sans">Try changing your search filters.</p>
         </div>
       )}
 
       {!isLoading && filtered.length > 0 && (
         <>
-          <p className="text-sm text-muted-foreground font-sans mb-4">{filtered.length} ponudb</p>
+          <p className="text-sm text-muted-foreground font-sans mb-4">{filtered.length} listings</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {filtered.map(listing => (
               <ListingCard key={`${listing.pubkey}-${listing.listingId}`} listing={listing} />

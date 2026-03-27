@@ -77,15 +77,15 @@ export default function DashboardPage() {
 
   const handleDelete = async (unit: BusinessUnit) => {
     if (!session || !params?.relays) return;
-    if (!window.confirm(`Ali ste prepričani, da želite izbrisati "${unit.name}"?`)) return;
+    if (!window.confirm(`Are you sure you want to delete "${unit.name}"?`)) return;
     setDeletingUnitId(unit.unitId);
     try {
       const tags: string[][] = [['e', unit.eventId], ['a', `30901:${session.nostrHexId}:${unit.unitId}`]];
       const signedEvent = signNostrEvent(session.nostrPrivateKey, 5, `Deleting: ${unit.name}`, tags);
       const result = await publishToRelays(signedEvent, params.relays);
       if (result.success.length > 0) setUnits(prev => prev.filter(u => u.unitId !== unit.unitId));
-      else alert('Izbris ni uspel.');
-    } catch { alert('Izbris ni uspel.'); }
+      else alert('Delete failed.');
+    } catch { alert('Delete failed.'); }
     finally { setDeletingUnitId(null); }
   };
 
@@ -102,15 +102,15 @@ export default function DashboardPage() {
 
   const handleListingDelete = async (listing: EcoListing) => {
     if (!session || !params?.relays) return;
-    if (!window.confirm(`Izbrisati "${listing.title}"?`)) return;
+    if (!window.confirm(`Delete "${listing.title}"?`)) return;
     setDeletingListingId(listing.listingId);
     try {
       const tags: string[][] = [['e', listing.eventId], ['a', `36500:${session.nostrHexId}:${listing.listingId}`]];
       const signedEvent = signNostrEvent(session.nostrPrivateKey, 5, `Deleting listing: ${listing.title}`, tags);
       const result = await publishToRelays(signedEvent, params.relays);
       if (result.success.length > 0) setListings(prev => prev.filter(l => l.listingId !== listing.listingId));
-      else alert('Izbris ni uspel.');
-    } catch { alert('Izbris ni uspel.'); }
+      else alert('Delete failed.');
+    } catch { alert('Delete failed.'); }
     finally { setDeletingListingId(null); }
   };
 
@@ -136,13 +136,13 @@ export default function DashboardPage() {
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-lg font-bold text-foreground font-display">Ponudbe</h1>
+                <h1 className="text-lg font-bold text-foreground font-display">Listings</h1>
                 <p className="text-xs text-muted-foreground font-sans">{listingsUnit.name}</p>
               </div>
             </div>
             <button onClick={handleListingCreate}
               className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition text-sm font-sans font-medium">
-              <Plus className="w-4 h-4" /> Nova ponudba
+              <Plus className="w-4 h-4" /> New listing
             </button>
           </div>
         </header>
@@ -151,18 +151,18 @@ export default function DashboardPage() {
           {listingsLoading && (
             <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
               <Loader2 className="w-8 h-8 animate-spin mb-3" />
-              <p className="text-sm font-sans">Nalaganje ponudb...</p>
+              <p className="text-sm font-sans">Loading listings...</p>
             </div>
           )}
 
           {!listingsLoading && listings.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
               <ShoppingBag className="w-12 h-12 mb-3 text-muted-foreground/40" />
-              <p className="text-base font-medium text-foreground mb-1 font-display">Še nimate ponudb</p>
-              <p className="text-sm font-sans mb-4">Ustvarite svojo prvo ponudbo za to enoto.</p>
+              <p className="text-base font-medium text-foreground mb-1 font-display">No listings yet</p>
+              <p className="text-sm font-sans mb-4">Create your first listing for this unit.</p>
               <button onClick={handleListingCreate}
                 className="flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition text-sm font-sans font-medium">
-                <Plus className="w-4 h-4" /> Ustvari ponudbo
+                <Plus className="w-4 h-4" /> Create listing
               </button>
             </div>
           )}
@@ -200,7 +200,7 @@ export default function DashboardPage() {
               <Leaf className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground font-display">Eko Imenik</h1>
+              <h1 className="text-lg font-bold text-foreground font-display">Eco Directory</h1>
               <p className="text-xs text-muted-foreground font-sans">
                 {session?.profileDisplayName || session?.profileName || session?.walletId?.slice(0, 12) + '...'}
               </p>
@@ -211,7 +211,7 @@ export default function DashboardPage() {
               <span className="hidden sm:inline text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">{exchangeRateText}</span>
             )}
             <button onClick={logout} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-destructive transition font-sans">
-              <LogOut className="w-4 h-4" /> Odjava
+              <LogOut className="w-4 h-4" /> Logout
             </button>
           </div>
         </div>
@@ -220,15 +220,15 @@ export default function DashboardPage() {
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-foreground font-display">
-            Trgovske enote
+            Business units
             {!isLoading && <span className="text-sm font-normal text-muted-foreground ml-2 font-sans">({units.length})</span>}
           </h2>
           <div className="flex items-center gap-2">
-            <button onClick={loadUnits} disabled={isLoading} className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition" title="Osveži">
+            <button onClick={loadUnits} disabled={isLoading} className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition" title="Refresh">
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
             <button onClick={handleCreate} className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition text-sm font-sans font-medium">
-              <Plus className="w-4 h-4" /> Nova enota
+              <Plus className="w-4 h-4" /> New unit
             </button>
           </div>
         </div>
@@ -236,17 +236,17 @@ export default function DashboardPage() {
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
             <Loader2 className="w-8 h-8 animate-spin mb-3" />
-            <p className="text-sm font-sans">Nalaganje enot iz relejev...</p>
+            <p className="text-sm font-sans">Loading units from relays...</p>
           </div>
         )}
 
         {!isLoading && units.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
             <Store className="w-12 h-12 mb-3 text-muted-foreground/40" />
-            <p className="text-base font-medium text-foreground mb-1 font-display">Nimate še nobene trgovske enote</p>
-            <p className="text-sm font-sans mb-4">Ustvarite svojo prvo eko kmetijsko enoto.</p>
+            <p className="text-base font-medium text-foreground mb-1 font-display">No business units yet</p>
+            <p className="text-sm font-sans mb-4">Create your first eco farm unit.</p>
             <button onClick={handleCreate} className="flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition text-sm font-sans font-medium">
-              <Plus className="w-4 h-4" /> Ustvari enoto
+              <Plus className="w-4 h-4" /> Create unit
             </button>
           </div>
         )}

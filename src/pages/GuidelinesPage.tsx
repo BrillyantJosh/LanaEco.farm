@@ -10,68 +10,68 @@ import {
 const criteria = [
   {
     icon: <Leaf className="h-6 w-6 text-primary" />,
-    title: "Lokalnost",
-    points: "do 5 točk",
+    title: "Locality",
+    points: "up to 5 points",
     items: [
-      "Pridelava v lokalni regiji",
-      "Neposredna prodaja ali kratke dobavne verige",
+      "Production in local region",
+      "Direct sales or short supply chains",
     ],
   },
   {
     icon: <Sprout className="h-6 w-6 text-primary" />,
-    title: "Trajnostna pridelava",
-    points: "do 5 točk",
+    title: "Sustainable production",
+    points: "up to 5 points",
     items: [
-      "Brez uporabe pesticidov",
-      "Ekološka pridelava",
-      "Skrb za rodovitnost tal",
+      "No pesticide use",
+      "Organic production",
+      "Soil fertility care",
     ],
   },
   {
     icon: <TreePine className="h-6 w-6 text-primary" />,
-    title: "Biodiverziteta",
-    points: "do 5 točk",
+    title: "Biodiversity",
+    points: "up to 5 points",
     items: [
-      "Ohranjanje tradicionalnih sort",
-      "Mešani posevki",
-      "Skrb za opraševalce",
+      "Preserving heritage varieties",
+      "Mixed crops",
+      "Pollinator care",
     ],
   },
   {
     icon: <Package className="h-6 w-6 text-primary" />,
-    title: "Embalaža in transport",
-    points: "do 5 točk",
+    title: "Packaging & transport",
+    points: "up to 5 points",
     items: [
-      "Minimalna embalaža",
-      "Vračljiva embalaža",
-      "Trajnostni transport",
+      "Minimal packaging",
+      "Returnable packaging",
+      "Sustainable transport",
     ],
   },
 ];
 
 const practices = [
-  "Lokalna in sezonska pridelava",
-  "Zmanjševanje uporabe škodljivih kemičnih sredstev",
-  "Skrb za rodovitnost tal in biotsko raznovrstnost",
-  "Transparentna komunikacija o izvoru hrane",
-  "Sodelovanje z lokalnimi trgovci in restavracijami",
+  "Local and seasonal production",
+  "Reducing the use of harmful chemicals",
+  "Caring for soil fertility and biodiversity",
+  "Transparent communication about food origin",
+  "Collaboration with local shops and restaurants",
 ];
 
 const GuidelinesPage = () => (
   <div className="container mx-auto px-4 py-10">
     <div className="max-w-3xl mx-auto">
       <h1 className="font-display text-3xl md:text-4xl font-bold text-center">
-        Smernice za pridelovalce
+        Guidelines for producers
       </h1>
       <p className="mt-3 text-muted-foreground font-sans text-center max-w-xl mx-auto">
-        Kmetje sodelujejo v sistemu z zavezo k odgovorni in trajnostni pridelavi.
+        Farmers participate in the system with a commitment to responsible and sustainable production.
       </p>
 
       {/* Practices */}
       <div className="mt-10 bg-card border rounded-lg p-6 md:p-8">
         <h2 className="font-display text-xl font-semibold flex items-center gap-2">
           <Award className="h-5 w-5 text-primary" />
-          Priporočene prakse
+          Recommended practices
         </h2>
         <ul className="mt-4 space-y-3">
           {practices.map((p) => (
@@ -83,17 +83,17 @@ const GuidelinesPage = () => (
         </ul>
         <div className="mt-6 bg-primary/10 rounded-lg p-4">
           <p className="text-sm font-sans text-foreground">
-            <strong>Trajnostni pribitek:</strong> Z upoštevanjem teh načel lahko
-            pridelovalci pridobijo trajnostni pribitek do{" "}
-            <span className="text-primary font-bold">20%</span> na svoje izdelke
-            (v Evrih ali Lanah).
+            <strong>Sustainability premium:</strong> By following these principles,
+            producers can earn a sustainability premium of up to{" "}
+            <span className="text-primary font-bold">20%</span> on their products
+            (in Euros or Lana).
           </p>
         </div>
       </div>
 
       {/* Criteria */}
       <h2 className="font-display text-2xl font-semibold mt-12 mb-6 text-center">
-        Kriteriji za ocenjevanje
+        Scoring criteria
       </h2>
       <div className="grid sm:grid-cols-2 gap-4">
         {criteria.map((c) => (
@@ -129,17 +129,17 @@ const GuidelinesPage = () => (
         <div className="flex items-center gap-3 mb-4">
           <Users className="h-6 w-6 text-accent" />
           <h2 className="font-display text-xl font-semibold text-accent">
-            Vloga v skupnosti
+            Community role
           </h2>
         </div>
         <p className="text-sm font-sans text-muted-foreground mb-3">
-          Za vzdrževanje 20% trajnostnega pribitka morajo pridelovalci aktivno
-          sodelovati v skupnosti:
+          To maintain the 20% sustainability premium, producers must actively
+          participate in the community:
         </p>
         <ul className="space-y-2">
           {[
-            "Sodelovanje z lokalnimi restavracijami",
-            "Sodelovanje v skupnostnih projektih",
+            "Collaboration with local restaurants",
+            "Participation in community projects",
           ].map((item) => (
             <li
               key={item}

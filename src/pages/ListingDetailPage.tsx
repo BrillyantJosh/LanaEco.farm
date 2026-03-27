@@ -4,7 +4,7 @@ import { ArrowLeft, Loader2, MapPin, Leaf, Tag, Calendar, ShoppingBag, Truck, Cr
 import type { EcoListing } from '@/lib/nostr';
 
 const TYPE_LABELS: Record<string, string> = {
-  product: 'Izdelek', subscription: 'Naročnina', service: 'Storitev', experience: 'Doživetje',
+  product: 'Product', subscription: 'Subscription', service: 'Service', experience: 'Experience',
 };
 
 export default function ListingDetailPage() {
@@ -36,8 +36,8 @@ export default function ListingDetailPage() {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-muted-foreground/40" />
-        <h2 className="font-display text-xl font-bold mb-2">Ponudba ni najdena</h2>
-        <Link to="/ponudbe" className="text-primary hover:underline font-sans text-sm">Nazaj na ponudbe</Link>
+        <h2 className="font-display text-xl font-bold mb-2">Listing not found</h2>
+        <Link to="/ponudbe" className="text-primary hover:underline font-sans text-sm">Back to listings</Link>
       </div>
     );
   }
@@ -49,7 +49,7 @@ export default function ListingDetailPage() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-5xl">
       <Link to="/ponudbe" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 font-sans">
-        <ArrowLeft className="w-4 h-4" /> Nazaj na ponudbe
+        <ArrowLeft className="w-4 h-4" /> Back to listings
       </Link>
 
       <div className="grid lg:grid-cols-2 gap-8">
@@ -101,7 +101,7 @@ export default function ListingDetailPage() {
           {/* Eco labels */}
           {listing.eco.length > 0 && (
             <div>
-              <h3 className="text-xs font-sans font-medium text-muted-foreground mb-2 uppercase tracking-wider">Eko oznake</h3>
+              <h3 className="text-xs font-sans font-medium text-muted-foreground mb-2 uppercase tracking-wider">Eco labels</h3>
               <div className="flex flex-wrap gap-2">
                 {listing.eco.map(e => (
                   <span key={e} className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-xs font-sans font-medium">
@@ -134,7 +134,7 @@ export default function ListingDetailPage() {
           {/* Stock */}
           {listing.stock && (
             <div className="text-sm font-sans text-muted-foreground">
-              Na zalogi: <span className="font-medium text-foreground">{listing.stock} {listing.unit}</span>
+              In stock: <span className="font-medium text-foreground">{listing.stock} {listing.unit}</span>
               {listing.minOrder && <span> (min: {listing.minOrder})</span>}
               {listing.maxOrder && <span> (max: {listing.maxOrder})</span>}
             </div>
@@ -154,7 +154,7 @@ export default function ListingDetailPage() {
           {/* Delivery */}
           {listing.delivery.length > 0 && (
             <div>
-              <h3 className="text-xs font-sans font-medium text-muted-foreground mb-2 uppercase tracking-wider">Dostava</h3>
+              <h3 className="text-xs font-sans font-medium text-muted-foreground mb-2 uppercase tracking-wider">Delivery</h3>
               <div className="flex flex-wrap gap-2">
                 {listing.delivery.map(d => (
                   <span key={d} className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-sans">
@@ -221,7 +221,7 @@ export default function ListingDetailPage() {
           <div className="pt-4 border-t">
             <Link to={`/enota/${unitId}`}
               className="inline-flex items-center gap-2 text-sm text-primary hover:underline font-sans font-medium">
-              <MapPin className="w-4 h-4" /> Poglej kmetijo
+              <MapPin className="w-4 h-4" /> View farm
             </Link>
           </div>
         </div>

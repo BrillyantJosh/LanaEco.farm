@@ -7,11 +7,11 @@ const Footer = () => (
         <div className="flex items-center gap-2">
           <Leaf className="h-5 w-5 text-primary" />
           <span className="font-display text-lg font-bold text-foreground">
-            Eko Imenik
+            Eco Directory
           </span>
         </div>
         <p className="text-sm text-muted-foreground font-sans text-center">
-          Povezujemo lokalne ekološke pridelovalce s skupnostjo. Podprite lokalno! 🌱
+          Connecting local organic producers with the community. Support local!
         </p>
       </div>
     </div>
