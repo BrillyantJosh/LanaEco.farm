@@ -280,35 +280,6 @@ export default function UnitDetailPage() {
                 <Loader2 className="w-4 h-4 animate-spin" /> {t('dash.loadingListings')}
               </div>
             )}
-
-            {/* Video */}
-            {unit.video && (
-              <section>
-                <h2 className="font-display text-xl font-semibold mb-3">Video</h2>
-                <div className="aspect-video rounded-xl overflow-hidden bg-muted">
-                  <iframe
-                    src={unit.video.replace('watch?v=', 'embed/')}
-                    className="w-full h-full"
-                    allowFullScreen
-                    title={`${unit.name} video`}
-                  />
-                </div>
-              </section>
-            )}
-
-            {/* Map */}
-            {hasLocation && (
-              <section>
-                <h2 className="font-display text-xl font-semibold mb-3">{t('unit.location')}</h2>
-                <div className="aspect-video rounded-xl overflow-hidden border">
-                  <iframe
-                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(unit.longitude!) - 0.01},${parseFloat(unit.latitude!) - 0.005},${parseFloat(unit.longitude!) + 0.01},${parseFloat(unit.latitude!) + 0.005}&layer=mapnik&marker=${unit.latitude},${unit.longitude}`}
-                    className="w-full h-full"
-                    title={t('unit.location')}
-                  />
-                </div>
-              </section>
-            )}
           </div>
 
           {/* Sidebar — right col */}
@@ -387,6 +358,35 @@ export default function UnitDetailPage() {
             {unit.logo && (
               <div className="bg-card border rounded-xl p-5 flex justify-center">
                 <img src={unit.logo} alt={`${unit.name} logo`} className="max-h-24 object-contain" />
+              </div>
+            )}
+
+            {/* Video */}
+            {unit.video && (
+              <div className="bg-card border rounded-xl p-5">
+                <h3 className="font-display text-sm font-semibold mb-3">Video</h3>
+                <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+                  <iframe
+                    src={unit.video.replace('watch?v=', 'embed/')}
+                    className="w-full h-full"
+                    allowFullScreen
+                    title={`${unit.name} video`}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Map */}
+            {hasLocation && (
+              <div className="bg-card border rounded-xl p-5">
+                <h3 className="font-display text-sm font-semibold mb-3">{t('unit.location')}</h3>
+                <div className="aspect-square rounded-lg overflow-hidden border">
+                  <iframe
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(unit.longitude!) - 0.01},${parseFloat(unit.latitude!) - 0.005},${parseFloat(unit.longitude!) + 0.01},${parseFloat(unit.latitude!) + 0.005}&layer=mapnik&marker=${unit.latitude},${unit.longitude}`}
+                    className="w-full h-full"
+                    title={t('unit.location')}
+                  />
+                </div>
               </div>
             )}
           </div>
