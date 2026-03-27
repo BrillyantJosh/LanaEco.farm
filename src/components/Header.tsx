@@ -7,6 +7,7 @@ const navItems = [
   { label: "Domov", path: "/" },
   { label: "Kmetje", path: "/kmetje" },
   { label: "Izdelki", path: "/izdelki" },
+  { label: "Ponudbe", path: "/ponudbe" },
   { label: "Smernice", path: "/smernice" },
 ];
 

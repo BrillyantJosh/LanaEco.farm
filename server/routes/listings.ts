@@ -1,0 +1,219 @@
+import { Router, Request, Response } from 'express';
+import WebSocket from 'ws';
+import Database from 'better-sqlite3';
+
+interface NostrEvent {
+  id: string;
+  pubkey: string;
+  created_at: number;
+  kind: number;
+  tags: string[][];
+  content: string;
+  sig: string;
+}
+
+function getTag(event: NostrEvent, name: string): string {
+  return event.tags.find(t => t[0] === name)?.[1] || '';
+}
+
+function getTags(event: NostrEvent, name: string): string[] {
+  return event.tags.filter(t => t[0] === name).map(t => t[1]);
+}
+
+function parseListing(event: NostrEvent) {
+  const priceTag = event.tags.find(t => t[0] === 'price');
+  const geoTag = event.tags.find(t => t[0] === 'geo');
+
+  return {
+    eventId: event.id,
+    pubkey: event.pubkey,
+    createdAt: event.created_at,
+    content: event.content,
+    listingId: getTag(event, 'd'),
+    unitRef: getTag(event, 'a'),
+    title: getTag(event, 'title'),
+    type: getTag(event, 'type'),
+    price: priceTag?.[1] || '',
+    priceCurrency: priceTag?.[2] || 'EUR',
+    unit: getTag(event, 'unit'),
+    status: getTag(event, 'status') || 'active',
+    stock: getTag(event, 'stock'),
+    minOrder: getTag(event, 'min_order'),
+    maxOrder: getTag(event, 'max_order'),
+    preOrder: getTag(event, 'pre_order'),
+    harvestDate: getTag(event, 'harvest_date'),
+    harvestSeason: getTag(event, 'harvest_season'),
+    availableFrom: getTag(event, 'available_from'),
+    availableUntil: getTag(event, 'available_until'),
+    eco: getTags(event, 'eco'),
+    cert: getTags(event, 'cert'),
+    certUrl: getTags(event, 'cert_url'),
+    tags: getTags(event, 't'),
+    delivery: getTags(event, 'delivery'),
+    deliveryRadiusKm: getTag(event, 'delivery_radius_km'),
+    marketDays: getTags(event, 'market_day'),
+    subscriptionInterval: getTag(event, 'subscription_interval'),
+    subscriptionContent: getTag(event, 'subscription_content'),
+    capacity: getTag(event, 'capacity'),
+    durationMin: getTag(event, 'duration_min'),
+    bookingRequired: getTag(event, 'booking_required'),
+    images: getTags(event, 'image'),
+    thumbs: getTags(event, 'thumb'),
+    payment: getTags(event, 'payment'),
+    lud16: getTag(event, 'lud16'),
+    geoLat: geoTag?.[1] || '',
+    geoLon: geoTag?.[2] || '',
+    geoLabel: geoTag?.[3] || '',
+    sprayLog: getTag(event, 'spray_log'),
+    soilTestYear: getTag(event, 'soil_test_year'),
+  };
+}
+
+async function fetchAllListings(relays: string[], timeout = 12000): Promise<NostrEvent[]> {
+  const fetchFromRelay = (relayUrl: string): Promise<NostrEvent[]> => {
+    return new Promise((resolve) => {
+      const events: NostrEvent[] = [];
+      const timeoutId = setTimeout(() => {
+        try { ws.close(); } catch {}
+        resolve(events);
+      }, timeout);
+
+      let ws: WebSocket;
+      try {
+        ws = new WebSocket(relayUrl);
+      } catch {
+        clearTimeout(timeoutId);
+        resolve([]);
+        return;
+      }
+
+      const subId = `lst_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+
+      ws.on('open', () => {
+        ws.send(JSON.stringify(['REQ', subId, {
+          kinds: [36500],
+        }]));
+      });
+
+      ws.on('message', (data: Buffer) => {
+        try {
+          const msg = JSON.parse(data.toString());
+          if (msg[0] === 'EVENT' && msg[1] === subId) {
+            events.push(msg[2] as NostrEvent);
+          } else if (msg[0] === 'EOSE') {
+            clearTimeout(timeoutId);
+            ws.close();
+            resolve(events);
+          }
+        } catch {}
+      });
+
+      ws.on('error', () => {
+        clearTimeout(timeoutId);
+        resolve(events);
+      });
+    });
+  };
+
+  const results = await Promise.all(relays.map(r => fetchFromRelay(r)));
+
+  // Deduplicate by pubkey+d-tag (NIP-33)
+  const byKey = new Map<string, NostrEvent>();
+  const seenIds = new Set<string>();
+
+  for (const relayEvents of results) {
+    for (const event of relayEvents) {
+      if (seenIds.has(event.id)) continue;
+      seenIds.add(event.id);
+
+      const dTag = event.tags.find(t => t[0] === 'd')?.[1] || '';
+      const key = `${event.pubkey}:${dTag}`;
+      const existing = byKey.get(key);
+      if (!existing || event.created_at > existing.created_at) {
+        byKey.set(key, event);
+      }
+    }
+  }
+
+  return Array.from(byKey.values());
+}
+
+// Cache
+let cachedListings: ReturnType<typeof parseListing>[] = [];
+let cacheTimestamp = 0;
+const CACHE_TTL = 60_000; // 1 minute
+
+export function createListingsRouter(db: Database.Database): Router {
+  const router = Router();
+
+  // GET /api/listings — all active listings with optional filters
+  router.get('/', async (req: Request, res: Response) => {
+    try {
+      if (Date.now() - cacheTimestamp < CACHE_TTL && cachedListings.length > 0) {
+        res.json(applyFilters(cachedListings, req.query));
+        return;
+      }
+
+      const row = db.prepare('SELECT relays FROM kind_38888 ORDER BY id DESC LIMIT 1').get() as any;
+      if (!row) { res.json([]); return; }
+
+      const relays: string[] = JSON.parse(row.relays || '[]');
+      if (relays.length === 0) { res.json([]); return; }
+
+      const events = await fetchAllListings(relays);
+      cachedListings = events
+        .map(parseListing)
+        .filter(l => l.status === 'active' && l.title);
+      cacheTimestamp = Date.now();
+
+      res.json(applyFilters(cachedListings, req.query));
+    } catch (error) {
+      console.error('Failed to fetch listings:', error);
+      res.json(applyFilters(cachedListings, req.query));
+    }
+  });
+
+  return router;
+}
+
+function applyFilters(listings: ReturnType<typeof parseListing>[], query: any) {
+  let result = [...listings];
+
+  // ?unit=<unitId> — filter by business unit reference
+  if (query.unit) {
+    const unitRef = query.unit as string;
+    result = result.filter(l => l.unitRef.includes(unitRef));
+  }
+
+  // ?type=product
+  if (query.type) {
+    result = result.filter(l => l.type === query.type);
+  }
+
+  // ?t=vegetables
+  if (query.t) {
+    const t = query.t as string;
+    result = result.filter(l => l.tags.includes(t));
+  }
+
+  // ?eco=organic
+  if (query.eco) {
+    const eco = query.eco as string;
+    result = result.filter(l => l.eco.includes(eco));
+  }
+
+  // ?search=apple
+  if (query.search) {
+    const s = (query.search as string).toLowerCase();
+    result = result.filter(l =>
+      l.title.toLowerCase().includes(s) ||
+      l.content.toLowerCase().includes(s) ||
+      l.tags.some(t => t.toLowerCase().includes(s))
+    );
+  }
+
+  // Sort newest first by default
+  result.sort((a, b) => b.createdAt - a.createdAt);
+
+  return result;
+}

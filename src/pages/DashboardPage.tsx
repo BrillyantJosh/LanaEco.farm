@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSystemParams } from '@/contexts/SystemParamsContext';
-import { fetchBusinessUnits, parseBusinessUnit, publishToRelays, fetchSuspensions, type BusinessUnit, type UnitSuspension } from '@/lib/nostr';
+import { fetchBusinessUnits, parseBusinessUnit, publishToRelays, fetchSuspensions, fetchListings, parseEcoListing, type BusinessUnit, type UnitSuspension, type EcoListing } from '@/lib/nostr';
 import { signNostrEvent } from '@/lib/nostrSigning';
 import { BusinessUnitCard } from '@/components/BusinessUnitCard';
 import { BusinessUnitForm } from '@/components/BusinessUnitForm';
 import { StaffManager } from '@/components/StaffManager';
-import { Plus, Loader2, LogOut, Store, RefreshCw, Leaf } from 'lucide-react';
+import { ListingCard } from '@/components/ListingCard';
+import { ListingForm } from '@/components/ListingForm';
+import { Plus, Loader2, LogOut, Store, RefreshCw, Leaf, ArrowLeft, ShoppingBag } from 'lucide-react';
 
 export default function DashboardPage() {
   const { session, logout } = useAuth();
@@ -19,9 +21,16 @@ export default function DashboardPage() {
   const [staffUnit, setStaffUnit] = useState<BusinessUnit | null>(null);
   const [suspensions, setSuspensions] = useState<Record<string, UnitSuspension>>({});
 
+  // Listings state
+  const [listingsUnit, setListingsUnit] = useState<BusinessUnit | null>(null);
+  const [listings, setListings] = useState<EcoListing[]>([]);
+  const [listingsLoading, setListingsLoading] = useState(false);
+  const [showListingForm, setShowListingForm] = useState(false);
+  const [editingListing, setEditingListing] = useState<EcoListing | undefined>(undefined);
+  const [deletingListingId, setDeletingListingId] = useState<string | null>(null);
+
   const loadUnits = async () => {
     if (!session || !params?.relays) return;
-
     setIsLoading(true);
     try {
       const events = await fetchBusinessUnits(session.nostrHexId, params.relays);
@@ -41,93 +50,147 @@ export default function DashboardPage() {
     }
   };
 
-  useEffect(() => {
-    loadUnits();
-  }, [session, params]);
-
-  const handleEdit = (unit: BusinessUnit) => {
-    setEditingUnit(unit);
-    setShowForm(true);
-  };
-
-  const handleCreate = () => {
-    setEditingUnit(undefined);
-    setShowForm(true);
-  };
-
-  const handleSaved = () => {
-    setShowForm(false);
-    setEditingUnit(undefined);
-    setTimeout(loadUnits, 2000);
-  };
-
-  const handleBack = () => {
-    setShowForm(false);
-    setEditingUnit(undefined);
-  };
-
-  const handleDelete = async (unit: BusinessUnit) => {
+  const loadListings = async (unit: BusinessUnit) => {
     if (!session || !params?.relays) return;
-
-    const confirmed = window.confirm(
-      `Ali ste prepričani, da želite izbrisati "${unit.name}"?\n\nTo bo objavilo dogodek izbrisa (KIND 5) na vse relaje.`
-    );
-    if (!confirmed) return;
-
-    setDeletingUnitId(unit.unitId);
+    setListingsLoading(true);
     try {
-      const tags: string[][] = [
-        ['e', unit.eventId],
-        ['a', `30901:${session.nostrHexId}:${unit.unitId}`],
-      ];
-
-      const signedEvent = signNostrEvent(
-        session.nostrPrivateKey,
-        5,
-        `Deleting business unit: ${unit.name}`,
-        tags
-      );
-
-      const result = await publishToRelays(signedEvent, params.relays);
-
-      if (result.success.length > 0) {
-        setUnits(prev => prev.filter(u => u.unitId !== unit.unitId));
-      } else {
-        alert('Objava izbrisa ni uspela. Poskusite znova.');
-      }
+      const events = await fetchListings(params.relays, { authors: [session.nostrHexId] });
+      const parsed = events.map(parseEcoListing);
+      // Filter to this unit's listings
+      const unitRef = `30901:${session.nostrHexId}:${unit.unitId}`;
+      const unitListings = parsed.filter(l => l.unitRef === unitRef);
+      unitListings.sort((a, b) => b.createdAt - a.createdAt);
+      setListings(unitListings);
     } catch (error) {
-      console.error('Delete failed:', error);
-      alert('Izbris ni uspel. Poskusite znova.');
+      console.error('Failed to fetch listings:', error);
     } finally {
-      setDeletingUnitId(null);
+      setListingsLoading(false);
     }
   };
 
-  const handleStaff = (unit: BusinessUnit) => {
-    setStaffUnit(unit);
+  useEffect(() => { loadUnits(); }, [session, params]);
+
+  const handleEdit = (unit: BusinessUnit) => { setEditingUnit(unit); setShowForm(true); };
+  const handleCreate = () => { setEditingUnit(undefined); setShowForm(true); };
+  const handleSaved = () => { setShowForm(false); setEditingUnit(undefined); setTimeout(loadUnits, 2000); };
+  const handleBack = () => { setShowForm(false); setEditingUnit(undefined); };
+
+  const handleDelete = async (unit: BusinessUnit) => {
+    if (!session || !params?.relays) return;
+    if (!window.confirm(`Ali ste prepričani, da želite izbrisati "${unit.name}"?`)) return;
+    setDeletingUnitId(unit.unitId);
+    try {
+      const tags: string[][] = [['e', unit.eventId], ['a', `30901:${session.nostrHexId}:${unit.unitId}`]];
+      const signedEvent = signNostrEvent(session.nostrPrivateKey, 5, `Deleting: ${unit.name}`, tags);
+      const result = await publishToRelays(signedEvent, params.relays);
+      if (result.success.length > 0) setUnits(prev => prev.filter(u => u.unitId !== unit.unitId));
+      else alert('Izbris ni uspel.');
+    } catch { alert('Izbris ni uspel.'); }
+    finally { setDeletingUnitId(null); }
   };
 
-  const handleStaffSaved = () => {
-    setStaffUnit(null);
-    setTimeout(loadUnits, 2000);
+  const handleStaff = (unit: BusinessUnit) => { setStaffUnit(unit); };
+  const handleStaffSaved = () => { setStaffUnit(null); setTimeout(loadUnits, 2000); };
+
+  // Listings handlers
+  const handleListings = (unit: BusinessUnit) => { setListingsUnit(unit); loadListings(unit); };
+  const handleListingBack = () => { setListingsUnit(null); setListings([]); setShowListingForm(false); setEditingListing(undefined); };
+  const handleListingCreate = () => { setEditingListing(undefined); setShowListingForm(true); };
+  const handleListingEdit = (listing: EcoListing) => { setEditingListing(listing); setShowListingForm(true); };
+  const handleListingSaved = () => { setShowListingForm(false); setEditingListing(undefined); if (listingsUnit) setTimeout(() => loadListings(listingsUnit), 2000); };
+  const handleListingFormBack = () => { setShowListingForm(false); setEditingListing(undefined); };
+
+  const handleListingDelete = async (listing: EcoListing) => {
+    if (!session || !params?.relays) return;
+    if (!window.confirm(`Izbrisati "${listing.title}"?`)) return;
+    setDeletingListingId(listing.listingId);
+    try {
+      const tags: string[][] = [['e', listing.eventId], ['a', `36500:${session.nostrHexId}:${listing.listingId}`]];
+      const signedEvent = signNostrEvent(session.nostrPrivateKey, 5, `Deleting listing: ${listing.title}`, tags);
+      const result = await publishToRelays(signedEvent, params.relays);
+      if (result.success.length > 0) setListings(prev => prev.filter(l => l.listingId !== listing.listingId));
+      else alert('Izbris ni uspel.');
+    } catch { alert('Izbris ni uspel.'); }
+    finally { setDeletingListingId(null); }
   };
 
-  const exchangeRateText = params?.exchange_rates?.EUR
-    ? `1 LANA = ${params.exchange_rates.EUR} EUR`
-    : null;
+  const exchangeRateText = params?.exchange_rates?.EUR ? `1 LANA = ${params.exchange_rates.EUR} EUR` : null;
 
-  if (showForm) {
+  // === LISTING FORM VIEW ===
+  if (showListingForm && listingsUnit) {
     return (
       <div className="min-h-screen bg-background p-4 sm:p-6">
-        <BusinessUnitForm
-          unit={editingUnit}
-          onBack={handleBack}
-          onSaved={handleSaved}
-        />
+        <ListingForm unit={listingsUnit} listing={editingListing} onBack={handleListingFormBack} onSaved={handleListingSaved} />
       </div>
     );
   }
 
+  // === LISTINGS VIEW (per unit) ===
+  if (listingsUnit) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="bg-card border-b sticky top-0 z-10">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button onClick={handleListingBack} className="p-2 hover:bg-muted rounded-lg transition">
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <div>
+                <h1 className="text-lg font-bold text-foreground font-display">Ponudbe</h1>
+                <p className="text-xs text-muted-foreground font-sans">{listingsUnit.name}</p>
+              </div>
+            </div>
+            <button onClick={handleListingCreate}
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition text-sm font-sans font-medium">
+              <Plus className="w-4 h-4" /> Nova ponudba
+            </button>
+          </div>
+        </header>
+
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+          {listingsLoading && (
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+              <Loader2 className="w-8 h-8 animate-spin mb-3" />
+              <p className="text-sm font-sans">Nalaganje ponudb...</p>
+            </div>
+          )}
+
+          {!listingsLoading && listings.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+              <ShoppingBag className="w-12 h-12 mb-3 text-muted-foreground/40" />
+              <p className="text-base font-medium text-foreground mb-1 font-display">Še nimate ponudb</p>
+              <p className="text-sm font-sans mb-4">Ustvarite svojo prvo ponudbo za to enoto.</p>
+              <button onClick={handleListingCreate}
+                className="flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition text-sm font-sans font-medium">
+                <Plus className="w-4 h-4" /> Ustvari ponudbo
+              </button>
+            </div>
+          )}
+
+          {!listingsLoading && listings.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {listings.map(listing => (
+                <ListingCard key={listing.listingId} listing={listing} showActions
+                  onEdit={handleListingEdit} onDelete={handleListingDelete}
+                  isDeleting={deletingListingId === listing.listingId} />
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
+
+  // === UNIT FORM VIEW ===
+  if (showForm) {
+    return (
+      <div className="min-h-screen bg-background p-4 sm:p-6">
+        <BusinessUnitForm unit={editingUnit} onBack={handleBack} onSaved={handleSaved} />
+      </div>
+    );
+  }
+
+  // === MAIN DASHBOARD ===
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b sticky top-0 z-10">
@@ -145,16 +208,10 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             {exchangeRateText && (
-              <span className="hidden sm:inline text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">
-                {exchangeRateText}
-              </span>
+              <span className="hidden sm:inline text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">{exchangeRateText}</span>
             )}
-            <button
-              onClick={logout}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-destructive transition font-sans"
-            >
-              <LogOut className="w-4 h-4" />
-              Odjava
+            <button onClick={logout} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-destructive transition font-sans">
+              <LogOut className="w-4 h-4" /> Odjava
             </button>
           </div>
         </div>
@@ -164,25 +221,14 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-foreground font-display">
             Trgovske enote
-            {!isLoading && (
-              <span className="text-sm font-normal text-muted-foreground ml-2 font-sans">({units.length})</span>
-            )}
+            {!isLoading && <span className="text-sm font-normal text-muted-foreground ml-2 font-sans">({units.length})</span>}
           </h2>
           <div className="flex items-center gap-2">
-            <button
-              onClick={loadUnits}
-              disabled={isLoading}
-              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition"
-              title="Osveži"
-            >
+            <button onClick={loadUnits} disabled={isLoading} className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition" title="Osveži">
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
-            <button
-              onClick={handleCreate}
-              className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition text-sm font-sans font-medium"
-            >
-              <Plus className="w-4 h-4" />
-              Nova enota
+            <button onClick={handleCreate} className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition text-sm font-sans font-medium">
+              <Plus className="w-4 h-4" /> Nova enota
             </button>
           </div>
         </div>
@@ -199,12 +245,8 @@ export default function DashboardPage() {
             <Store className="w-12 h-12 mb-3 text-muted-foreground/40" />
             <p className="text-base font-medium text-foreground mb-1 font-display">Nimate še nobene trgovske enote</p>
             <p className="text-sm font-sans mb-4">Ustvarite svojo prvo eko kmetijsko enoto.</p>
-            <button
-              onClick={handleCreate}
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition text-sm font-sans font-medium"
-            >
-              <Plus className="w-4 h-4" />
-              Ustvari enoto
+            <button onClick={handleCreate} className="flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition text-sm font-sans font-medium">
+              <Plus className="w-4 h-4" /> Ustvari enoto
             </button>
           </div>
         )}
@@ -212,35 +254,23 @@ export default function DashboardPage() {
         {!isLoading && units.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {units.map(unit => (
-              <BusinessUnitCard
-                key={unit.unitId}
-                unit={unit}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onStaff={handleStaff}
+              <BusinessUnitCard key={unit.unitId} unit={unit}
+                onEdit={handleEdit} onDelete={handleDelete} onStaff={handleStaff}
+                onListings={handleListings}
                 isDeleting={deletingUnitId === unit.unitId}
-                suspension={suspensions[unit.unitId] || null}
-              />
+                suspension={suspensions[unit.unitId] || null} />
             ))}
           </div>
         )}
 
         {exchangeRateText && (
           <div className="sm:hidden mt-6 text-center">
-            <span className="text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">
-              {exchangeRateText}
-            </span>
+            <span className="text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">{exchangeRateText}</span>
           </div>
         )}
       </main>
 
-      {staffUnit && (
-        <StaffManager
-          unit={staffUnit}
-          onClose={() => setStaffUnit(null)}
-          onSaved={handleStaffSaved}
-        />
-      )}
+      {staffUnit && <StaffManager unit={staffUnit} onClose={() => setStaffUnit(null)} onSaved={handleStaffSaved} />}
     </div>
   );
 }

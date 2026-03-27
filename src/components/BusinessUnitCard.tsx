@@ -1,4 +1,4 @@
-import { MapPin, Tag, Edit, CircleDot, Trash2, Loader2, Users, Ban } from 'lucide-react';
+import { MapPin, Tag, Edit, CircleDot, Trash2, Loader2, Users, Ban, ShoppingBag } from 'lucide-react';
 import type { BusinessUnit, UnitSuspension } from '@/lib/nostr';
 
 interface BusinessUnitCardProps {
@@ -6,6 +6,7 @@ interface BusinessUnitCardProps {
   onEdit: (unit: BusinessUnit) => void;
   onDelete: (unit: BusinessUnit) => void;
   onStaff: (unit: BusinessUnit) => void;
+  onListings?: (unit: BusinessUnit) => void;
   isDeleting?: boolean;
   suspension?: UnitSuspension | null;
 }
@@ -16,7 +17,7 @@ const statusColors: Record<string, string> = {
   archived: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400',
 };
 
-export function BusinessUnitCard({ unit, onEdit, onDelete, onStaff, isDeleting, suspension }: BusinessUnitCardProps) {
+export function BusinessUnitCard({ unit, onEdit, onDelete, onStaff, onListings, isDeleting, suspension }: BusinessUnitCardProps) {
   return (
     <div className={`rounded-xl border overflow-hidden shadow-sm hover:shadow-md transition ${
       suspension ? 'bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
@@ -88,10 +89,20 @@ export function BusinessUnitCard({ unit, onEdit, onDelete, onStaff, isDeleting, 
             <Edit className="w-4 h-4" />
             Edit
           </button>
+          {onListings && (
+            <button
+              onClick={() => onListings(unit)}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition text-sm font-medium"
+              title="Ponudbe"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span className="text-xs">Ponudbe</span>
+            </button>
+          )}
           <button
             onClick={() => onStaff(unit)}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition text-sm font-medium"
-            title="Manage staff"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition text-sm font-medium"
+            title="Osebje"
           >
             <Users className="w-4 h-4" />
             <span className="text-xs">Staff</span>
@@ -99,8 +110,8 @@ export function BusinessUnitCard({ unit, onEdit, onDelete, onStaff, isDeleting, 
           <button
             onClick={() => onDelete(unit)}
             disabled={isDeleting}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition text-sm font-medium disabled:opacity-50"
-            title="Delete unit from relays"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition text-sm font-medium disabled:opacity-50"
+            title="Izbriši"
           >
             {isDeleting ? (
               <Loader2 className="w-4 h-4 animate-spin" />

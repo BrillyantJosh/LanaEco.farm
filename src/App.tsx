@@ -18,6 +18,8 @@ const LoginPage = lazy(() => import("./pages/LoginPage.tsx"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage.tsx"));
 const UnitDetailPage = lazy(() => import("./pages/UnitDetailPage.tsx"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage.tsx"));
+const ListingsPage = lazy(() => import("./pages/ListingsPage.tsx"));
+const ListingDetailPage = lazy(() => import("./pages/ListingDetailPage.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const PageLoader = () => (
@@ -43,6 +45,8 @@ const App = () => (
                 <Route path="/izdelki" element={<ProductsPage />} />
                 <Route path="/smernice" element={<GuidelinesPage />} />
                 <Route path="/enota/:unitId" element={<UnitDetailPage />} />
+                <Route path="/ponudbe" element={<ListingsPage />} />
+                <Route path="/ponudba/:pubkey/:listingId" element={<ListingDetailPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route

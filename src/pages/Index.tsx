@@ -1,10 +1,24 @@
 import { useState, useEffect } from "react";
-import { ArrowRight, Leaf, Sprout, TreePine, MapPin, Loader2 } from "lucide-react";
+import { ArrowRight, Leaf, Sprout, TreePine, MapPin, Loader2, ShoppingBag, Tag } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImageWebp from "@/assets/hero-farm.webp";
 import heroImageJpg from "@/assets/hero-farm.jpg";
 import productsImageWebp from "@/assets/products-bg.webp";
 import productsImageJpg from "@/assets/products-bg.jpg";
+
+interface EcoListing {
+  listingId: string;
+  pubkey: string;
+  title: string;
+  type: string;
+  price: string;
+  priceCurrency: string;
+  unit: string;
+  content: string;
+  images: string[];
+  eco: string[];
+  tags: string[];
+}
 
 interface EcoUnit {
   unitId: string;
@@ -21,6 +35,8 @@ interface EcoUnit {
 const Index = () => {
   const [units, setUnits] = useState<EcoUnit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [listings, setListings] = useState<EcoListing[]>([]);
+  const [listingsLoading, setListingsLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/eco-units?category=Eco Farm,Eco Farming')
@@ -30,6 +46,14 @@ const Index = () => {
         setIsLoading(false);
       })
       .catch(() => setIsLoading(false));
+
+    fetch('/api/listings')
+      .then(res => res.json())
+      .then((data: EcoListing[]) => {
+        setListings(data.slice(0, 6));
+        setListingsLoading(false);
+      })
+      .catch(() => setListingsLoading(false));
   }, []);
 
   const featured = units.slice(0, 6);
@@ -196,6 +220,64 @@ const Index = () => {
           </div>
         )}
       </section>
+
+      {/* Latest Listings */}
+      {!listingsLoading && listings.length > 0 && (
+        <section className="container mx-auto px-4 py-16">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <h2 className="font-display text-3xl font-bold">Najnovejše ponudbe</h2>
+              <p className="text-muted-foreground font-sans mt-1">Sveži izdelki, naročnine in doživetja</p>
+            </div>
+            <Link to="/ponudbe" className="hidden md:inline-flex items-center gap-1 text-primary font-sans text-sm font-medium hover:underline">
+              Vse ponudbe <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {listings.map((listing) => (
+              <Link
+                key={`${listing.pubkey}-${listing.listingId}`}
+                to={`/ponudba/${listing.pubkey}/${listing.listingId}`}
+                className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
+              >
+                <div className="aspect-[16/10] overflow-hidden bg-muted">
+                  {listing.images[0] ? (
+                    <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ShoppingBag className="w-10 h-10 text-muted-foreground/30" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-sans font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full capitalize">{listing.type}</span>
+                    <span className="text-sm font-semibold font-sans">{listing.price} {listing.priceCurrency}/{listing.unit}</span>
+                  </div>
+                  <h3 className="font-display text-base font-semibold truncate">{listing.title}</h3>
+                  {listing.content && (
+                    <p className="text-xs text-muted-foreground font-sans mt-1 line-clamp-2">{listing.content}</p>
+                  )}
+                  {listing.eco.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {listing.eco.slice(0, 2).map(e => (
+                        <span key={e} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-[10px] font-sans">
+                          <Leaf className="w-2.5 h-2.5" />{e.replace(/_/g, ' ')}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-6 md:hidden text-center">
+            <Link to="/ponudbe" className="inline-flex items-center gap-1 text-primary font-sans text-sm font-medium">
+              Vse ponudbe <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* CTA */}
       <section className="relative overflow-hidden">
