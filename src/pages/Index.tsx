@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ArrowRight, Leaf, Sprout, TreePine, MapPin, Loader2, ShoppingBag, Tag } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useLanguage } from '@/i18n/LanguageContext';
 import heroImageWebp from "@/assets/hero-farm.webp";
 import heroImageJpg from "@/assets/hero-farm.jpg";
 import productsImageWebp from "@/assets/products-bg.webp";
@@ -33,6 +34,7 @@ interface EcoUnit {
 }
 
 const Index = () => {
+  const { t } = useLanguage();
   const [units, setUnits] = useState<EcoUnit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [listings, setListings] = useState<EcoListing[]>([]);
@@ -81,28 +83,28 @@ const Index = () => {
             <div className="flex items-center gap-2 mb-4">
               <Leaf className="h-6 w-6 text-primary-foreground" />
               <span className="text-primary-foreground/80 font-sans text-sm tracking-wider uppercase">
-                Producer directory
+                {t('hero.subtitle')}
               </span>
             </div>
             <h1 className="font-display text-4xl md:text-6xl font-bold text-primary-foreground leading-tight">
-              From farm to your table
+              {t('hero.title')}
             </h1>
             <p className="mt-4 text-lg text-primary-foreground/80 font-sans max-w-lg">
-              Discover local organic farmers, their stories and fresh produce.
-              Support sustainable farming in your region.
+              {t('hero.desc1')}{' '}
+              {t('hero.desc2')}
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <a
                 href="#kmetje"
                 className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-sans font-medium transition-transform hover:scale-105"
               >
-                Explore farms <ArrowRight className="h-4 w-4" />
+                {t('hero.explore')} <ArrowRight className="h-4 w-4" />
               </a>
               <Link
                 to="/login"
                 className="inline-flex items-center gap-2 bg-primary-foreground/10 text-primary-foreground border border-primary-foreground/20 px-6 py-3 rounded-lg font-sans font-medium backdrop-blur-sm transition-transform hover:scale-105"
               >
-                Sign in
+                {t('hero.signin')}
               </Link>
             </div>
           </div>
@@ -115,18 +117,18 @@ const Index = () => {
           {[
             {
               icon: <Leaf className="h-8 w-8 text-primary" />,
-              title: "Organic farming",
-              desc: "No pesticides or chemical fertilizers — for healthy food and a clean environment.",
+              title: t('values.organic.title'),
+              desc: t('values.organic.desc'),
             },
             {
               icon: <Sprout className="h-8 w-8 text-primary" />,
-              title: "Short supply chains",
-              desc: "Directly from farmer to you — fresh, local, fair.",
+              title: t('values.supply.title'),
+              desc: t('values.supply.desc'),
             },
             {
               icon: <TreePine className="h-8 w-8 text-primary" />,
-              title: "Biodiversity",
-              desc: "Preserving heritage varieties, mixed crops and caring for pollinators.",
+              title: t('values.bio.title'),
+              desc: t('values.bio.desc'),
             },
           ].map((item) => (
             <div key={item.title} className="text-center p-6 rounded-lg bg-card border">
@@ -142,9 +144,9 @@ const Index = () => {
       <section id="kmetje" className="container mx-auto px-4 pb-16">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h2 className="font-display text-3xl font-bold">Eco farms</h2>
+            <h2 className="font-display text-3xl font-bold">{t('eco.title')}</h2>
             <p className="text-muted-foreground font-sans mt-1">
-              Live units registered on the Lana Eco Farm network
+              {t('eco.subtitle')}
             </p>
           </div>
         </div>
@@ -152,7 +154,7 @@ const Index = () => {
         {isLoading && (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
-            <span className="text-muted-foreground font-sans text-sm">Loading from relays...</span>
+            <span className="text-muted-foreground font-sans text-sm">{t('eco.loadingRelays')}</span>
           </div>
         )}
 
@@ -160,8 +162,8 @@ const Index = () => {
           <div className="text-center py-16">
             <Leaf className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-muted-foreground font-sans">
-              No eco farms registered yet.
-              <Link to="/login" className="text-primary ml-1 hover:underline">Register yours!</Link>
+              {t('eco.noFarms')}
+              <Link to="/login" className="text-primary ml-1 hover:underline">{t('eco.registerYours')}</Link>
             </p>
           </div>
         )}
@@ -226,11 +228,11 @@ const Index = () => {
         <section className="container mx-auto px-4 py-16">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <h2 className="font-display text-3xl font-bold">Latest listings</h2>
-              <p className="text-muted-foreground font-sans mt-1">Fresh products, subscriptions and experiences</p>
+              <h2 className="font-display text-3xl font-bold">{t('latest.title')}</h2>
+              <p className="text-muted-foreground font-sans mt-1">{t('latest.subtitle')}</p>
             </div>
             <Link to="/ponudbe" className="hidden md:inline-flex items-center gap-1 text-primary font-sans text-sm font-medium hover:underline">
-              All listings <ArrowRight className="h-4 w-4" />
+              {t('latest.all')} <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -273,7 +275,7 @@ const Index = () => {
           </div>
           <div className="mt-6 md:hidden text-center">
             <Link to="/ponudbe" className="inline-flex items-center gap-1 text-primary font-sans text-sm font-medium">
-              All listings <ArrowRight className="h-4 w-4" />
+              {t('latest.all')} <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </section>
@@ -297,16 +299,16 @@ const Index = () => {
         </div>
         <div className="relative container mx-auto px-4 py-20 text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground">
-            Become part of the eco community
+            {t('cta.title')}
           </h2>
           <p className="mt-3 text-primary-foreground/80 font-sans max-w-md mx-auto">
-            Register your farm and reach new customers through the Lana Eco Farm network.
+            {t('cta.desc')}
           </p>
           <Link
             to="/login"
             className="mt-6 inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-sans font-medium transition-transform hover:scale-105"
           >
-            Sign in <ArrowRight className="h-4 w-4" />
+            {t('hero.signin')} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>

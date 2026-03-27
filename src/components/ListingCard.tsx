@@ -1,13 +1,7 @@
 import { Link } from 'react-router-dom';
 import { MapPin, Leaf, ShoppingBag, Calendar, Users, Tag } from 'lucide-react';
 import type { EcoListing } from '@/lib/nostr';
-
-const TYPE_LABELS: Record<string, string> = {
-  product: 'Izdelek',
-  subscription: 'Naročnina',
-  service: 'Storitev',
-  experience: 'Doživetje',
-};
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const TYPE_COLORS: Record<string, string> = {
   product: 'bg-primary/10 text-primary',
@@ -25,6 +19,15 @@ interface ListingCardProps {
 }
 
 export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting }: ListingCardProps) {
+  const { t } = useLanguage();
+
+  const TYPE_LABELS: Record<string, string> = {
+    product: t('type.product'),
+    subscription: t('type.subscription'),
+    service: t('type.service'),
+    experience: t('type.experience'),
+  };
+
   const mainImage = listing.images[0] || listing.thumbs[0];
 
   const card = (
@@ -89,10 +92,10 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
         {/* Category tags */}
         {listing.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-2">
-            {listing.tags.slice(0, 3).map(t => (
-              <span key={t} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-[10px] font-sans">
+            {listing.tags.slice(0, 3).map(tg => (
+              <span key={tg} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-[10px] font-sans">
                 <Tag className="w-2.5 h-2.5" />
-                {t}
+                {tg}
               </span>
             ))}
           </div>
@@ -112,7 +115,7 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
         {/* Stock */}
         {listing.stock && (
           <div className="text-[10px] text-muted-foreground font-sans">
-            In stock: {listing.stock} {listing.unit}
+            {t('common.inStock')} {listing.stock} {listing.unit}
           </div>
         )}
 
@@ -123,14 +126,14 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
               onClick={(e) => { e.preventDefault(); onEdit?.(listing); }}
               className="flex-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-sans font-medium hover:bg-primary/90 transition"
             >
-              Edit
+              {t('common.edit')}
             </button>
             <button
               onClick={(e) => { e.preventDefault(); onDelete?.(listing); }}
               disabled={isDeleting}
               className="px-3 py-1.5 bg-destructive/10 text-destructive rounded-lg text-xs font-sans font-medium hover:bg-destructive/20 transition disabled:opacity-50"
             >
-              {isDeleting ? '...' : 'Delete'}
+              {isDeleting ? '...' : t('common.delete')}
             </button>
           </div>
         )}

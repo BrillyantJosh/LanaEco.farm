@@ -2,16 +2,18 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Loader2, MapPin, Leaf, Tag, Calendar, ShoppingBag, Truck, CreditCard, Clock, Users, CheckCircle } from 'lucide-react';
 import type { EcoListing } from '@/lib/nostr';
-
-const TYPE_LABELS: Record<string, string> = {
-  product: 'Product', subscription: 'Subscription', service: 'Service', experience: 'Experience',
-};
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function ListingDetailPage() {
+  const { t } = useLanguage();
   const { pubkey, listingId } = useParams<{ pubkey: string; listingId: string }>();
   const [listing, setListing] = useState<EcoListing | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+
+  const TYPE_LABELS: Record<string, string> = {
+    product: t('type.product'), subscription: t('type.subscription'), service: t('type.service'), experience: t('type.experience'),
+  };
 
   useEffect(() => {
     fetch('/api/listings')
@@ -36,8 +38,8 @@ export default function ListingDetailPage() {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-muted-foreground/40" />
-        <h2 className="font-display text-xl font-bold mb-2">Listing not found</h2>
-        <Link to="/ponudbe" className="text-primary hover:underline font-sans text-sm">Back to listings</Link>
+        <h2 className="font-display text-xl font-bold mb-2">{t('listingDetail.notFound')}</h2>
+        <Link to="/ponudbe" className="text-primary hover:underline font-sans text-sm">{t('listingDetail.back')}</Link>
       </div>
     );
   }
@@ -49,7 +51,7 @@ export default function ListingDetailPage() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-5xl">
       <Link to="/ponudbe" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 font-sans">
-        <ArrowLeft className="w-4 h-4" /> Back to listings
+        <ArrowLeft className="w-4 h-4" /> {t('listingDetail.back')}
       </Link>
 
       <div className="grid lg:grid-cols-2 gap-8">
@@ -101,7 +103,7 @@ export default function ListingDetailPage() {
           {/* Eco labels */}
           {listing.eco.length > 0 && (
             <div>
-              <h3 className="text-xs font-sans font-medium text-muted-foreground mb-2 uppercase tracking-wider">Eco labels</h3>
+              <h3 className="text-xs font-sans font-medium text-muted-foreground mb-2 uppercase tracking-wider">{t('listingDetail.ecoLabels')}</h3>
               <div className="flex flex-wrap gap-2">
                 {listing.eco.map(e => (
                   <span key={e} className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-xs font-sans font-medium">
@@ -123,9 +125,9 @@ export default function ListingDetailPage() {
           {/* Category tags */}
           {listing.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
-              {listing.tags.map(t => (
-                <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted text-muted-foreground rounded text-xs font-sans">
-                  <Tag className="w-3 h-3" /> {t}
+              {listing.tags.map(tg => (
+                <span key={tg} className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted text-muted-foreground rounded text-xs font-sans">
+                  <Tag className="w-3 h-3" /> {tg}
                 </span>
               ))}
             </div>
@@ -134,7 +136,7 @@ export default function ListingDetailPage() {
           {/* Stock */}
           {listing.stock && (
             <div className="text-sm font-sans text-muted-foreground">
-              In stock: <span className="font-medium text-foreground">{listing.stock} {listing.unit}</span>
+              {t('common.inStock')} <span className="font-medium text-foreground">{listing.stock} {listing.unit}</span>
               {listing.minOrder && <span> (min: {listing.minOrder})</span>}
               {listing.maxOrder && <span> (max: {listing.maxOrder})</span>}
             </div>
@@ -154,7 +156,7 @@ export default function ListingDetailPage() {
           {/* Delivery */}
           {listing.delivery.length > 0 && (
             <div>
-              <h3 className="text-xs font-sans font-medium text-muted-foreground mb-2 uppercase tracking-wider">Delivery</h3>
+              <h3 className="text-xs font-sans font-medium text-muted-foreground mb-2 uppercase tracking-wider">{t('listingDetail.delivery')}</h3>
               <div className="flex flex-wrap gap-2">
                 {listing.delivery.map(d => (
                   <span key={d} className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-sans">
@@ -163,7 +165,7 @@ export default function ListingDetailPage() {
                 ))}
               </div>
               {listing.deliveryRadiusKm && (
-                <p className="text-xs text-muted-foreground font-sans mt-1">Radij: {listing.deliveryRadiusKm} km</p>
+                <p className="text-xs text-muted-foreground font-sans mt-1">{t('listingDetail.radius', { km: listing.deliveryRadiusKm })}</p>
               )}
             </div>
           )}
@@ -172,14 +174,14 @@ export default function ListingDetailPage() {
           {listing.marketDays.length > 0 && (
             <div className="text-sm font-sans text-muted-foreground">
               <Clock className="w-4 h-4 inline mr-1" />
-              Tržni dnevi: {listing.marketDays.map(d => d.slice(0, 3)).join(', ')}
+              {t('listingDetail.marketDays')} {listing.marketDays.map(d => d.slice(0, 3)).join(', ')}
             </div>
           )}
 
           {/* Subscription info */}
           {listing.type === 'subscription' && listing.subscriptionInterval && (
             <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
-              <h3 className="font-display font-semibold text-sm mb-1">Naročnina</h3>
+              <h3 className="font-display font-semibold text-sm mb-1">{t('listingDetail.subscription')}</h3>
               <p className="text-sm font-sans">Interval: {listing.subscriptionInterval}</p>
               {listing.subscriptionContent && (
                 <p className="text-sm font-sans text-muted-foreground mt-1">{listing.subscriptionContent}</p>
@@ -190,7 +192,7 @@ export default function ListingDetailPage() {
           {/* Experience info */}
           {listing.type === 'experience' && (
             <div className="bg-purple-50 border border-purple-100 rounded-lg p-4">
-              <h3 className="font-display font-semibold text-sm mb-1">Doživetje</h3>
+              <h3 className="font-display font-semibold text-sm mb-1">{t('listingDetail.experience')}</h3>
               {listing.capacity && (
                 <p className="text-sm font-sans"><Users className="w-3.5 h-3.5 inline mr-1" />Kapaciteta: {listing.capacity} oseb</p>
               )}
@@ -198,7 +200,7 @@ export default function ListingDetailPage() {
                 <p className="text-sm font-sans"><Clock className="w-3.5 h-3.5 inline mr-1" />Trajanje: {listing.durationMin} min</p>
               )}
               {listing.bookingRequired === 'true' && (
-                <p className="text-sm font-sans text-purple-700 mt-1">Rezervacija obvezna</p>
+                <p className="text-sm font-sans text-purple-700 mt-1">{t('listingDetail.bookingRequired')}</p>
               )}
             </div>
           )}
@@ -206,7 +208,7 @@ export default function ListingDetailPage() {
           {/* Payment */}
           {listing.payment.length > 0 && (
             <div>
-              <h3 className="text-xs font-sans font-medium text-muted-foreground mb-2 uppercase tracking-wider">Plačilo</h3>
+              <h3 className="text-xs font-sans font-medium text-muted-foreground mb-2 uppercase tracking-wider">{t('listingDetail.payment')}</h3>
               <div className="flex flex-wrap gap-2">
                 {listing.payment.map(p => (
                   <span key={p} className="inline-flex items-center gap-1 px-2.5 py-1 bg-muted rounded-full text-xs font-sans">
@@ -221,7 +223,7 @@ export default function ListingDetailPage() {
           <div className="pt-4 border-t">
             <Link to={`/enota/${unitId}`}
               className="inline-flex items-center gap-2 text-sm text-primary hover:underline font-sans font-medium">
-              <MapPin className="w-4 h-4" /> View farm
+              <MapPin className="w-4 h-4" /> {t('listingDetail.viewFarm')}
             </Link>
           </div>
         </div>

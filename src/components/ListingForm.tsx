@@ -4,13 +4,7 @@ import { signNostrEvent } from '@/lib/nostrSigning';
 import { publishToRelays, type EcoListing, type BusinessUnit } from '@/lib/nostr';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSystemParams } from '@/contexts/SystemParamsContext';
-
-const LISTING_TYPES = [
-  { value: 'product', label: 'Product' },
-  { value: 'subscription', label: 'Subscription' },
-  { value: 'service', label: 'Service' },
-  { value: 'experience', label: 'Experience' },
-];
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const SALE_UNITS = ['kg', 'piece', 'L', 'g', 'set', 'month', 'visit', 'person'];
 
@@ -27,22 +21,7 @@ const CATEGORY_TAGS = [
   'flowers', 'seeds', 'other'
 ];
 
-const DELIVERY_OPTIONS = [
-  { value: 'pickup', label: 'Pickup' },
-  { value: 'local_delivery', label: 'Local delivery' },
-  { value: 'farmers_market', label: 'Farmers market' },
-  { value: 'shipping', label: 'Shipping' },
-  { value: 'box_scheme', label: 'Box scheme' },
-];
-
 const MARKET_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-
-const STATUS_OPTIONS = [
-  { value: 'active', label: 'Active' },
-  { value: 'sold_out', label: 'Sold out' },
-  { value: 'seasonal', label: 'Seasonal' },
-  { value: 'archived', label: 'Archived' },
-];
 
 interface ListingFormProps {
   unit: BusinessUnit;
@@ -91,7 +70,30 @@ interface FormState {
 export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps) {
   const { session } = useAuth();
   const { params } = useSystemParams();
+  const { t } = useLanguage();
   const isEdit = !!listing;
+
+  const LISTING_TYPES = [
+    { value: 'product', label: t('type.product') },
+    { value: 'subscription', label: t('type.subscription') },
+    { value: 'service', label: t('type.service') },
+    { value: 'experience', label: t('type.experience') },
+  ];
+
+  const STATUS_OPTIONS = [
+    { value: 'active', label: t('status.active') },
+    { value: 'sold_out', label: t('status.sold_out') },
+    { value: 'seasonal', label: t('status.seasonal') },
+    { value: 'archived', label: t('status.archived') },
+  ];
+
+  const DELIVERY_OPTIONS = [
+    { value: 'pickup', label: t('delivery.pickup') },
+    { value: 'local_delivery', label: t('delivery.local_delivery') },
+    { value: 'farmers_market', label: t('delivery.farmers_market') },
+    { value: 'shipping', label: t('delivery.shipping') },
+    { value: 'box_scheme', label: t('delivery.box_scheme') },
+  ];
 
   const [form, setForm] = useState<FormState>({
     title: listing?.title || '',
@@ -184,8 +186,8 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
 
   const handleSave = async () => {
     if (!session || !params?.relays) return;
-    if (!form.title.trim()) { setError('Please enter a title'); return; }
-    if (!form.price.trim() || isNaN(parseFloat(form.price))) { setError('Please enter a valid price'); return; }
+    if (!form.title.trim()) { setError(t('form.errorTitle')); return; }
+    if (!form.price.trim() || isNaN(parseFloat(form.price))) { setError(t('form.errorPrice')); return; }
 
     setIsSaving(true);
     setError('');
@@ -217,7 +219,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
       if (form.cert) tags.push(['cert', form.cert]);
       if (form.certUrl) tags.push(['cert_url', form.certUrl]);
 
-      for (const t of form.categoryTags) tags.push(['t', t]);
+      for (const tg of form.categoryTags) tags.push(['t', tg]);
 
       for (const d of form.delivery) tags.push(['delivery', d]);
       if (form.deliveryRadiusKm) tags.push(['delivery_radius_km', form.deliveryRadiusKm]);
@@ -251,7 +253,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
       if (result.success.length > 0) {
         onSaved();
       } else {
-        setError('Failed to publish to relays. Please try again.');
+        setError(t('form.errorPublish'));
       }
     } catch (err: any) {
       setError(err.message || 'Error saving listing');
@@ -268,7 +270,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h2 className="text-lg font-bold font-display">{isEdit ? 'Edit listing' : 'New listing'}</h2>
+          <h2 className="text-lg font-bold font-display">{isEdit ? t('form.editListing') : t('form.newListing')}</h2>
           <p className="text-xs text-muted-foreground font-sans">{unit.name}</p>
         </div>
       </div>
@@ -280,22 +282,22 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
       <div className="space-y-6">
         {/* === BASIC === */}
         <section className="bg-card border rounded-xl p-5 space-y-4">
-          <h3 className="font-display font-semibold text-sm">Basic information</h3>
+          <h3 className="font-display font-semibold text-sm">{t('form.basic')}</h3>
 
           <div>
-            <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Title *</label>
-            <input value={form.title} onChange={e => updateField('title', e.target.value)} placeholder="e.g. Organic Jonagold Apples" className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
+            <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.title')} *</label>
+            <input value={form.title} onChange={e => updateField('title', e.target.value)} placeholder={t('form.titlePlaceholder')} className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Type *</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.type')} *</label>
               <select value={form.type} onChange={e => updateField('type', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm font-sans">
-                {LISTING_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                {LISTING_TYPES.map(lt => <option key={lt.value} value={lt.value}>{lt.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Status</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.status')}</label>
               <select value={form.status} onChange={e => updateField('status', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm font-sans">
                 {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
@@ -303,21 +305,21 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
           </div>
 
           <div>
-            <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Description</label>
-            <textarea value={form.content} onChange={e => updateField('content', e.target.value)} rows={3} placeholder="Detailed description of your listing..." className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
+            <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.description')}</label>
+            <textarea value={form.content} onChange={e => updateField('content', e.target.value)} rows={3} placeholder={t('form.descriptionPlaceholder')} className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
           </div>
         </section>
 
         {/* === PRICING === */}
         <section className="bg-card border rounded-xl p-5 space-y-4">
-          <h3 className="font-display font-semibold text-sm">Price & unit</h3>
+          <h3 className="font-display font-semibold text-sm">{t('form.priceUnit')}</h3>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Price *</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.price')} *</label>
               <input type="number" step="0.01" value={form.price} onChange={e => updateField('price', e.target.value)} placeholder="2.50" className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
             </div>
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Currency</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.currency')}</label>
               <select value={form.priceCurrency} onChange={e => updateField('priceCurrency', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm font-sans">
                 <option value="EUR">EUR</option>
                 <option value="LAN">LAN</option>
@@ -326,7 +328,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
               </select>
             </div>
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Unit</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.unit')}</label>
               <select value={form.saleUnit} onChange={e => updateField('saleUnit', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm font-sans">
                 {SALE_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
               </select>
@@ -336,50 +338,50 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
 
         {/* === STOCK === */}
         <section className="bg-card border rounded-xl p-5 space-y-4">
-          <h3 className="font-display font-semibold text-sm">Stock & orders</h3>
+          <h3 className="font-display font-semibold text-sm">{t('form.stockOrders')}</h3>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Stock</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.stock')}</label>
               <input type="number" value={form.stock} onChange={e => updateField('stock', e.target.value)} placeholder="200" className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
             </div>
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Min order</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.minOrder')}</label>
               <input type="number" value={form.minOrder} onChange={e => updateField('minOrder', e.target.value)} placeholder="1" className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
             </div>
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Max order</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.maxOrder')}</label>
               <input type="number" value={form.maxOrder} onChange={e => updateField('maxOrder', e.target.value)} placeholder="50" className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
             </div>
           </div>
           <label className="flex items-center gap-2 text-sm font-sans">
             <input type="checkbox" checked={form.preOrder} onChange={e => updateField('preOrder', e.target.checked)} className="rounded" />
-            Pre-order available
+            {t('form.preOrder')}
           </label>
         </section>
 
         {/* === SEASON === */}
         <section className="bg-card border rounded-xl p-5 space-y-4">
-          <h3 className="font-display font-semibold text-sm">Season & availability</h3>
+          <h3 className="font-display font-semibold text-sm">{t('form.seasonAvailability')}</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Season</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.season')}</label>
               <select value={form.harvestSeason} onChange={e => updateField('harvestSeason', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm font-sans">
                 <option value="">—</option>
                 {SEASONS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Harvest date</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.harvestDate')}</label>
               <input type="date" value={form.harvestDate} onChange={e => updateField('harvestDate', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Available from</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.availableFrom')}</label>
               <input type="date" value={form.availableFrom} onChange={e => updateField('availableFrom', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
             </div>
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Available until</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.availableUntil')}</label>
               <input type="date" value={form.availableUntil} onChange={e => updateField('availableUntil', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
             </div>
           </div>
@@ -387,7 +389,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
 
         {/* === ECO LABELS === */}
         <section className="bg-card border rounded-xl p-5 space-y-4">
-          <h3 className="font-display font-semibold text-sm">Eco labels & certificates</h3>
+          <h3 className="font-display font-semibold text-sm">{t('form.ecoLabels')}</h3>
           <div className="flex flex-wrap gap-2">
             {ECO_OPTIONS.map(e => (
               <button key={e} type="button" onClick={() => toggleArrayItem('eco', e)}
@@ -398,11 +400,11 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Certificate</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.certificate')}</label>
               <input value={form.cert} onChange={e => updateField('cert', e.target.value)} placeholder="SI-EKO-001" className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
             </div>
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Certificate URL</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.certificateUrl')}</label>
               <input value={form.certUrl} onChange={e => updateField('certUrl', e.target.value)} placeholder="https://..." className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
             </div>
           </div>
@@ -410,12 +412,12 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
 
         {/* === CATEGORY TAGS === */}
         <section className="bg-card border rounded-xl p-5 space-y-4">
-          <h3 className="font-display font-semibold text-sm">Categories</h3>
+          <h3 className="font-display font-semibold text-sm">{t('form.categories')}</h3>
           <div className="flex flex-wrap gap-2">
-            {CATEGORY_TAGS.map(t => (
-              <button key={t} type="button" onClick={() => toggleArrayItem('categoryTags', t)}
-                className={`px-2.5 py-1 rounded-full text-xs font-sans transition ${form.categoryTags.includes(t) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
-                {t}
+            {CATEGORY_TAGS.map(tg => (
+              <button key={tg} type="button" onClick={() => toggleArrayItem('categoryTags', tg)}
+                className={`px-2.5 py-1 rounded-full text-xs font-sans transition ${form.categoryTags.includes(tg) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
+                {tg}
               </button>
             ))}
           </div>
@@ -423,7 +425,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
 
         {/* === DELIVERY === */}
         <section className="bg-card border rounded-xl p-5 space-y-4">
-          <h3 className="font-display font-semibold text-sm">Delivery</h3>
+          <h3 className="font-display font-semibold text-sm">{t('form.delivery')}</h3>
           <div className="flex flex-wrap gap-2">
             {DELIVERY_OPTIONS.map(d => (
               <button key={d.value} type="button" onClick={() => toggleArrayItem('delivery', d.value)}
@@ -434,12 +436,12 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Delivery radius (km)</label>
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.deliveryRadius')}</label>
               <input type="number" value={form.deliveryRadiusKm} onChange={e => updateField('deliveryRadiusKm', e.target.value)} placeholder="30" className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Market days</label>
+            <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.marketDays')}</label>
             <div className="flex flex-wrap gap-2">
               {MARKET_DAYS.map(d => (
                 <button key={d} type="button" onClick={() => toggleArrayItem('marketDays', d)}
@@ -454,20 +456,20 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
         {/* === SUBSCRIPTION (conditional) === */}
         {form.type === 'subscription' && (
           <section className="bg-card border rounded-xl p-5 space-y-4">
-            <h3 className="font-display font-semibold text-sm">Subscription</h3>
+            <h3 className="font-display font-semibold text-sm">{t('form.subscription')}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Interval</label>
+                <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.interval')}</label>
                 <select value={form.subscriptionInterval} onChange={e => updateField('subscriptionInterval', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm font-sans">
-                  <option value="weekly">Weekly</option>
-                  <option value="biweekly">Biweekly</option>
-                  <option value="monthly">Monthly</option>
+                  <option value="weekly">{t('form.weekly')}</option>
+                  <option value="biweekly">{t('form.biweekly')}</option>
+                  <option value="monthly">{t('form.monthly')}</option>
                 </select>
               </div>
             </div>
             <div>
-              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Box contents</label>
-              <input value={form.subscriptionContent} onChange={e => updateField('subscriptionContent', e.target.value)} placeholder="Mixed seasonal veg ~8 kg + 6 eggs" className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
+              <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.boxContents')}</label>
+              <input value={form.subscriptionContent} onChange={e => updateField('subscriptionContent', e.target.value)} placeholder={t('form.boxContentsPlaceholder')} className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
             </div>
           </section>
         )}
@@ -475,27 +477,27 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
         {/* === EXPERIENCE (conditional) === */}
         {form.type === 'experience' && (
           <section className="bg-card border rounded-xl p-5 space-y-4">
-            <h3 className="font-display font-semibold text-sm">Experience</h3>
+            <h3 className="font-display font-semibold text-sm">{t('form.experience')}</h3>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Capacity</label>
+                <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.capacity')}</label>
                 <input type="number" value={form.capacity} onChange={e => updateField('capacity', e.target.value)} placeholder="12" className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
               </div>
               <div>
-                <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">Duration (min)</label>
+                <label className="block text-xs font-sans font-medium text-muted-foreground mb-1">{t('form.duration')}</label>
                 <input type="number" value={form.durationMin} onChange={e => updateField('durationMin', e.target.value)} placeholder="180" className="w-full px-3 py-2 border rounded-lg text-sm font-sans" />
               </div>
             </div>
             <label className="flex items-center gap-2 text-sm font-sans">
               <input type="checkbox" checked={form.bookingRequired} onChange={e => updateField('bookingRequired', e.target.checked)} className="rounded" />
-              Booking required
+              {t('form.bookingRequired')}
             </label>
           </section>
         )}
 
         {/* === IMAGES (multi-upload to our server) === */}
         <section className="bg-card border rounded-xl p-5 space-y-4">
-          <h3 className="font-display font-semibold text-sm">Images</h3>
+          <h3 className="font-display font-semibold text-sm">{t('form.images')}</h3>
 
           {/* Image grid */}
           {form.images.length > 0 && (
@@ -518,9 +520,9 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
           {/* Upload button */}
           <label className={`flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition text-sm font-sans text-muted-foreground ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
             {isUploading ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
+              <><Loader2 className="w-4 h-4 animate-spin" /> {t('form.uploading')}</>
             ) : (
-              <><Upload className="w-4 h-4" /> Add images (max 10MB each)</>
+              <><Upload className="w-4 h-4" /> {t('form.addImages')}</>
             )}
             <input
               type="file"
@@ -532,19 +534,19 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
             />
           </label>
           <p className="text-[10px] text-muted-foreground font-sans">
-            Images are stored on our server. You can add multiple images.
+            {t('form.imagesHint')}
           </p>
         </section>
 
         {/* === SAVE === */}
         <div className="flex gap-3">
           <button onClick={onBack} className="px-4 py-2.5 border rounded-lg text-sm font-sans font-medium hover:bg-muted transition">
-            Cancel
+            {t('form.cancel')}
           </button>
           <button onClick={handleSave} disabled={isSaving}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-sans font-medium hover:bg-primary/90 transition disabled:opacity-50">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {isSaving ? 'Publishing...' : isEdit ? 'Update listing' : 'Publish listing'}
+            {isSaving ? t('form.publishing') : isEdit ? t('form.update') : t('form.publish')}
           </button>
         </div>
       </div>

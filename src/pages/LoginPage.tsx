@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSystemParams } from '@/contexts/SystemParamsContext';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { KeyRound, Loader2, Eye, EyeOff, Leaf } from 'lucide-react';
 
 export default function LoginPage() {
+  const { t } = useLanguage();
   const [wif, setWif] = useState('');
   const [showWif, setShowWif] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +21,7 @@ export default function LoginPage() {
     setError(null);
 
     if (!wif.trim()) {
-      setError('Please enter your WIF private key.');
+      setError(t('login.errorEmpty'));
       return;
     }
 
@@ -34,7 +36,7 @@ export default function LoginPage() {
       await login(wif, params.relays, rememberMe);
       navigate('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid WIF key.');
+      setError(err instanceof Error ? err.message : t('login.errorInvalid'));
     } finally {
       setIsLoading(false);
     }
@@ -50,10 +52,10 @@ export default function LoginPage() {
               <Leaf className="w-7 h-7 text-primary" />
             </div>
             <h1 className="font-display text-2xl font-bold text-foreground">
-              Eco Directory
+              {t('nav.brand')}
             </h1>
             <p className="text-sm text-muted-foreground font-sans mt-1">
-              Sign in
+              {t('login.title')}
             </p>
           </div>
 
@@ -65,13 +67,13 @@ export default function LoginPage() {
                 className="flex items-center gap-2 text-sm font-medium text-foreground mb-1.5 font-sans"
               >
                 <KeyRound className="w-4 h-4 text-primary" />
-                WIF private key
+                {t('login.wifLabel')}
               </label>
               <div className="relative">
                 <input
                   id="wif"
                   type={showWif ? 'text' : 'password'}
-                  placeholder="Enter WIF key..."
+                  placeholder={t('login.wifPlaceholder')}
                   value={wif}
                   onChange={(e) => setWif(e.target.value)}
                   disabled={isLoading}
@@ -91,7 +93,7 @@ export default function LoginPage() {
                 </button>
               </div>
               <p className="text-xs text-muted-foreground mt-1 font-sans">
-                Your private key is stored locally only.
+                {t('login.wifHint')}
               </p>
             </div>
 
@@ -108,7 +110,7 @@ export default function LoginPage() {
                 htmlFor="rememberMe"
                 className="text-sm text-muted-foreground cursor-pointer font-sans"
               >
-                Remember me (90 days, otherwise 30 days)
+                {t('login.remember')}
               </label>
             </div>
 
@@ -134,7 +136,7 @@ export default function LoginPage() {
                   Connecting to relays...
                 </>
               ) : (
-                'Sign in'
+                t('login.submit')
               )}
             </button>
           </form>
@@ -142,13 +144,13 @@ export default function LoginPage() {
           {/* Register button */}
           <div className="mt-5">
             <p className="text-sm text-muted-foreground font-sans text-center mb-3">
-              Don't have a profile?
+              {t('login.noProfile')}
             </p>
             <Link
               to="/register"
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-sans font-medium"
             >
-              Register
+              {t('login.register')}
             </Link>
           </div>
 
@@ -156,7 +158,7 @@ export default function LoginPage() {
           <div className="mt-4 pt-4 border-t text-center">
             <p className="text-xs text-muted-foreground font-sans">
               {params?.relays
-                ? `Connected to ${params.relays.length} relays`
+                ? t('login.connectedRelays', { count: params.relays.length })
                 : 'Connecting to Nostr relays...'}
             </p>
           </div>

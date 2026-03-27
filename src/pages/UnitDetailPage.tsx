@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Globe, Tag, Leaf, ChevronLeft, ChevronRight, X, ExternalLink, ShoppingBag, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface EcoUnit {
   eventId: string;
@@ -51,23 +52,24 @@ interface OpeningHours {
   [day: string]: { enabled: boolean; from: string; to: string };
 }
 
-const DAY_LABELS: Record<string, string> = {
-  monday: 'Monday',
-  tuesday: 'Tuesday',
-  wednesday: 'Wednesday',
-  thursday: 'Thursday',
-  friday: 'Friday',
-  saturday: 'Saturday',
-  sunday: 'Sunday',
-};
-
 export default function UnitDetailPage() {
+  const { t } = useLanguage();
   const { unitId } = useParams<{ unitId: string }>();
   const [unit, setUnit] = useState<EcoUnit | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const [listings, setListings] = useState<EcoListing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
+
+  const dayLabels: Record<string, string> = {
+    monday: t('unit.monday'),
+    tuesday: t('unit.tuesday'),
+    wednesday: t('unit.wednesday'),
+    thursday: t('unit.thursday'),
+    friday: t('unit.friday'),
+    saturday: t('unit.saturday'),
+    sunday: t('unit.sunday'),
+  };
 
   useEffect(() => {
     const fetchUnit = async () => {
@@ -95,7 +97,7 @@ export default function UnitDetailPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-pulse text-muted-foreground font-sans">Loading...</div>
+        <div className="animate-pulse text-muted-foreground font-sans">{t('common.loading')}</div>
       </div>
     );
   }
@@ -103,8 +105,8 @@ export default function UnitDetailPage() {
   if (!unit) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
-        <p className="text-lg text-muted-foreground font-sans mb-4">Unit not found.</p>
-        <Link to="/" className="text-primary font-sans hover:underline">← Back to home</Link>
+        <p className="text-lg text-muted-foreground font-sans mb-4">{t('unit.notFound')}</p>
+        <Link to="/" className="text-primary font-sans hover:underline">{t('common.backToHome')}</Link>
       </div>
     );
   }
@@ -138,7 +140,7 @@ export default function UnitDetailPage() {
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
             <div className="container mx-auto">
               <Link to="/" className="inline-flex items-center gap-1 text-primary-foreground/80 text-sm font-sans mb-3 hover:text-primary-foreground">
-                <ArrowLeft className="w-4 h-4" /> Back
+                <ArrowLeft className="w-4 h-4" /> {t('common.back')}
               </Link>
               <h1 className="font-display text-3xl md:text-5xl font-bold text-primary-foreground">
                 {unit.name}
@@ -168,7 +170,7 @@ export default function UnitDetailPage() {
         <div className="bg-primary/10 py-16">
           <div className="container mx-auto px-4">
             <Link to="/" className="inline-flex items-center gap-1 text-muted-foreground text-sm font-sans mb-3 hover:text-foreground">
-              <ArrowLeft className="w-4 h-4" /> Back
+              <ArrowLeft className="w-4 h-4" /> {t('common.back')}
             </Link>
             <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground">{unit.name}</h1>
             <div className="flex flex-wrap items-center gap-3 mt-3">
@@ -196,7 +198,7 @@ export default function UnitDetailPage() {
             {/* Description */}
             {unit.content && (
               <section>
-                <h2 className="font-display text-xl font-semibold mb-3">About us</h2>
+                <h2 className="font-display text-xl font-semibold mb-3">{t('unit.aboutUs')}</h2>
                 <p className="text-muted-foreground font-sans leading-relaxed whitespace-pre-line">
                   {unit.content}
                 </p>
@@ -212,7 +214,7 @@ export default function UnitDetailPage() {
             {/* Gallery */}
             {galleryImages.length > 0 && (
               <section>
-                <h2 className="font-display text-xl font-semibold mb-4">Gallery</h2>
+                <h2 className="font-display text-xl font-semibold mb-4">{t('unit.gallery')}</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {galleryImages.map((img, idx) => (
                     <div
@@ -275,7 +277,7 @@ export default function UnitDetailPage() {
 
             {listingsLoading && (
               <div className="flex items-center gap-2 text-muted-foreground text-sm font-sans py-4">
-                <Loader2 className="w-4 h-4 animate-spin" /> Loading listings...
+                <Loader2 className="w-4 h-4 animate-spin" /> {t('dash.loadingListings')}
               </div>
             )}
 
@@ -297,12 +299,12 @@ export default function UnitDetailPage() {
             {/* Map */}
             {hasLocation && (
               <section>
-                <h2 className="font-display text-xl font-semibold mb-3">Location</h2>
+                <h2 className="font-display text-xl font-semibold mb-3">{t('unit.location')}</h2>
                 <div className="aspect-video rounded-xl overflow-hidden border">
                   <iframe
                     src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(unit.longitude!) - 0.01},${parseFloat(unit.latitude!) - 0.005},${parseFloat(unit.longitude!) + 0.01},${parseFloat(unit.latitude!) + 0.005}&layer=mapnik&marker=${unit.latitude},${unit.longitude}`}
                     className="w-full h-full"
-                    title="Location"
+                    title={t('unit.location')}
                   />
                 </div>
               </section>
@@ -313,13 +315,13 @@ export default function UnitDetailPage() {
           <div className="space-y-6">
             {/* Info card */}
             <div className="bg-card border rounded-xl p-5 space-y-4">
-              <h3 className="font-display text-lg font-semibold">Details</h3>
+              <h3 className="font-display text-lg font-semibold">{t('unit.details')}</h3>
 
               {unit.category && (
                 <div className="flex items-start gap-3">
                   <Tag className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs text-muted-foreground font-sans">Category</p>
+                    <p className="text-xs text-muted-foreground font-sans">{t('unit.category')}</p>
                     <p className="text-sm font-sans font-medium">{unit.category}{unit.categoryDetail ? ` / ${unit.categoryDetail}` : ''}</p>
                   </div>
                 </div>
@@ -329,7 +331,7 @@ export default function UnitDetailPage() {
                 <div className="flex items-start gap-3">
                   <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs text-muted-foreground font-sans">Location</p>
+                    <p className="text-xs text-muted-foreground font-sans">{t('unit.location')}</p>
                     <p className="text-sm font-sans font-medium">{[unit.receiverCity, unit.receiverCountry || unit.country].filter(Boolean).join(', ')}</p>
                   </div>
                 </div>
@@ -339,7 +341,7 @@ export default function UnitDetailPage() {
                 <div className="flex items-start gap-3">
                   <Globe className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs text-muted-foreground font-sans">Currency</p>
+                    <p className="text-xs text-muted-foreground font-sans">{t('unit.currency')}</p>
                     <p className="text-sm font-sans font-medium">{unit.currency}</p>
                   </div>
                 </div>
@@ -353,7 +355,7 @@ export default function UnitDetailPage() {
                   className="inline-flex items-center gap-1.5 text-sm text-primary font-sans hover:underline"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
-                  Visit website
+                  {t('unit.visitWebsite')}
                 </a>
               )}
             </div>
@@ -363,16 +365,16 @@ export default function UnitDetailPage() {
               <div className="bg-card border rounded-xl p-5">
                 <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" />
-                  Opening hours
+                  {t('unit.openingHours')}
                 </h3>
                 <div className="space-y-2">
-                  {Object.entries(DAY_LABELS).map(([key, label]) => {
+                  {Object.entries(dayLabels).map(([key, label]) => {
                     const day = openingHours?.[key];
                     return (
                       <div key={key} className="flex justify-between text-sm font-sans">
                         <span className={day?.enabled ? 'text-foreground' : 'text-muted-foreground'}>{label}</span>
                         <span className={day?.enabled ? 'text-foreground font-medium' : 'text-muted-foreground'}>
-                          {day?.enabled ? `${day.from} – ${day.to}` : 'Closed'}
+                          {day?.enabled ? `${day.from} – ${day.to}` : t('unit.closed')}
                         </span>
                       </div>
                     );

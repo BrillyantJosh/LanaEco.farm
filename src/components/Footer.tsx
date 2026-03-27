@@ -1,21 +1,26 @@
 import { Leaf } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
-const Footer = () => (
-  <footer className="bg-card border-t mt-16">
-    <div className="container mx-auto px-4 py-10">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Leaf className="h-5 w-5 text-primary" />
-          <span className="font-display text-lg font-bold text-foreground">
-            Eco Directory
-          </span>
+const Footer = () => {
+  const { t } = useLanguage();
+
+  return (
+    <footer className="bg-card border-t mt-16">
+      <div className="container mx-auto px-4 py-10">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Leaf className="h-5 w-5 text-primary" />
+            <span className="font-display text-lg font-bold text-foreground">
+              {t('nav.brand')}
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground font-sans text-center">
+            {t('footer.tagline')}
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground font-sans text-center">
-          Connecting local organic producers with the community. Support local!
-        </p>
       </div>
-    </div>
-  </footer>
-);
+    </footer>
+  );
+};
 
 export default Footer;

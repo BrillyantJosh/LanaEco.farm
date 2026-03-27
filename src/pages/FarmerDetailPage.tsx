@@ -2,33 +2,35 @@ import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, MapPin, Sprout, Users } from "lucide-react";
 import { farmers } from "@/data/farmers";
 import ProductCard from "@/components/ProductCard";
-
-const ScoreRow = ({ label, value }: { label: string; value: number }) => (
-  <div className="flex items-center justify-between">
-    <span className="text-sm text-muted-foreground font-sans">{label}</span>
-    <div className="flex gap-1">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div
-          key={i}
-          className={`h-2 w-6 rounded-full ${
-            i < value ? "bg-primary" : "bg-border"
-          }`}
-        />
-      ))}
-    </div>
-  </div>
-);
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const FarmerDetailPage = () => {
+  const { t } = useLanguage();
   const { id } = useParams();
   const farmer = farmers.find((f) => f.id === id);
+
+  const ScoreRow = ({ label, value }: { label: string; value: number }) => (
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-muted-foreground font-sans">{label}</span>
+      <div className="flex gap-1">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className={`h-2 w-6 rounded-full ${
+              i < value ? "bg-primary" : "bg-border"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
 
   if (!farmer) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
-        <p className="text-muted-foreground font-sans">Farmer not found.</p>
+        <p className="text-muted-foreground font-sans">{t('farmer.notFound')}</p>
         <Link to="/kmetje" className="text-primary font-sans mt-4 inline-block">
-          ← Back to list
+          {t('farmer.backToList')}
         </Link>
       </div>
     );
@@ -46,7 +48,7 @@ const FarmerDetailPage = () => {
         to="/kmetje"
         className="inline-flex items-center gap-1 text-muted-foreground hover:text-primary font-sans text-sm mb-6"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to all farmers
+        <ArrowLeft className="h-4 w-4" /> {t('farmer.backToAll')}
       </Link>
 
       <div className="grid lg:grid-cols-3 gap-8">
@@ -80,7 +82,7 @@ const FarmerDetailPage = () => {
 
           {/* Products */}
           <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-            Products ({farmer.products.length})
+            {t('farmer.products')} ({farmer.products.length})
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
             {farmer.products.map((product) => (
@@ -99,7 +101,7 @@ const FarmerDetailPage = () => {
             <div className="flex items-center gap-2 mb-4">
               <Sprout className="h-5 w-5 text-primary" />
               <h3 className="font-display text-lg font-semibold">
-                Sustainability score
+                {t('farmer.scoreTitle')}
               </h3>
             </div>
             <div className="text-center mb-6">
@@ -109,10 +111,10 @@ const FarmerDetailPage = () => {
               <span className="text-muted-foreground text-lg">/20</span>
             </div>
             <div className="space-y-3">
-              <ScoreRow label="Locality" value={farmer.score.lokalnost} />
-              <ScoreRow label="Sustainable production" value={farmer.score.trajnostna} />
-              <ScoreRow label="Biodiversity" value={farmer.score.biodiverziteta} />
-              <ScoreRow label="Packaging & transport" value={farmer.score.embalaza} />
+              <ScoreRow label={t('farmer.locality')} value={farmer.score.lokalnost} />
+              <ScoreRow label={t('farmer.sustainable')} value={farmer.score.trajnostna} />
+              <ScoreRow label={t('farmer.biodiversity')} value={farmer.score.biodiverziteta} />
+              <ScoreRow label={t('farmer.packaging')} value={farmer.score.embalaza} />
             </div>
           </div>
 
@@ -121,11 +123,11 @@ const FarmerDetailPage = () => {
               <div className="flex items-center gap-2 mb-2">
                 <Users className="h-5 w-5 text-accent" />
                 <h3 className="font-display text-base font-semibold text-accent">
-                  Community active
+                  {t('common.communityActive')}
                 </h3>
               </div>
               <p className="text-sm text-muted-foreground font-sans">
-                This producer actively collaborates with local restaurants and community projects, enabling a sustainability premium of up to 20%.
+                {t('farmer.communityDesc')}
               </p>
             </div>
           )}

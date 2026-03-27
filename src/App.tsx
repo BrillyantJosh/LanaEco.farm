@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SystemParamsProvider } from "@/contexts/SystemParamsContext";
+import { LanguageProvider } from "@/i18n/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Header from "@/components/Header";
@@ -29,6 +30,7 @@ const PageLoader = () => (
 );
 
 const App = () => (
+  <LanguageProvider>
   <SystemParamsProvider>
     <AuthProvider>
       <TooltipProvider>
@@ -66,6 +68,7 @@ const App = () => (
       </TooltipProvider>
     </AuthProvider>
   </SystemParamsProvider>
+  </LanguageProvider>
 );
 
 export default App;

@@ -1,6 +1,7 @@
 import { MapPin, Sprout } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Farmer } from "@/data/farmers";
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const ScoreBar = ({ value, max = 5 }: { value: number; max?: number }) => (
   <div className="flex gap-0.5">
@@ -16,6 +17,8 @@ const ScoreBar = ({ value, max = 5 }: { value: number; max?: number }) => (
 );
 
 const FarmerCard = ({ farmer }: { farmer: Farmer }) => {
+  const { t } = useLanguage();
+
   const totalScore =
     farmer.score.lokalnost +
     farmer.score.trajnostna +
@@ -79,7 +82,7 @@ const FarmerCard = ({ farmer }: { farmer: Farmer }) => {
         ))}
         {farmer.communityActive && (
           <span className="bg-accent/10 text-accent text-xs px-2 py-0.5 rounded-full font-medium">
-            Community active
+            {t('common.communityActive')}
           </span>
         )}
       </div>
