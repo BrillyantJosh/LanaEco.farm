@@ -5,6 +5,7 @@ import { publishToRelays, type EcoListing, type BusinessUnit } from '@/lib/nostr
 import { useAuth } from '@/contexts/AuthContext';
 import { useSystemParams } from '@/contexts/SystemParamsContext';
 import { useLanguage } from '@/i18n/LanguageContext';
+import type { TranslationKey } from '@/i18n/translations';
 
 const SALE_UNITS = ['kg', 'piece', 'L', 'g', 'set', 'month', 'visit', 'person'];
 
@@ -71,6 +72,11 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
   const { session } = useAuth();
   const { params } = useSystemParams();
   const { t } = useLanguage();
+  const tTag = (prefix: string, val: string) => {
+    const key = `${prefix}.${val}` as TranslationKey;
+    const translated = t(key);
+    return translated !== key ? translated : val.replace(/_/g, ' ');
+  };
   const isEdit = !!listing;
 
   const LISTING_TYPES = [
@@ -394,7 +400,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
             {ECO_OPTIONS.map(e => (
               <button key={e} type="button" onClick={() => toggleArrayItem('eco', e)}
                 className={`px-2.5 py-1 rounded-full text-xs font-sans transition ${form.eco.includes(e) ? 'bg-green-600 text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
-                {e.replace(/_/g, ' ')}
+                {tTag('eco', e)}
               </button>
             ))}
           </div>
@@ -417,7 +423,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
             {CATEGORY_TAGS.map(tg => (
               <button key={tg} type="button" onClick={() => toggleArrayItem('categoryTags', tg)}
                 className={`px-2.5 py-1 rounded-full text-xs font-sans transition ${form.categoryTags.includes(tg) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
-                {tg}
+                {tTag('cat', tg)}
               </button>
             ))}
           </div>

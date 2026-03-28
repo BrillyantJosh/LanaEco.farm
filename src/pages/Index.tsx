@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ArrowRight, Leaf, Sprout, ShieldCheck, MapPin, Loader2, ShoppingBag, Tag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from '@/i18n/LanguageContext';
+import type { TranslationKey } from '@/i18n/translations';
 import heroImageWebp from "@/assets/hero-farm.webp";
 import heroImageJpg from "@/assets/hero-farm.jpg";
 import productsImageWebp from "@/assets/products-bg.webp";
@@ -37,6 +38,11 @@ interface EcoUnit {
 
 const Index = () => {
   const { t } = useLanguage();
+  const tTag = (prefix: string, val: string) => {
+    const key = `${prefix}.${val}` as TranslationKey;
+    const translated = t(key);
+    return translated !== key ? translated : val.replace(/_/g, ' ');
+  };
   const [units, setUnits] = useState<EcoUnit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [listings, setListings] = useState<EcoListing[]>([]);
@@ -279,7 +285,7 @@ const Index = () => {
                     <div className="flex flex-wrap gap-1 mt-2">
                       {listing.eco.slice(0, 2).map(e => (
                         <span key={e} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-[10px] font-sans">
-                          <Leaf className="w-2.5 h-2.5" />{e.replace(/_/g, ' ')}
+                          <Leaf className="w-2.5 h-2.5" />{tTag('eco', e)}
                         </span>
                       ))}
                     </div>

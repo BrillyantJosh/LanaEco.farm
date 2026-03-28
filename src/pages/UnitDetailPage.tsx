@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Globe, Tag, Leaf, ChevronLeft, ChevronRight, X, ExternalLink, ShoppingBag, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
+import type { TranslationKey } from '@/i18n/translations';
 
 interface EcoUnit {
   eventId: string;
@@ -54,6 +55,11 @@ interface OpeningHours {
 
 export default function UnitDetailPage() {
   const { t } = useLanguage();
+  const tTag = (prefix: string, val: string) => {
+    const key = `${prefix}.${val}` as TranslationKey;
+    const translated = t(key);
+    return translated !== key ? translated : val.replace(/_/g, ' ');
+  };
   const { unitId } = useParams<{ unitId: string }>();
   const [unit, setUnit] = useState<EcoUnit | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -268,7 +274,7 @@ export default function UnitDetailPage() {
                           <div className="flex gap-1 mt-1.5">
                             {listing.eco.slice(0, 2).map(e => (
                               <span key={e} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-[9px] font-sans">
-                                <Leaf className="w-2 h-2" />{e.replace(/_/g, ' ')}
+                                <Leaf className="w-2 h-2" />{tTag('eco', e)}
                               </span>
                             ))}
                           </div>

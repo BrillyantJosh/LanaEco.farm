@@ -143,6 +143,53 @@ const en = {
   'listingDetail.bookingRequired': 'Booking required',
   'listingDetail.payment': 'Payment',
 
+  // Eco labels
+  'eco.organic': 'organic',
+  'eco.biodynamic': 'biodynamic',
+  'eco.local': 'local',
+  'eco.regenerative': 'regenerative',
+  'eco.permaculture': 'permaculture',
+  'eco.no_pesticides': 'no pesticides',
+  'eco.grass_fed': 'grass fed',
+  'eco.free_range': 'free range',
+  'eco.raw_milk': 'raw milk',
+  'eco.heritage_breed': 'heritage breed',
+
+  // Category tags
+  'cat.vegetables': 'vegetables',
+  'cat.fruits': 'fruits',
+  'cat.dairy': 'dairy',
+  'cat.meat': 'meat',
+  'cat.eggs': 'eggs',
+  'cat.honey': 'honey',
+  'cat.herbs': 'herbs',
+  'cat.grains': 'grains',
+  'cat.preserved': 'preserved',
+  'cat.drinks': 'drinks',
+  'cat.mushrooms': 'mushrooms',
+  'cat.flowers': 'flowers',
+  'cat.seeds': 'seeds',
+  'cat.other': 'other',
+
+  // Delivery
+  'del.pickup': 'pickup',
+  'del.local_delivery': 'local delivery',
+  'del.farmers_market': 'farmers market',
+  'del.shipping': 'shipping',
+  'del.box_scheme': 'box scheme',
+
+  // Payment
+  'pay.lana_pay': 'lana pay',
+  'pay.cash': 'cash',
+  'pay.bank_transfer': 'bank transfer',
+
+  // Seasons
+  'season.spring': 'spring',
+  'season.summer': 'summer',
+  'season.autumn': 'autumn',
+  'season.winter': 'winter',
+  'season.year_round': 'year round',
+
   // Unit detail
   'unit.notFound': 'Unit not found.',
   'unit.aboutUs': 'About us',
@@ -475,6 +522,53 @@ const sl: typeof en = {
   'listingDetail.duration': 'Trajanje: {min} min',
   'listingDetail.bookingRequired': 'Rezervacija obvezna',
   'listingDetail.payment': 'Plačilo',
+
+  // Eco labels
+  'eco.organic': 'ekološko',
+  'eco.biodynamic': 'biodinamično',
+  'eco.local': 'lokalno',
+  'eco.regenerative': 'regenerativno',
+  'eco.permaculture': 'permakultura',
+  'eco.no_pesticides': 'brez pesticidov',
+  'eco.grass_fed': 'krmljeno s travo',
+  'eco.free_range': 'prosta reja',
+  'eco.raw_milk': 'surovo mleko',
+  'eco.heritage_breed': 'avtohtona pasma',
+
+  // Category tags
+  'cat.vegetables': 'zelenjava',
+  'cat.fruits': 'sadje',
+  'cat.dairy': 'mlečni izdelki',
+  'cat.meat': 'meso',
+  'cat.eggs': 'jajca',
+  'cat.honey': 'med',
+  'cat.herbs': 'zelišča',
+  'cat.grains': 'žita',
+  'cat.preserved': 'konzervirano',
+  'cat.drinks': 'pijače',
+  'cat.mushrooms': 'gobe',
+  'cat.flowers': 'rože',
+  'cat.seeds': 'semena',
+  'cat.other': 'drugo',
+
+  // Delivery
+  'del.pickup': 'prevzem',
+  'del.local_delivery': 'lokalna dostava',
+  'del.farmers_market': 'tržnica',
+  'del.shipping': 'pošiljanje',
+  'del.box_scheme': 'naročniška zabojka',
+
+  // Payment
+  'pay.lana_pay': 'lana pay',
+  'pay.cash': 'gotovina',
+  'pay.bank_transfer': 'bančno nakazilo',
+
+  // Seasons
+  'season.spring': 'pomlad',
+  'season.summer': 'poletje',
+  'season.autumn': 'jesen',
+  'season.winter': 'zima',
+  'season.year_round': 'celoletno',
 
   // Unit detail
   'unit.notFound': 'Enota ni bila najdena.',

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Leaf, ShoppingBag, Calendar, Users, Tag } from 'lucide-react';
 import type { EcoListing } from '@/lib/nostr';
 import { useLanguage } from '@/i18n/LanguageContext';
+import type { TranslationKey } from '@/i18n/translations';
 
 const TYPE_COLORS: Record<string, string> = {
   product: 'bg-primary/10 text-primary',
@@ -26,6 +27,12 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
     subscription: t('type.subscription'),
     service: t('type.service'),
     experience: t('type.experience'),
+  };
+
+  const tTag = (prefix: string, val: string) => {
+    const key = `${prefix}.${val}` as TranslationKey;
+    const translated = t(key);
+    return translated !== key ? translated : val.replace(/_/g, ' ');
   };
 
   const mainImage = listing.images[0] || listing.thumbs[0];
@@ -87,7 +94,7 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
             {listing.eco.slice(0, 3).map(e => (
               <span key={e} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-[10px] font-sans font-medium">
                 <Leaf className="w-2.5 h-2.5" />
-                {e.replace(/_/g, ' ')}
+                {tTag('eco', e)}
               </span>
             ))}
             {listing.eco.length > 3 && (
@@ -102,7 +109,7 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
             {listing.tags.slice(0, 3).map(tg => (
               <span key={tg} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-[10px] font-sans">
                 <Tag className="w-2.5 h-2.5" />
-                {tg}
+                {tTag('cat', tg)}
               </span>
             ))}
           </div>
@@ -112,7 +119,7 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
         {(listing.harvestSeason || listing.availableFrom) && (
           <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-sans mb-2">
             <Calendar className="w-3 h-3" />
-            {listing.harvestSeason && <span>{listing.harvestSeason}</span>}
+            {listing.harvestSeason && <span>{tTag('season', listing.harvestSeason)}</span>}
             {listing.availableFrom && listing.availableUntil && (
               <span>{listing.availableFrom} — {listing.availableUntil}</span>
             )}

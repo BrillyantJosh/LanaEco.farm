@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Loader2, MapPin, Leaf, Tag, Calendar, ShoppingBag, Truck, CreditCard, Clock, Users, CheckCircle } from 'lucide-react';
 import type { EcoListing } from '@/lib/nostr';
 import { useLanguage } from '@/i18n/LanguageContext';
+import type { TranslationKey } from '@/i18n/translations';
 
 export default function ListingDetailPage() {
   const { t } = useLanguage();
@@ -13,6 +14,12 @@ export default function ListingDetailPage() {
 
   const TYPE_LABELS: Record<string, string> = {
     product: t('type.product'), subscription: t('type.subscription'), service: t('type.service'), experience: t('type.experience'),
+  };
+
+  const tTag = (prefix: string, val: string) => {
+    const key = `${prefix}.${val}` as TranslationKey;
+    const translated = t(key);
+    return translated !== key ? translated : val.replace(/_/g, ' ');
   };
 
   useEffect(() => {
@@ -107,7 +114,7 @@ export default function ListingDetailPage() {
               <div className="flex flex-wrap gap-2">
                 {listing.eco.map(e => (
                   <span key={e} className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-xs font-sans font-medium">
-                    <Leaf className="w-3 h-3" /> {e.replace(/_/g, ' ')}
+                    <Leaf className="w-3 h-3" /> {tTag('eco', e)}
                   </span>
                 ))}
               </div>
@@ -127,7 +134,7 @@ export default function ListingDetailPage() {
             <div className="flex flex-wrap gap-1.5">
               {listing.tags.map(tg => (
                 <span key={tg} className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted text-muted-foreground rounded text-xs font-sans">
-                  <Tag className="w-3 h-3" /> {tg}
+                  <Tag className="w-3 h-3" /> {tTag('cat', tg)}
                 </span>
               ))}
             </div>
@@ -146,7 +153,7 @@ export default function ListingDetailPage() {
           {(listing.harvestSeason || listing.availableFrom) && (
             <div className="flex items-center gap-2 text-sm font-sans text-muted-foreground">
               <Calendar className="w-4 h-4" />
-              {listing.harvestSeason && <span className="capitalize">{listing.harvestSeason}</span>}
+              {listing.harvestSeason && <span className="capitalize">{tTag('season', listing.harvestSeason)}</span>}
               {listing.availableFrom && listing.availableUntil && (
                 <span>{listing.availableFrom} — {listing.availableUntil}</span>
               )}
@@ -160,7 +167,7 @@ export default function ListingDetailPage() {
               <div className="flex flex-wrap gap-2">
                 {listing.delivery.map(d => (
                   <span key={d} className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-sans">
-                    <Truck className="w-3 h-3" /> {d.replace(/_/g, ' ')}
+                    <Truck className="w-3 h-3" /> {tTag('delivery', d)}
                   </span>
                 ))}
               </div>
@@ -212,7 +219,7 @@ export default function ListingDetailPage() {
               <div className="flex flex-wrap gap-2">
                 {listing.payment.map(p => (
                   <span key={p} className="inline-flex items-center gap-1 px-2.5 py-1 bg-muted rounded-full text-xs font-sans">
-                    <CreditCard className="w-3 h-3" /> {p.replace(/_/g, ' ')}
+                    <CreditCard className="w-3 h-3" /> {tTag('pay', p)}
                   </span>
                 ))}
               </div>
