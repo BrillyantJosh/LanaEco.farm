@@ -118,7 +118,7 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
   const checkWalletRegistration = async (walletAddress: string) => {
     if (!walletAddress || !/^L[a-zA-Z0-9]{25,34}$/.test(walletAddress)) {
       setWalletCheckStatus('error');
-      setWalletCheckError('Invalid LANA wallet address format');
+      setWalletCheckError(t('buf.walletInvalid'));
       return;
     }
 
@@ -135,7 +135,7 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
 
       if (!res.ok) {
         setWalletCheckStatus('error');
-        setWalletCheckError(data.error || 'Failed to verify wallet');
+        setWalletCheckError(data.error || t('buf.walletVerifyFailed'));
         return;
       }
 
@@ -143,11 +143,11 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
         setWalletCheckStatus('registered');
       } else {
         setWalletCheckStatus('not_registered');
-        setWalletCheckError('This wallet is not registered in the Lana network. Only registered wallets can receive LANA payouts.');
+        setWalletCheckError(t('buf.walletNotRegistered'));
       }
     } catch {
       setWalletCheckStatus('error');
-      setWalletCheckError('Failed to connect to registration service');
+      setWalletCheckError(t('buf.walletCheckFailed'));
     }
   };
 
@@ -195,14 +195,14 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
         missing.add('payoutWallet' as keyof FormData);
       }
       if (walletCheckStatus !== 'registered') {
-        setError('LANA payout wallet must be verified as registered before saving. Please enter a valid wallet address and click "Verify".');
+        setError(t('buf.walletRequired'));
         return;
       }
     }
 
     if (missing.size > 0 || form.images.length === 0) {
       setInvalidFields(missing);
-      setError(`Please fill in all required fields${form.images.length === 0 ? ' and add at least one image' : ''}`);
+      setError(`${t('buf.fillRequired')}${form.images.length === 0 ? ' ' + t('buf.addImage') : ''}`);
       // Scroll to first error
       const firstInvalid = document.querySelector('[data-invalid="true"]');
       firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -286,22 +286,22 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
             });
             const feeData = await feeRes.json();
             if (feeData.success) {
-              setSuccess(`Published to ${result.success.length} relay(s). Fee policy (5% / 5%) published to ${feeData.relaysSuccess.length} relay(s).`);
+              setSuccess(t('buf.publishedWithFee', { n: result.success.length, f: feeData.relaysSuccess.length }));
             } else {
-              setSuccess(`Published to ${result.success.length} relay(s). Warning: Fee policy failed to publish.`);
+              setSuccess(t('buf.publishedFeeWarn', { n: result.success.length }));
             }
           } catch {
-            setSuccess(`Published to ${result.success.length} relay(s). Warning: Fee policy request failed.`);
+            setSuccess(t('buf.publishedFeeReqFail', { n: result.success.length }));
           }
         } else {
-          setSuccess(`Published to ${result.success.length} relay(s)`);
+          setSuccess(t('buf.published', { n: result.success.length }));
         }
         setTimeout(() => onSaved(), 2000);
       } else {
-        setError('Failed to publish to any relay');
+        setError(t('buf.publishFailed'));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save');
+      setError(err instanceof Error ? err.message : t('buf.saveFailed'));
     } finally {
       setIsSaving(false);
     }
@@ -320,27 +320,27 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
         className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to list
+        {t('buf.backToList')}
       </button>
 
       <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-        {unit ? 'Edit Business Unit' : 'Create Business Unit'}
+        {unit ? t('buf.editTitle') : t('buf.createTitle')}
       </h2>
 
       {/* Default fee policy info (only on create) */}
       {!unit && (
         <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-6">
-          <h4 className="font-semibold text-blue-800 dark:text-blue-300 text-sm mb-1">Default Processor Fee Policy</h4>
+          <h4 className="font-semibold text-blue-800 dark:text-blue-300 text-sm mb-1">{t('buf.feeTitle')}</h4>
           <p className="text-sm text-blue-700 dark:text-blue-400">
-            A fee policy (KIND 30902) will be automatically published when you create this unit:
+            {t('buf.feeDesc')}
           </p>
           <div className="mt-2 text-sm">
-            <span className="text-blue-600 dark:text-blue-400 font-medium">Fee:</span>{' '}
+            <span className="text-blue-600 dark:text-blue-400 font-medium">{t('buf.fee')}</span>{' '}
             <span className="font-bold text-blue-900 dark:text-blue-200">5.00%</span>
-            <span className="text-blue-600 dark:text-blue-400 ml-1">(same for shop & buyer)</span>
+            <span className="text-blue-600 dark:text-blue-400 ml-1">{t('buf.feeSame')}</span>
           </div>
           <p className="text-xs text-blue-500 dark:text-blue-400 mt-2">
-            This is the default commission. The fee policy cannot be changed from this form once published.
+            {t('buf.feeNote')}
           </p>
         </div>
       )}
@@ -348,46 +348,46 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Info */}
         <section className="bg-white dark:bg-gray-800 rounded-xl border p-5 space-y-4">
-          <h3 className="font-semibold text-gray-800 dark:text-gray-100">Basic Information</h3>
+          <h3 className="font-semibold text-gray-800 dark:text-gray-100">{t('buf.basicInfo')}</h3>
 
           <div data-invalid={invalidFields.has('name') || undefined}>
-            <label className={labelClass('name')}>Business Name *</label>
+            <label className={labelClass('name')}>{t('buf.businessName')} *</label>
             <input className={inputClass('name')} value={form.name} onChange={e => updateField('name', e.target.value)} placeholder="Lana Café Ljubljana" />
           </div>
 
           <div>
-            <label className={labelClass()}>Description</label>
-            <textarea className={inputClass()} rows={3} value={form.content} onChange={e => updateField('content', e.target.value)} placeholder="Optional description..." />
+            <label className={labelClass()}>{t('buf.description')}</label>
+            <textarea className={inputClass()} rows={3} value={form.content} onChange={e => updateField('content', e.target.value)} placeholder={t('buf.descPlaceholder')} />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass('category')}>Category *</label>
+              <label className={labelClass('category')}>{t('buf.category')} *</label>
               <select className={inputClass('category')} value={form.category} onChange={e => updateField('category', e.target.value)}>
                 {CATEGORY_KEYS.map(c => <option key={c.value} value={c.value}>{t(c.tKey)}</option>)}
               </select>
             </div>
             <div data-invalid={invalidFields.has('categoryDetail') || undefined}>
-              <label className={labelClass('categoryDetail')}>Category Detail *</label>
+              <label className={labelClass('categoryDetail')}>{t('buf.categoryDetail')} *</label>
               <input className={inputClass('categoryDetail')} value={form.categoryDetail} onChange={e => updateField('categoryDetail', e.target.value)} placeholder="Organic Coffee" />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div data-invalid={invalidFields.has('country') || undefined}>
-              <label className={labelClass('country')}>Country (ISO) *</label>
+              <label className={labelClass('country')}>{t('buf.countryIso')} *</label>
               <input className={inputClass('country')} value={form.country} onChange={e => updateField('country', e.target.value)} placeholder="SI" maxLength={2} />
             </div>
             <div data-invalid={invalidFields.has('currency') || undefined}>
-              <label className={labelClass('currency')}>Currency *</label>
+              <label className={labelClass('currency')}>{t('buf.currency')} *</label>
               <input className={inputClass('currency')} value={form.currency} onChange={e => updateField('currency', e.target.value)} placeholder="EUR" maxLength={3} />
             </div>
             <div>
-              <label className={labelClass()}>Status</label>
+              <label className={labelClass()}>{t('buf.status')}</label>
               <select className={inputClass()} value={form.status} onChange={e => updateField('status', e.target.value)}>
-                <option value="active">Active</option>
-                <option value="paused">Paused</option>
-                <option value="archived">Archived</option>
+                <option value="active">{t('buf.statusActive')}</option>
+                <option value="paused">{t('buf.statusPaused')}</option>
+                <option value="archived">{t('buf.statusArchived')}</option>
               </select>
             </div>
           </div>
@@ -395,29 +395,29 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
 
         {/* Receiver Info */}
         <section className="bg-white dark:bg-gray-800 rounded-xl border p-5 space-y-4">
-          <h3 className="font-semibold text-gray-800 dark:text-gray-100">Receiver Information</h3>
+          <h3 className="font-semibold text-gray-800 dark:text-gray-100">{t('buf.receiverInfo')}</h3>
 
           <div data-invalid={invalidFields.has('receiverName') || undefined}>
-            <label className={labelClass('receiverName')}>Receiver Name *</label>
+            <label className={labelClass('receiverName')}>{t('buf.receiverName')} *</label>
             <input className={inputClass('receiverName')} value={form.receiverName} onChange={e => updateField('receiverName', e.target.value)} placeholder="Lana Café d.o.o." />
           </div>
 
           <div data-invalid={invalidFields.has('receiverAddress') || undefined}>
-            <label className={labelClass('receiverAddress')}>Address *</label>
+            <label className={labelClass('receiverAddress')}>{t('buf.address')} *</label>
             <input className={inputClass('receiverAddress')} value={form.receiverAddress} onChange={e => updateField('receiverAddress', e.target.value)} placeholder="Slovenska cesta 10" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div data-invalid={invalidFields.has('receiverZip') || undefined}>
-              <label className={labelClass('receiverZip')}>ZIP *</label>
+              <label className={labelClass('receiverZip')}>{t('buf.zip')} *</label>
               <input className={inputClass('receiverZip')} value={form.receiverZip} onChange={e => updateField('receiverZip', e.target.value)} placeholder="1000" />
             </div>
             <div data-invalid={invalidFields.has('receiverCity') || undefined}>
-              <label className={labelClass('receiverCity')}>City *</label>
+              <label className={labelClass('receiverCity')}>{t('buf.city')} *</label>
               <input className={inputClass('receiverCity')} value={form.receiverCity} onChange={e => updateField('receiverCity', e.target.value)} placeholder="Ljubljana" />
             </div>
             <div data-invalid={invalidFields.has('receiverCountry') || undefined}>
-              <label className={labelClass('receiverCountry')}>Country (ISO) *</label>
+              <label className={labelClass('receiverCountry')}>{t('buf.countryIso')} *</label>
               <input className={inputClass('receiverCountry')} value={form.receiverCountry} onChange={e => updateField('receiverCountry', e.target.value)} placeholder="SI" maxLength={2} />
             </div>
           </div>
@@ -425,31 +425,31 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
 
         {/* Bank Info */}
         <section className="bg-white dark:bg-gray-800 rounded-xl border p-5 space-y-4">
-          <h3 className="font-semibold text-gray-800 dark:text-gray-100">Bank Details</h3>
+          <h3 className="font-semibold text-gray-800 dark:text-gray-100">{t('buf.bankDetails')}</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div data-invalid={invalidFields.has('bankName') || undefined}>
-              <label className={labelClass('bankName')}>Bank Name *</label>
+              <label className={labelClass('bankName')}>{t('buf.bankName')} *</label>
               <input className={inputClass('bankName')} value={form.bankName} onChange={e => updateField('bankName', e.target.value)} placeholder="LanaBank" />
             </div>
             <div data-invalid={invalidFields.has('bankSwift') || undefined}>
-              <label className={labelClass('bankSwift')}>SWIFT/BIC *</label>
+              <label className={labelClass('bankSwift')}>{t('buf.bankSwift')} *</label>
               <input className={inputClass('bankSwift')} value={form.bankSwift} onChange={e => updateField('bankSwift', e.target.value)} placeholder="LNBASI2X" />
             </div>
           </div>
 
           <div data-invalid={invalidFields.has('bankAddress') || undefined}>
-            <label className={labelClass('bankAddress')}>Bank Address *</label>
+            <label className={labelClass('bankAddress')}>{t('buf.bankAddress')} *</label>
             <input className={inputClass('bankAddress')} value={form.bankAddress} onChange={e => updateField('bankAddress', e.target.value)} placeholder="Cankarjeva 12, Ljubljana" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div data-invalid={invalidFields.has('bankCountry') || undefined}>
-              <label className={labelClass('bankCountry')}>Bank Country (ISO) *</label>
+              <label className={labelClass('bankCountry')}>{t('buf.bankCountryIso')} *</label>
               <input className={inputClass('bankCountry')} value={form.bankCountry} onChange={e => updateField('bankCountry', e.target.value)} placeholder="SI" maxLength={2} />
             </div>
             <div data-invalid={invalidFields.has('bankAccount') || undefined}>
-              <label className={labelClass('bankAccount')}>IBAN / Account *</label>
+              <label className={labelClass('bankAccount')}>{t('buf.bankAccount')} *</label>
               <input className={inputClass('bankAccount')} value={form.bankAccount} onChange={e => updateField('bankAccount', e.target.value)} placeholder="SI56192000012345678" />
             </div>
           </div>
@@ -457,9 +457,9 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
 
         {/* Payout Method */}
         <section className="bg-white dark:bg-gray-800 rounded-xl border p-5 space-y-4">
-          <h3 className="font-semibold text-gray-800 dark:text-gray-100">LanaPays Payout Method</h3>
+          <h3 className="font-semibold text-gray-800 dark:text-gray-100">{t('buf.payoutTitle')}</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Choose how you want to receive your LanaPays commission payout.
+            {t('buf.payoutDesc')}
           </p>
 
           <div className="flex gap-3">
@@ -477,7 +477,7 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
               }`}
             >
               <Banknote className="w-5 h-5" />
-              FIAT (Bank Account)
+              {t('buf.payoutFiat')}
             </button>
             <button
               type="button"
@@ -489,20 +489,20 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
               }`}
             >
               <Wallet className="w-5 h-5" />
-              LANA Wallet
+              {t('buf.payoutLana')}
             </button>
           </div>
 
           {form.payoutMethod === 'fiat' && (
             <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm text-blue-700 dark:text-blue-400">
-              Payout will be sent to the FIAT bank account defined above.
+              {t('buf.payoutFiatNote')}
             </div>
           )}
 
           {form.payoutMethod === 'lana' && (
             <div className="space-y-3">
               <div>
-                <label className={labelClass()}>LANA Wallet Address *</label>
+                <label className={labelClass()}>{t('buf.lanaWallet')} *</label>
                 <div className="flex gap-2">
                   <input
                     className={`${inputBase} border ${
@@ -522,7 +522,7 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
                   >
                     {walletCheckStatus === 'checking' ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : 'Verify'}
+                    ) : t('buf.verify')}
                   </button>
                 </div>
               </div>
@@ -530,7 +530,7 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
               {walletCheckStatus === 'registered' && (
                 <div className="flex items-center gap-2 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-3 text-sm">
                   <CheckCircle className="w-4 h-4 flex-shrink-0" />
-                  Wallet is registered — LANA payouts will be sent to this address.
+                  {t('buf.walletRegistered')}
                 </div>
               )}
 
@@ -555,8 +555,8 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
 
         {/* Images */}
         <section className="bg-white dark:bg-gray-800 rounded-xl border p-5 space-y-4">
-          <h3 className="font-semibold text-gray-800 dark:text-gray-100">Images *</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">At least one image is required. You can add multiple.</p>
+          <h3 className="font-semibold text-gray-800 dark:text-gray-100">{t('buf.images')} *</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('buf.imagesDesc')}</p>
 
           <div className="flex flex-wrap gap-3">
             {form.images.map((img, i) => (
@@ -577,10 +577,10 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
 
         {/* Optional */}
         <section className="bg-white dark:bg-gray-800 rounded-xl border p-5 space-y-4">
-          <h3 className="font-semibold text-gray-800 dark:text-gray-100">Optional Fields</h3>
+          <h3 className="font-semibold text-gray-800 dark:text-gray-100">{t('buf.optionalFields')}</h3>
 
           <div>
-            <label className={labelClass()}>Logo</label>
+            <label className={labelClass()}>{t('buf.logo')}</label>
             <ImageUpload
               onUpload={(url) => updateField('logo', url)}
               currentUrl={form.logo || undefined}
@@ -589,18 +589,18 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
           </div>
 
           <div>
-            <label className={labelClass()}>Video URL</label>
+            <label className={labelClass()}>{t('buf.videoUrl')}</label>
             <input className={inputClass()} value={form.video} onChange={e => updateField('video', e.target.value)} placeholder="https://..." />
           </div>
 
           <div>
-            <label className={labelClass()}>Public URL</label>
+            <label className={labelClass()}>{t('buf.publicUrl')}</label>
             <input className={inputClass()} value={form.url} onChange={e => updateField('url', e.target.value)} placeholder="https://lanapays.us/unit/..." />
           </div>
 
           <div>
-            <label className={labelClass()}>Note</label>
-            <textarea className={inputClass()} rows={2} value={form.note} onChange={e => updateField('note', e.target.value)} placeholder="Internal note..." />
+            <label className={labelClass()}>{t('buf.note')}</label>
+            <textarea className={inputClass()} rows={2} value={form.note} onChange={e => updateField('note', e.target.value)} placeholder={t('buf.notePlaceholder')} />
           </div>
 
           <OpeningHoursEditor
@@ -630,12 +630,12 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
           {isSaving ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Publishing to relays...
+              {t('buf.publishing')}
             </>
           ) : (
             <>
               <Save className="w-5 h-5" />
-              {unit ? 'Update Business Unit' : 'Create Business Unit'}
+              {unit ? t('buf.update') : t('buf.create')}
             </>
           )}
         </button>
