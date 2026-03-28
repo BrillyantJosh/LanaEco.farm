@@ -781,7 +781,7 @@ const sl: typeof en = {
   'guidelines.howTitle': 'Sem pridelovalec, kako pristopim?',
   'guidelines.howStep1': 'Ustvarite denarnico in zasebni ključ ter ga varno shranite. Če ključ izgubite, izgubite tudi dostop do sredstev in podatkov.',
   'guidelines.howStep2': 'S ključem se prijavite in ustvarite profil kmetije.',
-  'guidelines.howStep3': 'Samodejno prejmete pribitka 5 %.',
+  'guidelines.howStep3': 'Samodejno prejmete začetno stopnjo pribitka 5 %.',
   'guidelines.howStep4': 'Nato opišite, kako boste svojo kmetijo razvijali v bolj trajnostno smer, skladno z zgornjimi smernicami. Za to preprosto osebno zavezo lahko prejmete 100+ € donacije.',
   'guidelines.howStep5': 'Z večjo trajnostjo rastejo tudi koristi: povračilo za vaše stranke se povečuje od 5 % do 20 %, hkrati pa se v isti višini povečuje vaš pribitek k ceni.',
   'guidelines.premiumQTitle': 'Kaj pomeni 20 % pribitek za obilje?',
