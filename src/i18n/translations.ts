@@ -787,7 +787,7 @@ const sl: typeof en = {
   'guidelines.premiumQTitle': 'Kaj pomeni 20 % pribitek za obilje?',
   'guidelines.premiumQDesc': 'Če jabolka prodajate po 3 € na kilogram, pri 20 % pribitku kupec prejme 0,60 € povračila (v Lanah), vi pa dodatnih 0,60 € (v evrih ali Lanah – po izbiri).',
   'guidelines.cashQTitle': 'Kaj pa pri plačilu z gotovino?',
-  'guidelines.cashQDesc': 'Ob prodaji/nakupu vnesete znesek in številko računa. Če računa ni, priložite fotografijo kot dokaz o prodaji/nakupu.',
+  'guidelines.cashQDesc': 'Ob prodaji vnesete znesek in številko računa. Če računa ni, priložite fotografijo kot dokaz o prodaji/nakupu.',
   'guidelines.trustTitle': 'Zaupanje',
   'guidelines.trustP1': 'Zavedamo se, da lahko pri denarju prihaja do zlorab, vendar ta sistem temelji na zaupanju. Nepravilnosti se pokažejo same in prinesejo odgovornost ter posledice.',
   'guidelines.trustP2': 'Ekonomija obilja ne potrebuje odvečne birokracije – vi se posvetite temu, kar vas veseli. Hvaležni smo, da ustvarjate in delujete z ljubeznijo.',
