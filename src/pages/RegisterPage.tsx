@@ -261,6 +261,38 @@ export default function Register() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Register your LanaCoin wallet on the Nostr network</p>
         </div>
 
+        {/* Wallet creation notice */}
+        {step === 'wif' && (
+          <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 rounded-xl p-5 mb-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+              <div className="space-y-2 text-sm text-amber-900 dark:text-amber-200">
+                <p className="font-bold text-base">
+                  Nimate denarnice? / Don't have a wallet?
+                </p>
+                <p>
+                  Denarnico si lahko ustvarite na{' '}
+                  <a href="https://www.offlinelana.org" target="_blank" rel="noopener noreferrer"
+                    className="text-blue-700 dark:text-blue-400 font-bold underline underline-offset-2 text-base">
+                    www.offlinelana.org
+                  </a>
+                </p>
+                <div className="bg-red-100 dark:bg-red-900/40 border border-red-300 dark:border-red-700 rounded-lg p-3 mt-2">
+                  <p className="font-bold text-red-800 dark:text-red-300">
+                    Natisnite in shranite svoj zasebni ključ!
+                  </p>
+                  <p className="text-red-700 dark:text-red-400 mt-1">
+                    Nihče ne hrani kopije vašega ključa. Če ga izgubite, je nemogoče obnoviti vaš profil in sredstva. Vaš ključ, vaša odgovornost.
+                  </p>
+                  <p className="text-red-700 dark:text-red-400 mt-1 italic text-xs">
+                    Print and save your private key! Nobody keeps a copy. If you lose it, your profile and funds are gone forever.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Step 1: WIF Check */}
         {step === 'wif' && (
           <div className="bg-white dark:bg-gray-800 rounded-xl border p-6 space-y-5">
