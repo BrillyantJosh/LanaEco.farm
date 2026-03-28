@@ -490,7 +490,7 @@ const sl: typeof en = {
   'abundance.cautionP1': 'V Ekonomiji obilja ni manipulativnega marketinga ali skritih pogojev. Kljub temu pa skrbno varujte svoj zasebni ključ, saj omogoča dostop do vaše denarnice. Ključi se hranijo izključno pri vas – če ga izgubite, izgubite tudi dostop do sredstev.',
   'abundance.cautionP2': 'Vaš denar, vaša odgovornost.',
 
-  'footer.tagline': 'Povezujemo lokalne ekološke pridelovalce s skupnostjo. Podprite lokalno!',
+  'footer.tagline': 'Povezujemo trajnostne in ekološke lokalne pridelovalce s skupnostjo. Podprite najboljše in izbirajte lokalno.',
 
   // Hero
   'hero.subtitle': 'Imenik pridelovalcev',
