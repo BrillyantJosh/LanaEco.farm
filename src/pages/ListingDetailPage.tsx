@@ -182,7 +182,7 @@ export default function ListingDetailPage() {
           {listing.type === 'subscription' && listing.subscriptionInterval && (
             <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
               <h3 className="font-display font-semibold text-sm mb-1">{t('listingDetail.subscription')}</h3>
-              <p className="text-sm font-sans">Interval: {listing.subscriptionInterval}</p>
+              <p className="text-sm font-sans">{t('listingDetail.interval')}: {listing.subscriptionInterval}</p>
               {listing.subscriptionContent && (
                 <p className="text-sm font-sans text-muted-foreground mt-1">{listing.subscriptionContent}</p>
               )}
@@ -194,10 +194,10 @@ export default function ListingDetailPage() {
             <div className="bg-purple-50 border border-purple-100 rounded-lg p-4">
               <h3 className="font-display font-semibold text-sm mb-1">{t('listingDetail.experience')}</h3>
               {listing.capacity && (
-                <p className="text-sm font-sans"><Users className="w-3.5 h-3.5 inline mr-1" />Kapaciteta: {listing.capacity} oseb</p>
+                <p className="text-sm font-sans"><Users className="w-3.5 h-3.5 inline mr-1" />{t('listingDetail.capacity', { n: listing.capacity })}</p>
               )}
               {listing.durationMin && (
-                <p className="text-sm font-sans"><Clock className="w-3.5 h-3.5 inline mr-1" />Trajanje: {listing.durationMin} min</p>
+                <p className="text-sm font-sans"><Clock className="w-3.5 h-3.5 inline mr-1" />{t('listingDetail.duration', { min: listing.durationMin })}</p>
               )}
               {listing.bookingRequired === 'true' && (
                 <p className="text-sm font-sans text-purple-700 mt-1">{t('listingDetail.bookingRequired')}</p>
