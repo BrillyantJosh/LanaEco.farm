@@ -454,7 +454,7 @@ const sl: typeof en = {
   'nav.guidelines': 'Smernice',
   'nav.login': 'Prijava',
   'nav.logout': 'Odjava',
-  'nav.brand': 'Eko Imenik',
+  'nav.brand': 'Lana Imenik',
 
   // Common
   'common.loading': 'Nalaganje...',
@@ -499,7 +499,7 @@ const sl: typeof en = {
   'hero.desc1.link': 'Ekonomija Obilja',
   'hero.desc1.after': ' podpira lokalne ekološke kmete, njihove zgodbe in sveže pridelke.',
   'hero.desc2': '',
-  'hero.explore': 'Razišči kmete',
+  'hero.explore': 'Pridelovalci',
   'hero.signin': 'Prijava',
   'hero.browseProducts': 'Prebrskaj izdelke',
 
