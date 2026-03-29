@@ -745,14 +745,14 @@ const sl: typeof en = {
 
   // Guidelines
   'guidelines.title': 'Smernice za pridelovalce',
-  'guidelines.subtitle': 'Kmetje sodelujejo v sistemu z zavezo k odgovorni in trajnostni pridelavi.',
+  'guidelines.subtitle': 'Kmetje sodelujete v sistemu z zavezo k odgovorni in trajnostni pridelavi.',
   'guidelines.practices': 'Priporočene prakse',
   'guidelines.practice1': 'Lokalna in sezonska pridelava',
-  'guidelines.practice2': 'Zmanjševanje uporabe škodljivih kemičnih sredstev',
+  'guidelines.practice2': 'Neuporaba škodljivih kemičnih sredstev',
   'guidelines.practice3': 'Skrb za rodovitnost tal in biotsko raznovrstnost',
   'guidelines.practice4': 'Transparentna komunikacija o izvoru hrane',
   'guidelines.practice5': 'Sodelovanje z lokalnimi trgovci in restavracijami',
-  'guidelines.premiumText': 'Z upoštevanjem teh načel lahko pridelovalci pridobijo trajnostni pribitek do',
+  'guidelines.premiumText': 'Z upoštevanjem teh načel lahko pridelovalci pridobite trajnostni pribitek do',
   'guidelines.premiumSuffix': 'na svoje izdelke (v Evrih ali Lanah).',
   'guidelines.criteriaTitle': 'Kriteriji',
   'guidelines.locality': 'Lokalnost',

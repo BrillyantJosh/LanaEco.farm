@@ -88,7 +88,7 @@ function GuidelinesPage() {
           <div className="mt-6 bg-primary/10 rounded-lg p-4">
             <p className="text-sm font-sans text-foreground">
               <strong>{t('guidelines.premiumText')}</strong>{" "}
-              <span className="text-primary font-bold">20%</span>{" "}
+              <span className="text-primary font-bold">20 %</span>{" "}
               {t('guidelines.premiumSuffix')}
             </p>
           </div>
