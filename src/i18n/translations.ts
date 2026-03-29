@@ -191,6 +191,8 @@ const en = {
   'listingsPage.noFound': 'No listings found',
   'listingsPage.tryFilters': 'Try changing your search filters.',
   'listingsPage.count': '{count} listings',
+  'listingsPage.count1': '{count} listing',
+  'listingsPage.count2': '{count} listings',
 
   // Listing detail
   'listingDetail.notFound': 'Listing not found',
@@ -636,6 +638,8 @@ const sl: typeof en = {
   'listingsPage.noFound': 'Ni najdenih ponudb',
   'listingsPage.tryFilters': 'Poskusite spremeniti iskalne filtre.',
   'listingsPage.count': '{count} ponudb',
+  'listingsPage.count1': '{count} ponudba',
+  'listingsPage.count2': '{count} ponudbi',
 
   // Listing detail
   'listingDetail.notFound': 'Ponudba ni najdena',

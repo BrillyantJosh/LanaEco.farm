@@ -3,6 +3,7 @@ import { Search, Filter, Loader2, ShoppingBag } from 'lucide-react';
 import { ListingCard } from '@/components/ListingCard';
 import type { EcoListing } from '@/lib/nostr';
 import { useLanguage } from '@/i18n/LanguageContext';
+import type { TranslationKey } from '@/i18n/translations';
 
 const CATEGORY_FILTERS = [
   'vegetables', 'fruits', 'dairy', 'meat', 'eggs', 'honey',
@@ -99,7 +100,12 @@ export default function ListingsPage() {
 
       {!isLoading && filtered.length > 0 && (
         <>
-          <p className="text-sm text-muted-foreground font-sans mb-4">{t('listingsPage.count', { count: filtered.length })}</p>
+          <p className="text-sm text-muted-foreground font-sans mb-4">{(() => {
+            const n = filtered.length;
+            const key = (n === 1 ? 'listingsPage.count1' : n === 2 ? 'listingsPage.count2' : 'listingsPage.count') as TranslationKey;
+            const fallback = t(key);
+            return fallback !== key ? t(key, { count: n }) : t('listingsPage.count', { count: n });
+          })()}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {filtered.map(listing => (
               <ListingCard key={`${listing.pubkey}-${listing.listingId}`} listing={listing} />
