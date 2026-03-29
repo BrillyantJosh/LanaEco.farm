@@ -179,7 +179,7 @@ const en = {
 
   // Listings page
   'listingsPage.title': 'Listings',
-  'listingsPage.subtitle': 'Browse local eco products, subscriptions and experiences',
+  'listingsPage.subtitle': 'Local organic produce/products, subscriptions/veg boxes and experiences/degustations',
   'listingsPage.search': 'Search by name or description...',
   'listingsPage.all': 'All',
   'listingsPage.products': 'Products',
