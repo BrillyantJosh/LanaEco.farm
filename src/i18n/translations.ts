@@ -305,7 +305,7 @@ const en = {
   'guidelines.subtitle': 'Farmers participate in the system with a commitment to responsible and sustainable production.',
   'guidelines.practices': 'Recommended practices',
   'guidelines.practice1': 'Local and seasonal production',
-  'guidelines.practice2': 'Reducing the use of harmful chemicals',
+  'guidelines.practice2': 'No use of harmful chemicals',
   'guidelines.practice3': 'Caring for soil fertility and biodiversity',
   'guidelines.practice4': 'Transparent communication about food origin',
   'guidelines.practice5': 'Collaboration with local shops and restaurants',
