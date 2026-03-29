@@ -795,7 +795,7 @@ const sl: typeof en = {
   'guidelines.limitsP1': 'Ekonomija obilja se razvija organsko – z vsakim dnem je večja in močnejša. Njena današnja kapaciteta je manjša kot bo čez leto, dve ali pet, zato se skupaj z rastjo povečuje tudi obseg podpor.',
   'guidelines.limitsP2': 'Naj vas to ne skrbi. Vi poskrbite za hrano, pridelano z ljubeznijo, mi pa z veseljem skrbimo za ta živi denar.',
   'guidelines.communityRole': 'Vloga v skupnosti',
-  'guidelines.communityDesc': 'Za vzdrževanje 20% trajnostnega pribitka morajo pridelovalci aktivno sodelovati v skupnosti:',
+  'guidelines.communityDesc': 'Za vzdrževanje 20 % trajnostnega pribitka pridelovalci aktivno sodelujete v skupnosti:',
   'guidelines.communityItem1': 'Sodelovanje z lokalnimi restavracijami',
   'guidelines.communityItem2': 'Sodelovanje v skupnostnih projektih',
 
