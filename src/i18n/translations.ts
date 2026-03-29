@@ -796,7 +796,7 @@ const sl: typeof en = {
   'guidelines.limitsP2': 'Naj vas to ne skrbi. Vi poskrbite za hrano, pridelano z ljubeznijo, mi pa z veseljem skrbimo za ta živi denar.',
   'guidelines.communityRole': 'Vloga v skupnosti',
   'guidelines.communityDesc': 'Za vzdrževanje 20 % trajnostnega pribitka pridelovalci aktivno sodelujete v skupnosti:',
-  'guidelines.communityItem1': 'Sodelovanje z lokalnimi restavracijami',
+  'guidelines.communityItem1': 'Sodelovanje z lokalnimi restavracijami in trgovinami',
   'guidelines.communityItem2': 'Sodelovanje v skupnostnih projektih',
 
   // Listing form
