@@ -721,7 +721,7 @@ const sl: typeof en = {
 
   // Farmers
   'farmers.title': 'Naši kmetje',
-  'farmers.subtitle': 'Raziščite lokalne ekološke pridelovalce po regijah',
+  'farmers.subtitle': 'Trajnostni in ekološki pridelovalci po regijah',
   'farmers.search': 'Išči po imenu ali izdelku...',
   'farmers.allRegions': 'Vse regije',
 
