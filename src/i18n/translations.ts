@@ -9,7 +9,7 @@ const en = {
   'nav.guidelines': 'Guidelines',
   'nav.login': 'Login',
   'nav.logout': 'Logout',
-  'nav.brand': 'Eco Directory',
+  'nav.brand': 'Lana Directory',
 
   // Common
   'common.loading': 'Loading...',
@@ -49,12 +49,12 @@ const en = {
 
   // Hero
   'hero.subtitle': 'Producer directory',
-  'hero.title': 'From farm to your table',
+  'hero.title': 'From the field to your table',
   'hero.desc1.before': 'The ',
   'hero.desc1.link': 'Economy of Abundance',
   'hero.desc1.after': ' supports local organic farmers, their stories and fresh produce.',
   'hero.desc2': '',
-  'hero.explore': 'Explore farms',
+  'hero.explore': 'Producers',
   'hero.signin': 'Sign in',
   'hero.browseProducts': 'Browse products',
 
