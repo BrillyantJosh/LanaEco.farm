@@ -278,7 +278,7 @@ const en = {
 
   // Farmers
   'farmers.title': 'Our farmers',
-  'farmers.subtitle': 'Explore local organic producers by region',
+  'farmers.subtitle': 'Sustainable and organic producers by region',
   'farmers.search': 'Search by name or product...',
   'farmers.allRegions': 'All regions',
 
