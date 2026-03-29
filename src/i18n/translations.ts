@@ -64,11 +64,11 @@ const en = {
   'values.supply.title': 'Choose the highest share of Abundance',
   'values.supply.desc': 'You receive more, the farmer receives more — and the highest quality lands on your plate.',
   'values.bio.title': 'Unconditional self-responsibility',
-  'values.bio.desc': 'No marketing — you stand behind every word you say. Otherwise, unconditional self-responsibility follows.',
+  'values.bio.desc': 'Not only marketing — you stand behind every word you say. Otherwise, unconditional self-responsibility follows.',
 
   // Eco farms section
-  'eco.title': 'Eco farms',
-  'eco.subtitle': 'Live units registered on the Lana Eco Farm network',
+  'eco.title': 'Sustainable and organic farms',
+  'eco.subtitle': 'Live units registered in the "Lana Eco Farm" network',
   'eco.loadingRelays': 'Loading from relays...',
   'eco.noFarms': 'No eco farms registered yet.',
   'eco.registerYours': 'Register yours!',
