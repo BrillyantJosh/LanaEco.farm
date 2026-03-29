@@ -624,7 +624,7 @@ const sl: typeof en = {
 
   // Listings page
   'listingsPage.title': 'Ponudbe',
-  'listingsPage.subtitle': 'Raziščite lokalne eko izdelke, naročnine in doživetja',
+  'listingsPage.subtitle': 'Lokalni eko pridelki/proizvodi, naročnine/zabojčki in doživetja/degustacije',
   'listingsPage.search': 'Išči po imenu ali opisu...',
   'listingsPage.all': 'Vse',
   'listingsPage.products': 'Izdelki',
