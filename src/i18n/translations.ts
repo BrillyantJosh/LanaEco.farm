@@ -511,11 +511,11 @@ const sl: typeof en = {
   'values.supply.title': 'Izberite najvišji delež obilja',
   'values.supply.desc': 'Vi prejmete več, kmet prejme več – na vaš krožnik pa pride najvišja kakovost.',
   'values.bio.title': 'Brezpogojna samoodgovornost',
-  'values.bio.desc': 'Brez marketinga – za vsako izrečeno besedo stojite. Sicer sledi brezpogojna samoodgovornost.',
+  'values.bio.desc': 'Ne le marketing – za vsako izrečeno besedo stojite. Sicer sledi brezpogojna samoodgovornost.',
 
   // Eco farms section
-  'eco.title': 'Ekološke kmetije',
-  'eco.subtitle': 'Žive enote registrirane na Lana Eco Farm omrežju',
+  'eco.title': 'Trajnostne in ekološke kmetije',
+  'eco.subtitle': 'Žive enote registrirane v "Lana Eco Farm" omrežju',
   'eco.loadingRelays': 'Nalaganje iz relejev...',
   'eco.noFarms': 'Še ni registriranih eko kmetij.',
   'eco.registerYours': 'Registrirajte svojo!',
