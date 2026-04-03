@@ -32,11 +32,13 @@ function parseUnit(event: NostrEvent) {
     currency: getTag(event, 'currency'),
     category: getTag(event, 'category'),
     categoryDetail: getTag(event, 'category_detail'),
-    images: getTags(event, 'image'),
+    images: getTags(event, 'image').map(img =>
+      img.startsWith('/api/uploads/') ? `https://shop.lanapays.us${img}` : img
+    ),
     status: getTag(event, 'status') || 'active',
     longitude: getTag(event, 'longitude'),
     latitude: getTag(event, 'latitude'),
-    logo: getTag(event, 'logo'),
+    logo: (() => { const l = getTag(event, 'logo'); return l.startsWith('/api/uploads/') ? `https://shop.lanapays.us${l}` : l; })(),
     video: getTag(event, 'video'),
     url: getTag(event, 'url'),
     note: getTag(event, 'note'),
