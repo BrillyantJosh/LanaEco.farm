@@ -1,7 +1,6 @@
-import { Leaf, LogIn, LayoutDashboard, LogOut, Menu, X } from "lucide-react";
+import { Leaf, LogIn, Menu, X } from "lucide-react";
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
@@ -15,15 +14,7 @@ const navKeys = [
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const { session, logout } = useAuth();
   const { t } = useLanguage();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-    setMenuOpen(false);
-  };
 
   return (
     <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b">
@@ -51,40 +42,13 @@ const Header = () => {
 
           <LanguageSwitcher />
 
-          {session ? (
-            <>
-              <Link
-                to="/dashboard"
-                className={`inline-flex items-center gap-1.5 font-sans text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
-                  location.pathname === "/dashboard"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
-                }`}
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                {session.profileName || "Dashboard"}
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center gap-1.5 font-sans text-sm font-medium text-muted-foreground hover:text-destructive transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-                {t('nav.logout')}
-              </button>
-            </>
-          ) : (
-            <Link
-              to="/login"
-              className={`inline-flex items-center gap-1.5 font-sans text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
-                location.pathname === "/login"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
-              }`}
-            >
-              <LogIn className="h-4 w-4" />
-              {t('nav.login')}
-            </Link>
-          )}
+          <a
+            href="https://shop.lanapays.us/login"
+            className="inline-flex items-center gap-1.5 font-sans text-sm font-medium px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+          >
+            <LogIn className="h-4 w-4" />
+            {t('nav.login')}
+          </a>
         </nav>
 
         {/* Mobile toggle */}
@@ -111,26 +75,14 @@ const Header = () => {
               {t(item.key)}
             </Link>
           ))}
-          {session ? (
-            <>
-              <Link to="/dashboard" onClick={() => setMenuOpen(false)}
-                className="inline-flex items-center gap-1.5 mt-2 font-sans text-sm font-medium px-4 py-2 rounded-lg bg-primary text-primary-foreground">
-                <LayoutDashboard className="h-4 w-4" />
-                {session.profileName || "Dashboard"}
-              </Link>
-              <button onClick={handleLogout}
-                className="block mt-2 font-sans text-sm font-medium text-muted-foreground hover:text-destructive transition-colors">
-                <LogOut className="h-4 w-4 inline mr-1.5" />
-                {t('nav.logout')}
-              </button>
-            </>
-          ) : (
-            <Link to="/login" onClick={() => setMenuOpen(false)}
-              className="inline-flex items-center gap-1.5 mt-2 font-sans text-sm font-medium px-4 py-2 rounded-lg bg-primary text-primary-foreground">
-              <LogIn className="h-4 w-4" />
-              {t('nav.login')}
-            </Link>
-          )}
+          <a
+            href="https://shop.lanapays.us/login"
+            onClick={() => setMenuOpen(false)}
+            className="inline-flex items-center gap-1.5 mt-2 font-sans text-sm font-medium px-4 py-2 rounded-lg bg-primary text-primary-foreground"
+          >
+            <LogIn className="h-4 w-4" />
+            {t('nav.login')}
+          </a>
         </nav>
       )}
     </header>

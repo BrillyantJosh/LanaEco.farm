@@ -1,26 +1,27 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SystemParamsProvider } from "@/contexts/SystemParamsContext";
 import { LanguageProvider } from "@/i18n/LanguageContext";
-import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Index from "./pages/Index.tsx";
 
 const FarmersPage = lazy(() => import("./pages/FarmersPage.tsx"));
 const GuidelinesPage = lazy(() => import("./pages/GuidelinesPage.tsx"));
-const LoginPage = lazy(() => import("./pages/LoginPage.tsx"));
-const DashboardPage = lazy(() => import("./pages/DashboardPage.tsx"));
 const UnitDetailPage = lazy(() => import("./pages/UnitDetailPage.tsx"));
-const RegisterPage = lazy(() => import("./pages/RegisterPage.tsx"));
 const ListingsPage = lazy(() => import("./pages/ListingsPage.tsx"));
 const ListingDetailPage = lazy(() => import("./pages/ListingDetailPage.tsx"));
 const AbundancePage = lazy(() => import("./pages/AbundancePage.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+
+// Redirect component for external URLs
+function ExternalRedirect({ url }: { url: string }) {
+  window.location.href = url;
+  return null;
+}
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[50vh]">
@@ -31,7 +32,6 @@ const PageLoader = () => (
 const App = () => (
   <LanguageProvider>
   <SystemParamsProvider>
-    <AuthProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -47,16 +47,10 @@ const App = () => (
                 <Route path="/ponudbe" element={<ListingsPage />} />
                 <Route path="/ponudba/:pubkey/:listingId" element={<ListingDetailPage />} />
                 <Route path="/ekonomija-obilja" element={<AbundancePage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardPage />
-                    </ProtectedRoute>
-                  }
-                />
+                {/* Redirect login/register/dashboard to shop.lanapays.us */}
+                <Route path="/login" element={<ExternalRedirect url="https://shop.lanapays.us/login" />} />
+                <Route path="/register" element={<ExternalRedirect url="https://shop.lanapays.us/register" />} />
+                <Route path="/dashboard" element={<ExternalRedirect url="https://shop.lanapays.us/dashboard" />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
@@ -64,7 +58,6 @@ const App = () => (
           <Footer />
         </BrowserRouter>
       </TooltipProvider>
-    </AuthProvider>
   </SystemParamsProvider>
   </LanguageProvider>
 );
