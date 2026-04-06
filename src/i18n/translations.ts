@@ -197,7 +197,7 @@ const en = {
   // Listing detail
   'listingDetail.notFound': 'Listing not found',
   'listingDetail.back': 'Back to listings',
-  'listingDetail.viewFarm': 'View farm',
+  'listingDetail.viewFarm': 'View provider',
   'listingDetail.ecoLabels': 'Eco labels',
   'listingDetail.delivery': 'Delivery',
   'listingDetail.radius': 'Radius: {km} km',
@@ -644,7 +644,7 @@ const sl: typeof en = {
   // Listing detail
   'listingDetail.notFound': 'Ponudba ni najdena',
   'listingDetail.back': 'Nazaj na ponudbe',
-  'listingDetail.viewFarm': 'Poglej kmetijo',
+  'listingDetail.viewFarm': 'Poglej ponudnika',
   'listingDetail.ecoLabels': 'Eko oznake',
   'listingDetail.delivery': 'Dostava',
   'listingDetail.radius': 'Radij: {km} km',

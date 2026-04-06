@@ -196,10 +196,9 @@ export default function ListingDetailPage() {
             </div>
           )}
 
-          {/* Experience info */}
-          {listing.type === 'experience' && (
-            <div className="bg-purple-50 border border-purple-100 rounded-lg p-4">
-              <h3 className="font-display font-semibold text-sm mb-1">{t('listingDetail.experience')}</h3>
+          {/* Experience / Activity / Event details — show whenever these fields exist */}
+          {(listing.capacity || listing.durationMin || listing.bookingRequired === 'true') && (
+            <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 space-y-1">
               {listing.capacity && (
                 <p className="text-sm font-sans"><Users className="w-3.5 h-3.5 inline mr-1" />{t('listingDetail.capacity', { n: listing.capacity })}</p>
               )}
@@ -207,9 +206,30 @@ export default function ListingDetailPage() {
                 <p className="text-sm font-sans"><Clock className="w-3.5 h-3.5 inline mr-1" />{t('listingDetail.duration', { min: listing.durationMin })}</p>
               )}
               {listing.bookingRequired === 'true' && (
-                <p className="text-sm font-sans text-purple-700 mt-1">{t('listingDetail.bookingRequired')}</p>
+                <p className="text-sm font-sans text-purple-700">{t('listingDetail.bookingRequired')}</p>
               )}
             </div>
+          )}
+
+          {/* Pre-order */}
+          {listing.preOrder === 'true' && (
+            <div className="text-sm font-sans text-accent font-medium">Pre-order available</div>
+          )}
+
+          {/* Location override */}
+          {listing.geoLat && listing.geoLon && (
+            <div className="text-sm font-sans text-muted-foreground">
+              <MapPin className="w-3.5 h-3.5 inline mr-1" />
+              {listing.geoLabel || `${listing.geoLat}, ${listing.geoLon}`}
+            </div>
+          )}
+
+          {/* Transparency */}
+          {listing.sprayLog && (
+            <div className="text-sm font-sans text-muted-foreground">Spray log: {listing.sprayLog}</div>
+          )}
+          {listing.soilTestYear && (
+            <div className="text-sm font-sans text-muted-foreground">Soil test: {listing.soilTestYear}</div>
           )}
 
           {/* Payment */}
