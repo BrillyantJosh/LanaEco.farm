@@ -15,6 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.set('trust proxy', 1); // Trust nginx proxy — use real client IP for rate limiting
 const PORT = process.env.SERVER_PORT || process.env.PORT || 3007;
 
 // CORS
