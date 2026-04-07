@@ -511,7 +511,7 @@ const sl: typeof en = {
   'values.supply.title': 'Izberite najvišji delež obilja',
   'values.supply.desc': 'Vi plačate manj, kmet prejme več – na vaš krožnik pa pride najvišja kakovost.',
   'values.bio.title': 'Brezpogojna samoodgovornost',
-  'values.bio.desc': 'Ne le marketing – za vsako izrečeno besedo stojite. Sicer sledi brezpogojna samoodgovornost.',
+  'values.bio.desc': 'Ne le marketing - ponudnik stoji za vsako izrečeno besedo, sicer sledi brezpogojna samoodgovornost. Tudi za kupca.',
 
   // Eco farms section
   'eco.title': 'Trajnostne in ekološke kmetije',
@@ -526,7 +526,7 @@ const sl: typeof en = {
   'latest.all': 'Vse ponudbe',
 
   // CTA
-  'cta.title': 'Postanite del eko skupnosti',
+  'cta.title': 'Postanite del LANA skupnosti',
   'cta.desc': 'Registrirajte svojo kmetijo oz. vnesite vašo ponudbo in dosezite nove stranke prek Lana Eco Farm omrežja.',
 
   // Login
