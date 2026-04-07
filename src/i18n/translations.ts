@@ -456,7 +456,7 @@ const sl: typeof en = {
   'nav.guidelines': 'Smernice',
   'nav.login': 'Prijava',
   'nav.logout': 'Odjava',
-  'nav.brand': 'Lana Imenik',
+  'nav.brand': 'Lana Pridelovalci',
 
   // Common
   'common.loading': 'Nalaganje...',
@@ -492,14 +492,14 @@ const sl: typeof en = {
   'abundance.cautionP1': 'V Ekonomiji obilja ni manipulativnega marketinga ali skritih pogojev. Kljub temu pa skrbno varujte svoj zasebni ključ, saj omogoča dostop do vaše denarnice. Ključi se hranijo izključno pri vas – če ga izgubite, izgubite tudi dostop do sredstev.',
   'abundance.cautionP2': 'Vaš denar, vaša odgovornost.',
 
-  'footer.tagline': 'Povezujemo trajnostne in ekološke lokalne pridelovalce s skupnostjo. Podprite najboljše in izbirajte lokalno.',
+  'footer.tagline': 'Povezujemo trajnostne in ekološke lokalne pridelovalce in druge ponudnike s skupnostjo.',
 
   // Hero
-  'hero.subtitle': 'Imenik pridelovalcev',
+  'hero.subtitle': 'Imenik pridelovalcev in drugih ponudnikov',
   'hero.title': 'Od njive do vaše mize',
   'hero.desc1.before': '',
   'hero.desc1.link': 'Ekonomija Obilja',
-  'hero.desc1.after': ' podpira lokalne ekološke kmete, njihove zgodbe in sveže pridelke.',
+  'hero.desc1.after': ' podpira lokalne ekološke kmete in druge ponudnike, njihove zgodbe in sveže, domače pridelke.',
   'hero.desc2': '',
   'hero.explore': 'Pridelovalci',
   'hero.signin': 'Prijava',
@@ -509,7 +509,7 @@ const sl: typeof en = {
   'values.organic.title': 'Pot do obilja',
   'values.organic.desc': 'Stremimo k najboljšemu, kar obstaja.',
   'values.supply.title': 'Izberite najvišji delež obilja',
-  'values.supply.desc': 'Vi prejmete več, kmet prejme več – na vaš krožnik pa pride najvišja kakovost.',
+  'values.supply.desc': 'Vi plačate manj, kmet prejme več – na vaš krožnik pa pride najvišja kakovost.',
   'values.bio.title': 'Brezpogojna samoodgovornost',
   'values.bio.desc': 'Ne le marketing – za vsako izrečeno besedo stojite. Sicer sledi brezpogojna samoodgovornost.',
 
@@ -522,12 +522,12 @@ const sl: typeof en = {
 
   // Latest listings
   'latest.title': 'Najnovejše ponudbe',
-  'latest.subtitle': 'Sveži izdelki, naročnine in doživetja',
+  'latest.subtitle': 'Sveži pridelki, izdelki in naročila',
   'latest.all': 'Vse ponudbe',
 
   // CTA
   'cta.title': 'Postanite del eko skupnosti',
-  'cta.desc': 'Registrirajte svojo kmetijo in dosezite nove stranke prek Lana Eco Farm omrežja.',
+  'cta.desc': 'Registrirajte svojo kmetijo oz. vnesite vašo ponudbo in dosezite nove stranke prek Lana Eco Farm omrežja.',
 
   // Login
   'login.title': 'Prijava',
