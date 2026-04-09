@@ -159,6 +159,57 @@ async function fetchFeePolicies(relays: string[], timeout = 12000): Promise<Nost
   return Array.from(byDTag.values());
 }
 
+async function fetchSuspensions(relays: string[], timeout = 12000): Promise<Set<string>> {
+  const fetchFromRelay = (relayUrl: string): Promise<NostrEvent[]> => {
+    return new Promise((resolve) => {
+      const events: NostrEvent[] = [];
+      const timeoutId = setTimeout(() => { try { ws.close(); } catch {} resolve(events); }, timeout);
+      let ws: WebSocket;
+      try { ws = new WebSocket(relayUrl); } catch { clearTimeout(timeoutId); resolve([]); return; }
+      const subId = `susp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+      ws.on('open', () => {
+        ws.send(JSON.stringify(['REQ', subId, { kinds: [30903] }]));
+      });
+      ws.on('message', (data: Buffer) => {
+        try {
+          const msg = JSON.parse(data.toString());
+          if (msg[0] === 'EVENT' && msg[1] === subId) events.push(msg[2] as NostrEvent);
+          else if (msg[0] === 'EOSE') { clearTimeout(timeoutId); ws.close(); resolve(events); }
+        } catch {}
+      });
+      ws.on('error', () => { clearTimeout(timeoutId); resolve(events); });
+    });
+  };
+
+  const results = await Promise.all(relays.map(r => fetchFromRelay(r)));
+  const byDTag = new Map<string, NostrEvent>();
+  const seenIds = new Set<string>();
+  for (const relayEvents of results) {
+    for (const event of relayEvents) {
+      if (seenIds.has(event.id)) continue;
+      seenIds.add(event.id);
+      const dTag = event.tags.find(t => t[0] === 'd')?.[1] || '';
+      const existing = byDTag.get(dTag);
+      if (!existing || event.created_at > existing.created_at) byDTag.set(dTag, event);
+    }
+  }
+
+  // Build set of suspended unit IDs
+  const suspendedUnitIds = new Set<string>();
+  for (const [unitId, event] of byDTag) {
+    const status = getTag(event, 'status');
+    const activeUntil = getTag(event, 'active_until');
+    if (status === 'suspended') {
+      // Check if suspension is still active (not expired)
+      if (activeUntil && parseInt(activeUntil) <= Math.floor(Date.now() / 1000)) {
+        continue; // expired suspension
+      }
+      suspendedUnitIds.add(unitId);
+    }
+  }
+  return suspendedUnitIds;
+}
+
 function buildCashbackMap(policies: NostrEvent[]): Map<string, number> {
   const map = new Map<string, number>();
   for (const event of policies) {
@@ -202,9 +253,10 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
         return;
       }
 
-      const [events, feeEvents] = await Promise.all([
+      const [events, feeEvents, suspendedIds] = await Promise.all([
         fetchAllEcoUnits(relays),
         fetchFeePolicies(relays),
+        fetchSuspensions(relays),
       ]);
       const cashbackMap = buildCashbackMap(feeEvents);
 
@@ -214,7 +266,7 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
           ...parseUnit(e),
           cashbackPercent: cashbackMap.get(parseUnit(e).unitId) || DEFAULT_CASHBACK,
         }))
-        .filter(u => u.status === 'active' && u.name);
+        .filter(u => u.status === 'active' && u.name && !suspendedIds.has(u.unitId));
 
       let units = allUnits;
       if (categoryFilter) {
