@@ -9,7 +9,7 @@ const en = {
   'nav.guidelines': 'Guidelines',
   'nav.login': 'Login',
   'nav.logout': 'Logout',
-  'nav.brand': 'Lana Directory',
+  'nav.brand': 'Lana Producers',
 
   // Common
   'common.loading': 'Loading...',
@@ -45,14 +45,14 @@ const en = {
   'abundance.cautionP1': 'In the Economy of Abundance there is no manipulative marketing or hidden terms. However, carefully guard your private key, as it provides access to your wallet. Keys are stored exclusively with you — if you lose it, you lose access to your funds.',
   'abundance.cautionP2': 'Your money, your responsibility.',
 
-  'footer.tagline': 'Connecting local organic producers with the community. Support local!',
+  'footer.tagline': 'Connecting sustainable and organic local producers and other providers with the community. Support the best and choose local.',
 
   // Hero
-  'hero.subtitle': 'Producer directory',
+  'hero.subtitle': 'Directory of producers and other providers',
   'hero.title': 'From the field to your table',
   'hero.desc1.before': 'The ',
   'hero.desc1.link': 'Economy of Abundance',
-  'hero.desc1.after': ' supports local organic farmers, their stories and fresh produce.',
+  'hero.desc1.after': ' supports local organic farmers and other providers, their stories and fresh, homegrown produce.',
   'hero.desc2': '',
   'hero.explore': 'Producers',
   'hero.signin': 'Sign in',
@@ -62,9 +62,9 @@ const en = {
   'values.organic.title': 'Path to Abundance',
   'values.organic.desc': 'We strive for the best that exists.',
   'values.supply.title': 'Choose the highest share of Abundance',
-  'values.supply.desc': 'You receive more, the farmer receives more — and the highest quality lands on your plate.',
+  'values.supply.desc': 'You pay less, the farmer receives more — and the highest quality lands on your plate.',
   'values.bio.title': 'Unconditional self-responsibility',
-  'values.bio.desc': 'Not only marketing — you stand behind every word you say. Otherwise, unconditional self-responsibility follows.',
+  'values.bio.desc': 'Not only marketing — the provider stands behind every word, otherwise unconditional self-responsibility follows. For the buyer too.',
 
   // Eco farms section
   'eco.title': 'Sustainable and organic farms',
@@ -75,12 +75,12 @@ const en = {
 
   // Latest listings
   'latest.title': 'Latest listings',
-  'latest.subtitle': 'Fresh products, subscriptions and experiences',
+  'latest.subtitle': 'Fresh produce, products and orders',
   'latest.all': 'All listings',
 
   // CTA
-  'cta.title': 'Become part of the eco community',
-  'cta.desc': 'Register your farm and reach new customers through the Lana Eco Farm network.',
+  'cta.title': 'Become part of the LANA community',
+  'cta.desc': 'Register your farm or submit your offering and reach new customers through the Lana Eco Farm network.',
 
   // Login
   'login.title': 'Sign in',
