@@ -177,6 +177,55 @@ async function fetchFeePolicies(relays: string[], timeout = 12000): Promise<Nost
   return Array.from(byDTag.values());
 }
 
+async function fetchSuspensions(relays: string[], timeout = 12000): Promise<Set<string>> {
+  const fetchFromRelay = (relayUrl: string): Promise<NostrEvent[]> => {
+    return new Promise((resolve) => {
+      const events: NostrEvent[] = [];
+      const timeoutId = setTimeout(() => { try { ws.close(); } catch {} resolve(events); }, timeout);
+      let ws: WebSocket;
+      try { ws = new WebSocket(relayUrl); } catch { clearTimeout(timeoutId); resolve([]); return; }
+      const subId = `susp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+      ws.on('open', () => {
+        ws.send(JSON.stringify(['REQ', subId, { kinds: [30903] }]));
+      });
+      ws.on('message', (data: Buffer) => {
+        try {
+          const msg = JSON.parse(data.toString());
+          if (msg[0] === 'EVENT' && msg[1] === subId) events.push(msg[2] as NostrEvent);
+          else if (msg[0] === 'EOSE') { clearTimeout(timeoutId); ws.close(); resolve(events); }
+        } catch {}
+      });
+      ws.on('error', () => { clearTimeout(timeoutId); resolve(events); });
+    });
+  };
+
+  const results = await Promise.all(relays.map(r => fetchFromRelay(r)));
+  const byDTag = new Map<string, NostrEvent>();
+  const seenIds = new Set<string>();
+  for (const relayEvents of results) {
+    for (const event of relayEvents) {
+      if (seenIds.has(event.id)) continue;
+      seenIds.add(event.id);
+      const dTag = event.tags.find(t => t[0] === 'd')?.[1] || '';
+      const existing = byDTag.get(dTag);
+      if (!existing || event.created_at > existing.created_at) byDTag.set(dTag, event);
+    }
+  }
+
+  const suspendedUnitIds = new Set<string>();
+  for (const [unitId, event] of byDTag) {
+    const status = getTag(event, 'status');
+    const activeUntil = getTag(event, 'active_until');
+    if (status === 'suspended') {
+      if (activeUntil && parseInt(activeUntil) <= Math.floor(Date.now() / 1000)) {
+        continue; // expired suspension
+      }
+      suspendedUnitIds.add(unitId);
+    }
+  }
+  return suspendedUnitIds;
+}
+
 // Cache
 let cachedListings: (ReturnType<typeof parseListing> & { cashbackPercent: number })[] = [];
 let cacheTimestamp = 0;
@@ -199,9 +248,10 @@ export function createListingsRouter(db: Database.Database): Router {
       const relays: string[] = JSON.parse(row.relays || '[]');
       if (relays.length === 0) { res.json([]); return; }
 
-      const [events, feeEvents] = await Promise.all([
+      const [events, feeEvents, suspendedIds] = await Promise.all([
         fetchAllListings(relays),
         fetchFeePolicies(relays),
+        fetchSuspensions(relays),
       ]);
 
       // Build cashback map: unitId → lana_discount_per
@@ -221,7 +271,7 @@ export function createListingsRouter(db: Database.Database): Router {
           const unitIdFromRef = parsed.unitRef.split(':')[2] || '';
           return { ...parsed, cashbackPercent: cashbackMap.get(unitIdFromRef) || DEFAULT_CASHBACK };
         })
-        .filter(l => l.status === 'active' && l.title);
+        .filter(l => l.status === 'active' && l.title && !suspendedIds.has(l.unitRef.split(':')[2] || ''));
       cacheTimestamp = Date.now();
 
       res.json(applyFilters(cachedListings, req.query));
