@@ -522,7 +522,7 @@ const sl: typeof en = {
 
   // Latest listings
   'latest.title': 'Najnovejše ponudbe',
-  'latest.subtitle': 'Sveži pridelki, izdelki in naročila',
+  'latest.subtitle': 'Lokalni eko pridelki/proizvodi, naročnine/zabojčki in doživetja/degustacije',
   'latest.all': 'Vse ponudbe',
 
   // CTA
