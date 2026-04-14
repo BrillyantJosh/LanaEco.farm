@@ -802,8 +802,8 @@ const sl: typeof en = {
   'guidelines.communityRole': 'Vloga v skupnosti',
   'guidelines.communityDesc': 'Za vzdrževanje 20 % trajnostnega pribitka pridelovalci aktivno sodelujete v skupnosti:',
   'guidelines.communityItem1': 'Sodelovanje z lokalnimi restavracijami in trgovinami',
-  'guidelines.communityItem2': 'Sodelovanje v skupnostnih projektih',
-  'guidelines.communityItem3': 'Kot "primer dobre prakse" ste skrbnik (caretaker) za nove ponudnike, ki vstopajo s 5 % in jih vodite po poti do 20 %',
+  'guidelines.communityItem2': 'Kot "primer dobre prakse" ste skrbnik (caretaker) za nove ponudnike, ki vstopajo s 5 % in jih vodite po poti do 20 %',
+  'guidelines.communityItem3': 'Sodelovanje v drugih skupnostnih projektih',
 
   // Listing form
   'form.newListing': 'Nova ponudba',
