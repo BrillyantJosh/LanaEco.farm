@@ -378,9 +378,10 @@ export default function UnitDetailPage() {
                 <h3 className="font-display text-sm font-semibold mb-3">Video</h3>
                 <div className="aspect-video rounded-lg overflow-hidden bg-muted">
                   <iframe
-                    src={unit.video.replace('watch?v=', 'embed/')}
+                    src={(() => { const m = unit.video.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/); return m ? `https://www.youtube.com/embed/${m[1]}` : unit.video; })()}
                     className="w-full h-full"
                     allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     title={`${unit.name} video`}
                   />
                 </div>
