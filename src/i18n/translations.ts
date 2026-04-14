@@ -3,7 +3,7 @@ export type Locale = 'en' | 'sl';
 const en = {
   // Nav
   'nav.home': 'Home',
-  'nav.farms': 'Farms',
+  'nav.farms': 'Producers',
   'nav.products': 'Products',
   'nav.listings': 'Listings',
   'nav.guidelines': 'Guidelines',
@@ -67,7 +67,7 @@ const en = {
   'values.bio.desc': 'Not only marketing — the provider stands behind every word, otherwise unconditional self-responsibility follows. For the buyer too.',
 
   // Eco farms section
-  'eco.title': 'Sustainable and organic farms',
+  'eco.title': 'Sustainable and organic farms, foragers and other providers of quality local food',
   'eco.subtitle': 'Live units registered in the "Lana Eco Farm" network',
   'eco.loadingRelays': 'Loading from relays...',
   'eco.noFarms': 'No eco farms registered yet.',
@@ -75,12 +75,12 @@ const en = {
 
   // Latest listings
   'latest.title': 'Latest listings',
-  'latest.subtitle': 'Fresh produce, products and orders',
+  'latest.subtitle': 'Local organic produce/products, subscriptions/veg boxes and experiences/degustations',
   'latest.all': 'All listings',
 
   // CTA
   'cta.title': 'Become part of the LANA community',
-  'cta.desc': 'Register your farm or submit your offering and reach new customers through the Lana Eco Farm network.',
+  'cta.desc': 'Register your farm and submit your offering to reach new customers through the "Lana Eco Farm" network.',
 
   // Login
   'login.title': 'Sign in',
@@ -277,7 +277,7 @@ const en = {
   'unit.sunday': 'Sunday',
 
   // Farmers
-  'farmers.title': 'Our farmers',
+  'farmers.title': 'Our farmers, foragers, local creators and initiatives/connectors',
   'farmers.subtitle': 'Sustainable and organic producers by region',
   'farmers.search': 'Search by name or product...',
   'farmers.allRegions': 'All regions',
@@ -302,7 +302,7 @@ const en = {
 
   // Guidelines
   'guidelines.title': 'Guidelines for producers',
-  'guidelines.subtitle': 'Farmers participate in the system with a commitment to responsible and sustainable production.',
+  'guidelines.subtitle': 'Producers participate in the system with a commitment to responsible and sustainable production.',
   'guidelines.practices': 'Recommended practices',
   'guidelines.practice1': 'Local and seasonal production',
   'guidelines.practice2': 'No use of harmful chemicals',
@@ -335,14 +335,14 @@ const en = {
   'guidelines.abundanceP1': 'None of us is perfect — and nature does not expect that from us either. What even is perfection? Which tree in the forest is perfect? Life itself is perfect. That is true perfection.',
   'guidelines.abundanceP2': 'If we apply this to food production: do not strive for the perfect shape of a tomato. Accept what nature offers you, and make sure there is as much life as possible on your field. That way you will get the perfect tomato, cucumber, potato, grain.',
   'guidelines.abundanceP3': 'It is about growing food in the spirit of life and love for everything.',
-  'guidelines.howTitle': 'I\'m a producer, how can I join?',
+  'guidelines.howTitle': "I'm a producer/grower, how can I join?",
   'guidelines.howStep1': 'Create a wallet and private key, and store it securely. If you lose the key, you lose access to your funds and data.',
   'guidelines.howStep2': 'Sign in with your key and create a farm profile.',
-  'guidelines.howStep3': 'You automatically receive the starting premium of +5 %.',
+  'guidelines.howStep3': 'You automatically receive the starting premium of +5 % (and your customer -5 %).',
   'guidelines.howStep4': 'Then describe how you will develop your farm in a more sustainable direction, in line with the guidelines above. For this simple personal commitment, you can receive 100+ € in donations.',
   'guidelines.howStep5': 'As sustainability grows, so do the benefits: the refund for your customers increases from 5% to 20%, and your price premium increases in the same % as well.',
   'guidelines.premiumQTitle': 'What does a 20% Abundance premium mean?',
-  'guidelines.premiumQDesc': 'If you sell apples at €3 per kilogram, with a 20% premium the customer receives €0.60 back (in Lana), and you receive an additional €0.60 (in Euros or Lana — your choice).',
+  'guidelines.premiumQDesc': 'If you sell apples at €3 per kilogram, with a 20% premium the customer, when paying with Euros, receives €0.60 back (in Lana), and you receive an additional €0.60 (in Euros or Lana — your choice).',
   'guidelines.cashQTitle': 'What about cash payments?',
   'guidelines.cashQDesc': 'When you make a sale, enter the price and receipt number. If there is no receipt, attach a photo as proof of sale/purchase.',
   'guidelines.trustTitle': 'Trust',
@@ -353,9 +353,9 @@ const en = {
   'guidelines.limitsP2': 'Do not worry about this. You take care of food grown with love, and we gladly take care of this living money.',
   'guidelines.communityRole': 'Community role',
   'guidelines.communityDesc': 'To maintain the 20% sustainability premium, producers must actively participate in the community:',
-  'guidelines.communityItem1': 'Collaboration with local restaurants',
-  'guidelines.communityItem2': 'Participation in community projects',
-  'guidelines.communityItem3': 'As a "best practice example" you are a caretaker for new providers who start at 5% and you guide them on the path to 20%',
+  'guidelines.communityItem1': 'Collaboration with local restaurants and shops',
+  'guidelines.communityItem2': 'As a "best practice example" you are a caretaker for new providers who start at 5% and guide them on the path to 20%',
+  'guidelines.communityItem3': 'Collaboration in other community projects',
 
   // Listing form
   'form.newListing': 'New listing',
