@@ -527,7 +527,7 @@ const sl: typeof en = {
 
   // CTA
   'cta.title': 'Postanite del LANA skupnosti',
-  'cta.desc': 'Registrirajte svojo kmetijo oz. vnesite vašo ponudbo in dosezite nove stranke prek Lana Eco Farm omrežja.',
+  'cta.desc': 'Registrirajte svojo kmetijo in vnesite vašo ponudbo ter dosezite nove stranke prek "Lana Eco Farm" omrežja.',
 
   // Login
   'login.title': 'Prijava',
