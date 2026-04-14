@@ -450,7 +450,7 @@ const en = {
 const sl: typeof en = {
   // Nav
   'nav.home': 'Domov',
-  'nav.farms': 'Kmetje',
+  'nav.farms': 'Pridelovalci',
   'nav.products': 'Izdelki',
   'nav.listings': 'Ponudbe',
   'nav.guidelines': 'Smernice',
@@ -724,7 +724,7 @@ const sl: typeof en = {
   'unit.sunday': 'Nedelja',
 
   // Farmers
-  'farmers.title': 'Naši kmetje',
+  'farmers.title': 'Naši kmetje, nabiralci, domači ustvarjalci in iniciative/povezovalci',
   'farmers.subtitle': 'Trajnostni in ekološki pridelovalci po regijah',
   'farmers.search': 'Išči po imenu ali izdelku...',
   'farmers.allRegions': 'Vse regije',
@@ -749,7 +749,7 @@ const sl: typeof en = {
 
   // Guidelines
   'guidelines.title': 'Smernice za pridelovalce',
-  'guidelines.subtitle': 'Kmetje sodelujete v sistemu z zavezo k odgovorni in trajnostni pridelavi.',
+  'guidelines.subtitle': 'Pridelovalci sodelujete v sistemu z zavezo k odgovorni in trajnostni pridelavi.',
   'guidelines.practices': 'Priporočene prakse',
   'guidelines.practice1': 'Lokalna in sezonska pridelava',
   'guidelines.practice2': 'Neuporaba škodljivih kemičnih sredstev',
