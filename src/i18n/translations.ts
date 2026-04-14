@@ -355,6 +355,7 @@ const en = {
   'guidelines.communityDesc': 'To maintain the 20% sustainability premium, producers must actively participate in the community:',
   'guidelines.communityItem1': 'Collaboration with local restaurants',
   'guidelines.communityItem2': 'Participation in community projects',
+  'guidelines.communityItem3': 'As a "best practice example" you are a caretaker for new providers who start at 5% and you guide them on the path to 20%',
 
   // Listing form
   'form.newListing': 'New listing',
@@ -802,6 +803,7 @@ const sl: typeof en = {
   'guidelines.communityDesc': 'Za vzdrževanje 20 % trajnostnega pribitka pridelovalci aktivno sodelujete v skupnosti:',
   'guidelines.communityItem1': 'Sodelovanje z lokalnimi restavracijami in trgovinami',
   'guidelines.communityItem2': 'Sodelovanje v skupnostnih projektih',
+  'guidelines.communityItem3': 'Kot "primer dobre prakse" ste skrbnik (caretaker) za nove ponudnike, ki vstopajo s 5 % in jih vodite po poti do 20 %',
 
   // Listing form
   'form.newListing': 'Nova ponudba',

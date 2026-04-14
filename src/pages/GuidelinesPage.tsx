@@ -194,6 +194,7 @@ function GuidelinesPage() {
             {[
               t('guidelines.communityItem1'),
               t('guidelines.communityItem2'),
+              t('guidelines.communityItem3'),
             ].map((item, i) => (
               <li
                 key={i}
