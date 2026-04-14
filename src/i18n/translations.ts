@@ -514,7 +514,7 @@ const sl: typeof en = {
   'values.bio.desc': 'Ne le marketing - ponudnik stoji za vsako izrečeno besedo, sicer sledi brezpogojna samoodgovornost. Tudi za kupca.',
 
   // Eco farms section
-  'eco.title': 'Trajnostne in ekološke kmetije',
+  'eco.title': 'Trajnostne in ekološke kmetije, nabiralci in drugi ponudniki kvalitetne domače hrane',
   'eco.subtitle': 'Žive enote registrirane v "Lana Eco Farm" omrežju',
   'eco.loadingRelays': 'Nalaganje iz relejev...',
   'eco.noFarms': 'Še ni registriranih eko kmetij.',
