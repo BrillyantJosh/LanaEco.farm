@@ -88,7 +88,7 @@ const Index = () => {
           </picture>
           <div className="absolute inset-0 bg-foreground/60" />
         </div>
-        <div className="relative container mx-auto px-4 py-28 md:py-40">
+        <div className="relative container mx-auto px-4 py-20 md:py-48">
           <div className="max-w-2xl animate-fade-in-up">
             <div className="flex items-center gap-2 mb-4">
               <Leaf className="h-6 w-6 text-primary-foreground" />
@@ -125,7 +125,7 @@ const Index = () => {
       </section>
 
       {/* Values */}
-      <section className="container mx-auto px-4 py-16">
+      <section className="container mx-auto px-4 py-10">
         <div className="grid md:grid-cols-3 gap-8">
           {[
             {
