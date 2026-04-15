@@ -50,7 +50,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 interface OpeningHours {
-  [day: string]: { enabled: boolean; from: string; to: string };
+  [day: string]: { enabled: boolean; open: string; close: string };
 }
 
 export default function UnitDetailPage() {
@@ -68,13 +68,13 @@ export default function UnitDetailPage() {
   const [listingsLoading, setListingsLoading] = useState(true);
 
   const dayLabels: Record<string, string> = {
-    monday: t('unit.monday'),
-    tuesday: t('unit.tuesday'),
-    wednesday: t('unit.wednesday'),
-    thursday: t('unit.thursday'),
-    friday: t('unit.friday'),
-    saturday: t('unit.saturday'),
-    sunday: t('unit.sunday'),
+    mon: t('unit.monday'),
+    tue: t('unit.tuesday'),
+    wed: t('unit.wednesday'),
+    thu: t('unit.thursday'),
+    fri: t('unit.friday'),
+    sat: t('unit.saturday'),
+    sun: t('unit.sunday'),
   };
 
   useEffect(() => {
@@ -124,7 +124,16 @@ export default function UnitDetailPage() {
   let openingHours: OpeningHours | null = null;
   try {
     if (unit.openingHoursJson) {
-      openingHours = JSON.parse(unit.openingHoursJson);
+      const parsed = JSON.parse(unit.openingHoursJson);
+      const week = (parsed.week || parsed) as Record<string, unknown>;
+      openingHours = {};
+      for (const [key, slots] of Object.entries(week)) {
+        if (Array.isArray(slots) && slots.length > 0) {
+          openingHours[key] = { enabled: true, open: (slots[0] as any).open || '', close: (slots[0] as any).close || '' };
+        } else if (Array.isArray(slots)) {
+          openingHours[key] = { enabled: false, open: '', close: '' };
+        }
+      }
     }
   } catch {}
 
@@ -356,7 +365,7 @@ export default function UnitDetailPage() {
                       <div key={key} className="flex justify-between text-sm font-sans">
                         <span className={day?.enabled ? 'text-foreground' : 'text-muted-foreground'}>{label}</span>
                         <span className={day?.enabled ? 'text-foreground font-medium' : 'text-muted-foreground'}>
-                          {day?.enabled ? `${day.from} – ${day.to}` : t('unit.closed')}
+                          {day?.enabled ? `${day.open} – ${day.close}` : t('unit.closed')}
                         </span>
                       </div>
                     );
