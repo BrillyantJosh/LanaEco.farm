@@ -224,9 +224,8 @@ function buildCashbackMap(policies: NostrEvent[]): Map<string, number> {
   return map;
 }
 
-// Cache
-let cachedUnits: (ReturnType<typeof parseUnit> & { cashbackPercent: number })[] = [];
-let cacheTimestamp = 0;
+// Cache keyed by category string to avoid cross-site contamination
+const unitCache = new Map<string, { units: (ReturnType<typeof parseUnit> & { cashbackPercent: number })[]; ts: number }>();
 const CACHE_TTL = 60_000; // 1 minute
 
 export function createEcoUnitsRouter(db: Database.Database): Router {
@@ -234,9 +233,11 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
 
   router.get('/', async (req: Request, res: Response) => {
     try {
-      // Check cache
-      if (Date.now() - cacheTimestamp < CACHE_TTL && cachedUnits.length > 0) {
-        res.json(cachedUnits);
+      // Check category-specific cache
+      const cacheKey = (req.query.category as string) || '__all__';
+      const _cached = unitCache.get(cacheKey);
+      if (_cached && Date.now() - _cached.ts < CACHE_TTL) {
+        res.json(_cached.units);
         return;
       }
 
@@ -276,14 +277,13 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
 
       units.sort((a, b) => a.name.localeCompare(b.name));
 
-      cachedUnits = units;
-      cacheTimestamp = Date.now();
+      unitCache.set(cacheKey, { units, ts: Date.now() });
 
       res.json(units);
     } catch (error) {
       console.error('Failed to fetch eco units:', error);
-      // Return cache if available, even if stale
-      res.json(cachedUnits);
+      // Return stale cache if available
+      res.json(unitCache.get(cacheKey)?.units || []);
     }
   });
 
