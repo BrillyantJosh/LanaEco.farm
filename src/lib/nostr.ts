@@ -367,6 +367,7 @@ export interface EcoListing {
   // Transparency
   sprayLog: string;
   soilTestYear: string;
+  youtubeUrl: string;
   // Raw
   rawEvent: NostrEvent;
 }
@@ -422,6 +423,7 @@ export function parseEcoListing(event: NostrEvent): EcoListing {
     geoLabel: geoTag?.[3] || '',
     sprayLog: getTag('spray_log'),
     soilTestYear: getTag('soil_test_year'),
+    youtubeUrl: getTag('youtube_url'),
     rawEvent: event,
   };
 }

@@ -66,6 +66,7 @@ function parseListing(event: NostrEvent) {
     geoLabel: geoTag?.[3] || '',
     sprayLog: getTag(event, 'spray_log'),
     soilTestYear: getTag(event, 'soil_test_year'),
+    youtubeUrl: getTag(event, 'youtube_url'),
   };
 }
 

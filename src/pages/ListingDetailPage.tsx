@@ -5,6 +5,13 @@ import type { EcoListing } from '@/lib/nostr';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { TranslationKey } from '@/i18n/translations';
 
+
+  function getYouTubeId(url: string): string | null {
+    if (!url) return null;
+    const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&\n?#]+)/);
+    return m ? m[1] : null;
+  }
+
 export default function ListingDetailPage() {
   const { t } = useLanguage();
   const { pubkey, listingId } = useParams<{ pubkey: string; listingId: string }>();
@@ -101,6 +108,18 @@ export default function ListingDetailPage() {
           ) : (
             <div className="aspect-square rounded-xl bg-muted flex items-center justify-center">
               <ShoppingBag className="w-16 h-16 text-muted-foreground/30" />
+            </div>
+          )}
+          {/* YouTube video */}
+          {listing.youtubeUrl && getYouTubeId(listing.youtubeUrl) && (
+            <div className="mt-4 aspect-video rounded-xl overflow-hidden bg-black">
+              <iframe
+                src={`https://www.youtube.com/embed/${getYouTubeId(listing.youtubeUrl)}`}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={listing.title}
+              />
             </div>
           )}
         </div>
