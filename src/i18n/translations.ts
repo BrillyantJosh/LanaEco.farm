@@ -49,7 +49,7 @@ const en = {
 
   // Hero
   'hero.subtitle': 'Directory of producers and other providers',
-  'hero.title': 'From the field to your table',
+  'hero.title': 'From field to your table, grown and made with love',
   'hero.desc1.before': 'The ',
   'hero.desc1.link': 'Economy of Abundance',
   'hero.desc1.after': ' supports local organic farmers and other providers, their stories and fresh, homegrown produce.',
@@ -497,7 +497,7 @@ const sl: typeof en = {
 
   // Hero
   'hero.subtitle': 'Imenik pridelovalcev in drugih ponudnikov',
-  'hero.title': 'Od njive do vaše mize',
+  'hero.title': 'Od njive do vaše mize, pridelano in narejeno z ljubeznijo',
   'hero.desc1.before': '',
   'hero.desc1.link': 'Ekonomija Obilja',
   'hero.desc1.after': ' podpira lokalne ekološke kmete in druge ponudnike, njihove zgodbe in sveže, domače pridelke.',
