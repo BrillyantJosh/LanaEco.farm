@@ -25,7 +25,7 @@ export default function FarmersPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
-    fetch('/api/eco-units?category=Eco Farm,Eco Farming')
+    fetch('/api/eco-units?category=Eco Farm,Eco Farming,Producer')
       .then(res => res.json())
       .then((data: EcoUnit[]) => {
         setUnits(data.filter(u => u.status === 'active'));
