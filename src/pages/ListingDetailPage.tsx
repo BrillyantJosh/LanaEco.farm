@@ -218,7 +218,7 @@ export default function ListingDetailPage() {
           {listing.marketDays.length > 0 && (
             <div className="text-sm font-sans text-muted-foreground">
               <Clock className="w-4 h-4 inline mr-1" />
-              {t('listingDetail.marketDays')} {listing.marketDays.map(d => d.slice(0, 3)).join(', ')}
+              {t('listingDetail.marketDays')} {listing.marketDays.map(d => { const key = `day.${d}` as any; const tr = t(key); return tr !== key ? tr : d.slice(0, 3); }).join(', ')}
             </div>
           )}
 
@@ -250,7 +250,7 @@ export default function ListingDetailPage() {
 
           {/* Pre-order */}
           {listing.preOrder === 'true' && (
-            <div className="text-sm font-sans text-accent font-medium">Pre-order available</div>
+            <div className="text-sm font-sans text-accent font-medium">{t('listingDetail.preOrder' as any)}</div>
           )}
 
           {/* Location override */}
@@ -263,10 +263,10 @@ export default function ListingDetailPage() {
 
           {/* Transparency */}
           {listing.sprayLog && (
-            <div className="text-sm font-sans text-muted-foreground">Spray log: {listing.sprayLog}</div>
+            <div className="text-sm font-sans text-muted-foreground">{t('listingDetail.sprayLog' as any)} {listing.sprayLog}</div>
           )}
           {listing.soilTestYear && (
-            <div className="text-sm font-sans text-muted-foreground">Soil test: {listing.soilTestYear}</div>
+            <div className="text-sm font-sans text-muted-foreground">{t('listingDetail.soilTest' as any)} {listing.soilTestYear}</div>
           )}
 
           {/* Payment */}

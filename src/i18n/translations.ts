@@ -209,6 +209,11 @@ const en = {
   'listingDetail.duration': 'Duration: {min} min',
   'listingDetail.bookingRequired': 'Booking required',
   'listingDetail.payment': 'Payment',
+  'listingDetail.preOrder': 'Pre-order available',
+  'listingDetail.sprayLog': 'Spray log:',
+  'listingDetail.soilTest': 'Soil test:',
+  'day.monday': 'Mon', 'day.tuesday': 'Tue', 'day.wednesday': 'Wed', 'day.thursday': 'Thu',
+  'day.friday': 'Fri', 'day.saturday': 'Sat', 'day.sunday': 'Sun',
 
   // Eco labels
   'eco.organic': 'organic',
@@ -657,6 +662,11 @@ const sl: typeof en = {
   'listingDetail.duration': 'Trajanje: {min} min',
   'listingDetail.bookingRequired': 'Rezervacija obvezna',
   'listingDetail.payment': 'Plačilo',
+  'listingDetail.preOrder': 'Prednaročilo možno',
+  'listingDetail.sprayLog': 'Dnevnik škropljenja:',
+  'listingDetail.soilTest': 'Test tal:',
+  'day.monday': 'Pon', 'day.tuesday': 'Tor', 'day.wednesday': 'Sre', 'day.thursday': 'Čet',
+  'day.friday': 'Pet', 'day.saturday': 'Sob', 'day.sunday': 'Ned',
 
   // Eco labels
   'eco.organic': 'ekološko',
