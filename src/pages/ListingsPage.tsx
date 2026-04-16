@@ -65,11 +65,12 @@ export default function ListingsPage() {
     if (categoryFilter) result = result.filter(l => l.tags.includes(categoryFilter));
     // Country filter — SL locale: only SI units; EN locale: only non-SI units (empty country = show always)
     result = result.filter((l: any) => {
+      const isSI = (v: string) => ['SI','SLO','SLOVENIA','SLOVENIJA','SL'].includes(v.trim().toUpperCase());
       const unitId = (l.unitRef || '').split(':')[2] || '';
       const country = unitCountryMap[unitId] || '';
       if (!country) return true; // no country set → show for all locales
-      if (locale === 'sl') return country === 'SI';
-      if (locale === 'en') return country !== 'SI';
+      if (locale === 'sl') return isSI(country);
+      if (locale === 'en') return !isSI(country);
       return true;
     });
     // Sort by cashback % descending — best deals first

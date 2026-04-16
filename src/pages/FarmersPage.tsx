@@ -46,10 +46,13 @@ export default function FarmersPage() {
       (u.receiverCity || '').toLowerCase().includes(s);
     const matchesCat = !selectedCategory || u.category === selectedCategory;
     const matchesLocale = (() => {
+      const isSI = (v: string) => ['SI','SLO','SLOVENIA','SLOVENIJA','SL'].includes(v.trim().toUpperCase());
       const c = u.country || '';
-      if (!c) return true; // no country → show for all locales
-      if (locale === 'sl') return c === 'SI';
-      if (locale === 'en') return c !== 'SI';
+      const rc = (u as any).receiverCountry || '';
+      const countrySI = c ? isSI(c) : (rc ? isSI(rc) : null);
+      if (countrySI === null) return true; // no country info → show for all locales
+      if (locale === 'sl') return countrySI;
+      if (locale === 'en') return !countrySI;
       return true;
     })();
     return matchesSearch && matchesCat && matchesLocale;

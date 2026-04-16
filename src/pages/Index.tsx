@@ -69,10 +69,13 @@ const Index = () => {
   }, []);
 
   const localeUnits = units.filter(u => {
-    const country = u.country || '';
-    if (!country) return true;
-    if (locale === 'sl') return country === 'SI';
-    if (locale === 'en') return country !== 'SI';
+    const isSI = (v: string) => ['SI','SLO','SLOVENIA','SLOVENIJA','SL'].includes(v.trim().toUpperCase());
+    const c = u.country || '';
+    const rc = (u as any).receiverCountry || '';
+    const countrySI = c ? isSI(c) : (rc ? isSI(rc) : null);
+    if (countrySI === null) return true;
+    if (locale === 'sl') return countrySI;
+    if (locale === 'en') return !countrySI;
     return true;
   });
   const featured = localeUnits.slice(0, 6);
