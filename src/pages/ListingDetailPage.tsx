@@ -128,7 +128,7 @@ export default function ListingDetailPage() {
         <div className="space-y-5">
           {/* Type badge */}
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-sans font-medium bg-primary/10 text-primary">
-            {TYPE_LABELS[listing.type] || listing.type}
+            {tTag('type', listing.type)}
           </span>
 
           <h1 className="font-display text-2xl lg:text-3xl font-bold">{listing.title}</h1>

@@ -45,9 +45,7 @@ interface EcoListing {
   status: string;
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  product: 'Product', subscription: 'Subscription', service: 'Service', experience: 'Experience',
-};
+
 
 interface OpeningHours {
   [day: string]: { enabled: boolean; open: string; close: string };
@@ -267,7 +265,7 @@ export default function UnitDetailPage() {
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-1">
                             <span className="text-[10px] font-sans font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                              {TYPE_LABELS[listing.type] || listing.type}
+                              {tTag('type', listing.type)}
                             </span>
                             <span className="text-xs font-sans font-bold text-white bg-green-600 px-2.5 py-1 rounded-full shadow-sm">
                               🌿 {(listing as any).cashbackPercent || 5}%

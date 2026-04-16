@@ -62,7 +62,7 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-sans font-medium ${TYPE_COLORS[listing.type] || 'bg-muted text-muted-foreground'}`}>
-              {TYPE_LABELS[listing.type] || listing.type}
+              {tTag('type', listing.type)}
             </span>
             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-sans font-bold bg-green-600 text-white shadow-sm">
               🌿 {(listing as any).cashbackPercent || 5}% {t('badge.abundance')}
