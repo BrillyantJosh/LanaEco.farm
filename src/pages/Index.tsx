@@ -37,7 +37,7 @@ interface EcoUnit {
 }
 
 const Index = () => {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const tTag = (prefix: string, val: string) => {
     const key = `${prefix}.${val}` as TranslationKey;
     const translated = t(key);
@@ -68,7 +68,14 @@ const Index = () => {
       .catch(() => setListingsLoading(false));
   }, []);
 
-  const featured = units.slice(0, 6);
+  const localeUnits = units.filter(u => {
+    const country = u.country || '';
+    if (!country) return true;
+    if (locale === 'sl') return country === 'SI';
+    if (locale === 'en') return country !== 'SI';
+    return true;
+  });
+  const featured = localeUnits.slice(0, 6);
 
   return (
     <div>

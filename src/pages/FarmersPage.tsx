@@ -18,7 +18,7 @@ interface EcoUnit {
 }
 
 export default function FarmersPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [units, setUnits] = useState<EcoUnit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -45,7 +45,14 @@ export default function FarmersPage() {
       (u.content || '').toLowerCase().includes(s) ||
       (u.receiverCity || '').toLowerCase().includes(s);
     const matchesCat = !selectedCategory || u.category === selectedCategory;
-    return matchesSearch && matchesCat;
+    const matchesLocale = (() => {
+      const c = u.country || '';
+      if (!c) return true; // no country → show for all locales
+      if (locale === 'sl') return c === 'SI';
+      if (locale === 'en') return c !== 'SI';
+      return true;
+    })();
+    return matchesSearch && matchesCat && matchesLocale;
   });
 
   return (
