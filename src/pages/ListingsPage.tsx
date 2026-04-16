@@ -11,7 +11,7 @@ const CATEGORY_FILTERS = [
 ];
 
 export default function ListingsPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [listings, setListings] = useState<EcoListing[]>([]);
   const [filtered, setFiltered] = useState<EcoListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,10 +50,12 @@ export default function ListingsPage() {
     }
     if (typeFilter) result = result.filter(l => l.type === typeFilter);
     if (categoryFilter) result = result.filter(l => l.tags.includes(categoryFilter));
+    // Language filter — hide listings that don't match current locale
+    result = result.filter((l: any) => !l.language || l.language === locale);
     // Sort by cashback % descending — best deals first
     result.sort((a: any, b: any) => (b.cashbackPercent || 5) - (a.cashbackPercent || 5));
     setFiltered(result);
-  }, [search, typeFilter, categoryFilter, listings]);
+  }, [search, typeFilter, categoryFilter, listings, locale]);
 
   return (
     <div className="container mx-auto px-4 py-8">
