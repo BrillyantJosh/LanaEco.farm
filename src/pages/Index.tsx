@@ -285,7 +285,7 @@ const Index = () => {
                       <span className="text-xs font-sans font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{t(`type.${listing.type}` as any)}</span>
                       <span className={`text-sm font-sans font-bold px-3 py-1 rounded-full shadow-sm ${(listing.cashbackPercent || 5) >= 15 ? 'bg-green-600 text-white' : 'bg-green-600 text-white'}`}>🌿 {listing.cashbackPercent || 5}% {t('badge.abundance')}</span>
                     </div>
-                    <span className="text-sm font-semibold font-sans">{listing.price} {listing.priceCurrency}/{listing.unit}</span>
+                    <span className="text-sm font-semibold font-sans">{listing.price} {listing.priceCurrency}{listing.unit && `/${tTag('lunit', listing.unit)}`}</span>
                   </div>
                   <h3 className="font-display text-base font-semibold truncate">{listing.title}</h3>
                   {listing.content && (

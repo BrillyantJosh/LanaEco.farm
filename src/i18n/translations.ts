@@ -420,6 +420,14 @@ const en = {
   'type.subscription': 'Subscription',
   'type.service': 'Service',
   'type.experience': 'Experience',
+  'lunit.piece': 'piece',
+  'lunit.kg': 'kg',
+  'lunit.L': 'L',
+  'lunit.g': 'g',
+  'lunit.set': 'set',
+  'lunit.month': 'month',
+  'lunit.visit': 'visit',
+  'lunit.person': 'person',
 
   // Status
   'status.active': 'Active',
@@ -873,6 +881,14 @@ const sl: typeof en = {
   'type.subscription': 'Naročnina',
   'type.service': 'Storitev',
   'type.experience': 'Doživetje',
+  'lunit.piece': 'kos',
+  'lunit.kg': 'kg',
+  'lunit.L': 'L',
+  'lunit.g': 'g',
+  'lunit.set': 'komplet',
+  'lunit.month': 'mesec',
+  'lunit.visit': 'obisk',
+  'lunit.person': 'oseba',
 
   // Status
   'status.active': 'Aktivno',
