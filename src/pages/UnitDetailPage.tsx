@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Globe, Tag, Leaf, ChevronLeft, ChevronRight, X, ExternalLink, ShoppingBag, Loader2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Globe, Tag, Leaf, ChevronLeft, ChevronRight, X, ExternalLink, ShoppingBag, Loader2, Mail, Phone } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { TranslationKey } from '@/i18n/translations';
 
@@ -22,6 +22,8 @@ interface EcoUnit {
   logo: string;
   video: string;
   url: string;
+  email: string;
+  phone: string;
   note: string;
   openingHoursJson: string;
   receiverName: string;
@@ -334,6 +336,26 @@ export default function UnitDetailPage() {
                     <p className="text-sm font-sans font-medium">{unit.currency}</p>
                   </div>
                 </div>
+              )}
+
+              {unit.email && (
+                <a
+                  href={`mailto:${unit.email}`}
+                  className="inline-flex items-center gap-1.5 text-sm text-primary font-sans hover:underline"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  {unit.email}
+                </a>
+              )}
+
+              {unit.phone && (
+                <a
+                  href={`tel:${unit.phone.replace(/\s+/g, '')}`}
+                  className="inline-flex items-center gap-1.5 text-sm text-primary font-sans hover:underline"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  {unit.phone}
+                </a>
               )}
 
               {unit.url && (

@@ -41,6 +41,8 @@ function parseUnit(event: NostrEvent) {
     logo: (() => { const l = getTag(event, 'logo'); return l.startsWith('/api/uploads/') ? `https://shop.lanapays.us${l}` : l; })(),
     video: getTag(event, 'video'),
     url: getTag(event, 'url'),
+    email: getTag(event, 'email'),
+    phone: getTag(event, 'phone'),
     note: getTag(event, 'note'),
     openingHoursJson: getTag(event, 'opening_hours_json'),
     receiverName: getTag(event, 'receiver_name'),
