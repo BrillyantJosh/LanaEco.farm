@@ -10,12 +10,22 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
 function detectLocale(): Locale {
-  // Check localStorage first
-  const saved = localStorage.getItem('lanaeco-lang');
+  // 1. URL ?lang= overrides everything (so links like /?lang=en work)
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    const urlLang = params.get('lang');
+    if (urlLang === 'sl' || urlLang === 'en') {
+      try { localStorage.setItem('lanaeco-lang', urlLang); } catch {}
+      return urlLang;
+    }
+  }
+
+  // 2. localStorage
+  const saved = typeof window !== 'undefined' ? localStorage.getItem('lanaeco-lang') : null;
   if (saved === 'sl' || saved === 'en') return saved;
 
-  // Auto-detect from browser
-  const browserLang = navigator.language || (navigator as any).userLanguage || 'en';
+  // 3. Auto-detect from browser
+  const browserLang = (typeof navigator !== 'undefined' && (navigator.language || (navigator as any).userLanguage)) || 'en';
   return browserLang.startsWith('sl') ? 'sl' : 'en';
 }
 
