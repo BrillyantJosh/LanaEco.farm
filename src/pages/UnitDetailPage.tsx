@@ -338,24 +338,27 @@ export default function UnitDetailPage() {
                 </div>
               )}
 
-              {unit.email && (
-                <a
-                  href={`mailto:${unit.email}`}
-                  className="inline-flex items-center gap-1.5 text-sm text-primary font-sans hover:underline"
-                >
-                  <Mail className="w-3.5 h-3.5" />
-                  {unit.email}
-                </a>
-              )}
-
-              {unit.phone && (
-                <a
-                  href={`tel:${unit.phone.replace(/\s+/g, '')}`}
-                  className="inline-flex items-center gap-1.5 text-sm text-primary font-sans hover:underline"
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  {unit.phone}
-                </a>
+              {(unit.email || unit.phone) && (
+                <div className="flex flex-col gap-2 pt-1">
+                  {unit.email && (
+                    <a
+                      href={`mailto:${unit.email}`}
+                      className="inline-flex items-center gap-1.5 text-sm text-primary font-sans hover:underline break-all"
+                    >
+                      <Mail className="w-3.5 h-3.5 shrink-0" />
+                      {unit.email}
+                    </a>
+                  )}
+                  {unit.phone && (
+                    <a
+                      href={`tel:${unit.phone.replace(/\s+/g, '')}`}
+                      className="inline-flex items-center gap-1.5 text-sm text-primary font-sans hover:underline"
+                    >
+                      <Phone className="w-3.5 h-3.5 shrink-0" />
+                      {unit.phone}
+                    </a>
+                  )}
+                </div>
               )}
 
               {unit.url && (
