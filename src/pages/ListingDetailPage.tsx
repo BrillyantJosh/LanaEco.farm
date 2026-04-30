@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, MapPin, Leaf, Tag, Calendar, ShoppingBag, Truck, CreditCard, Clock, Users, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, MapPin, Leaf, Tag, Calendar, ShoppingBag, Truck, CreditCard, Clock, Users, CheckCircle, ExternalLink } from 'lucide-react';
 import type { EcoListing } from '@/lib/nostr';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { TranslationKey } from '@/i18n/translations';
@@ -282,6 +282,21 @@ export default function ListingDetailPage() {
               </div>
             </div>
           )}
+
+          {/* Website URL */}
+              {listing.url && (
+                <div className="pt-2">
+                  <a
+                    href={listing.url.startsWith('http') ? listing.url : `https://${listing.url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm text-primary font-sans hover:underline"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    {listing.url}
+                  </a>
+                </div>
+              )}
 
           {/* Link to farm */}
           <div className="pt-4 border-t">

@@ -368,6 +368,7 @@ export interface EcoListing {
   sprayLog: string;
   soilTestYear: string;
   youtubeUrl: string;
+  url: string;
   language: string;
   // Raw
   rawEvent: NostrEvent;
@@ -425,6 +426,7 @@ export function parseEcoListing(event: NostrEvent): EcoListing {
     sprayLog: getTag('spray_log'),
     soilTestYear: getTag('soil_test_year'),
     youtubeUrl: getTag('youtube_url'),
+    url: getTag('url'),
     language: getTag('language'),
     rawEvent: event,
   };

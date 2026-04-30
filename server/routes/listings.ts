@@ -67,6 +67,7 @@ function parseListing(event: NostrEvent) {
     sprayLog: getTag(event, 'spray_log'),
     soilTestYear: getTag(event, 'soil_test_year'),
     youtubeUrl: getTag(event, 'youtube_url'),
+    url: getTag(event, 'url'),
     language: getTag(event, 'language'),
   };
 }
