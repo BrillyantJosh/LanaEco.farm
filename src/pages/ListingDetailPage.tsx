@@ -136,7 +136,7 @@ export default function ListingDetailPage() {
           {/* Price */}
           <div className="text-2xl font-bold text-foreground font-sans">
             {listing.price} {listing.priceCurrency}
-            {listing.unit && <span className="text-base font-normal text-muted-foreground"> / {listing.unit}</span>}
+            {listing.unit && <span className="text-base font-normal text-muted-foreground"> / {tTag('lunit', listing.unit)}</span>}
           </div>
 
           {/* Description */}
@@ -180,7 +180,7 @@ export default function ListingDetailPage() {
           {/* Stock */}
           {listing.stock && (
             <div className="text-sm font-sans text-muted-foreground">
-              {t('common.inStock')} <span className="font-medium text-foreground">{listing.stock} {listing.unit}</span>
+              {t('common.inStock')} <span className="font-medium text-foreground">{listing.stock} {listing.unit ? tTag('lunit', listing.unit) : ''}</span>
               {listing.minOrder && <span> (min: {listing.minOrder})</span>}
               {listing.maxOrder && <span> (max: {listing.maxOrder})</span>}
             </div>
