@@ -71,7 +71,7 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
           {listing.price && (
             <span className="text-sm font-semibold text-foreground font-sans">
               {listing.price} {listing.priceCurrency}
-              {listing.unit && <span className="text-xs text-muted-foreground font-normal">/{listing.unit}</span>}
+              {listing.unit && <span className="text-xs text-muted-foreground font-normal">/{tTag('lunit', listing.unit)}</span>}
             </span>
           )}
         </div>
@@ -129,7 +129,7 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
         {/* Stock */}
         {listing.stock && (
           <div className="text-[10px] text-muted-foreground font-sans">
-            {t('common.inStock')} {listing.stock} {listing.unit}
+            {t('common.inStock')} {listing.stock} {listing.unit ? tTag('lunit', listing.unit) : ''}
           </div>
         )}
 

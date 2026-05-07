@@ -275,7 +275,7 @@ export default function UnitDetailPage() {
                           </div>
                           <span className="text-sm font-semibold font-sans">
                             {listing.price} {listing.priceCurrency}
-                            {listing.unit && <span className="text-xs font-normal text-muted-foreground">/{listing.unit}</span>}
+                            {listing.unit && <span className="text-xs font-normal text-muted-foreground">/{tTag('lunit', listing.unit)}</span>}
                           </span>
                         </div>
                         <h3 className="font-display text-sm font-semibold truncate">{listing.title}</h3>
