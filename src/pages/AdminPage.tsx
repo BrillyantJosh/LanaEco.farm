@@ -445,7 +445,7 @@ export default function AdminPage() {
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <button
                   onClick={() =>
-                    toggleFeature('provider', u.pubkey, null, 'top', u.topFeatureId)
+                    toggleFeature('unit', u.pubkey, u.unitId, 'top', u.topFeatureId)
                   }
                   title={u.topFeatureId ? 'Remove TOP' : 'Mark as TOP'}
                   className={`px-2 py-1.5 text-[11px] border rounded-lg font-sans font-bold flex items-center gap-1 transition ${
@@ -458,7 +458,7 @@ export default function AdminPage() {
                 </button>
                 <button
                   onClick={() =>
-                    toggleFeature('provider', u.pubkey, null, 'new', u.newFeatureId)
+                    toggleFeature('unit', u.pubkey, u.unitId, 'new', u.newFeatureId)
                   }
                   title={u.newFeatureId ? 'Remove NEW' : 'Mark as NEW'}
                   className={`px-2 py-1.5 text-[11px] border rounded-lg font-sans font-bold flex items-center gap-1 transition ${

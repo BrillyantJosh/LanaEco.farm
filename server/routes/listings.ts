@@ -57,8 +57,8 @@ export function createListingsRouter(db: Database.Database): Router {
         }
       }
 
-      // Map features for providers and listings
-      const providerFeatures = new Map<string, string>();
+      // Map features: unit-level (pubkey:unit_id) and listing-level (pubkey:listing_id)
+      const unitFeatures = new Map<string, string>();
       const listingFeatures = new Map<string, string>();
       const featureRows = db
         .prepare(
@@ -66,8 +66,8 @@ export function createListingsRouter(db: Database.Database): Router {
         )
         .all() as any[];
       for (const f of featureRows) {
-        if (f.target_type === 'provider') {
-          providerFeatures.set(f.target_pubkey, f.feature_type);
+        if (f.target_type === 'unit' && f.target_id) {
+          unitFeatures.set(`${f.target_pubkey}:${f.target_id}`, f.feature_type);
         } else if (f.target_type === 'listing' && f.target_id) {
           listingFeatures.set(`${f.target_pubkey}:${f.target_id}`, f.feature_type);
         }
@@ -104,10 +104,10 @@ export function createListingsRouter(db: Database.Database): Router {
             ? r.lana_discount_per
             : DEFAULT_CASHBACK;
 
-        // Listing-level feature wins; otherwise inherit from provider feature
+        // Listing-level feature wins; otherwise inherit from the unit-level feature
         const listingFeat =
           listingFeatures.get(`${r.pubkey}:${r.listing_id}`) ||
-          providerFeatures.get(r.pubkey) ||
+          unitFeatures.get(`${r.pubkey}:${r.unit_id}`) ||
           null;
 
         listings.push({ ...parsed, cashbackPercent: cashback, featured: listingFeat });

@@ -60,10 +60,10 @@ export function createAdminRouter(db: Database.Database): Router {
            WHERE lb.target_type='unit' AND lb.target_pubkey=u.pubkey AND lb.target_id=u.unit_id
            LIMIT 1) AS unit_block_id,
           (SELECT id FROM local_features lf
-           WHERE lf.target_type='provider' AND lf.target_pubkey=u.pubkey AND lf.feature_type='top'
+           WHERE lf.target_type='unit' AND lf.target_pubkey=u.pubkey AND lf.target_id=u.unit_id AND lf.feature_type='top'
            LIMIT 1) AS top_feature_id,
           (SELECT id FROM local_features lf
-           WHERE lf.target_type='provider' AND lf.target_pubkey=u.pubkey AND lf.feature_type='new'
+           WHERE lf.target_type='unit' AND lf.target_pubkey=u.pubkey AND lf.target_id=u.unit_id AND lf.feature_type='new'
            LIMIT 1) AS new_feature_id
         FROM business_units u
         LEFT JOIN global_suspensions gs ON gs.unit_id = u.unit_id
@@ -131,11 +131,11 @@ export function createAdminRouter(db: Database.Database): Router {
     res.json(result);
   });
 
-  // POST /api/admin/feature — set top/new feature on provider or listing
+  // POST /api/admin/feature — set top/new feature on unit or listing
   router.post('/feature', requireAdmin, (req: AdminRequest, res: Response) => {
     const { target_type, target_pubkey, target_id, feature_type } = req.body || {};
-    if (target_type !== 'provider' && target_type !== 'listing') {
-      return res.status(400).json({ error: 'target_type must be provider or listing' });
+    if (target_type !== 'unit' && target_type !== 'listing') {
+      return res.status(400).json({ error: 'target_type must be unit or listing' });
     }
     if (feature_type !== 'top' && feature_type !== 'new') {
       return res.status(400).json({ error: 'feature_type must be top or new' });
@@ -143,8 +143,8 @@ export function createAdminRouter(db: Database.Database): Router {
     if (!target_pubkey || !/^[0-9a-f]{64}$/i.test(target_pubkey)) {
       return res.status(400).json({ error: 'invalid target_pubkey' });
     }
-    if (target_type === 'listing' && !target_id) {
-      return res.status(400).json({ error: 'target_id required for listing features' });
+    if (!target_id) {
+      return res.status(400).json({ error: `target_id required for ${target_type} features` });
     }
     try {
       const result = db
@@ -159,7 +159,7 @@ export function createAdminRouter(db: Database.Database): Router {
         .get(
           target_type,
           target_pubkey.toLowerCase(),
-          target_type === 'listing' ? target_id : null,
+          target_id,
           feature_type,
           req.adminHex,
           Math.floor(Date.now() / 1000)

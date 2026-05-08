@@ -48,14 +48,15 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
           unitBlocks.add(`${b.target_pubkey}:${b.target_id}`);
       }
 
-      // Map provider features (top/new) by pubkey
-      const providerFeatures = new Map<string, string>();
+      // Map unit-level features (top/new) keyed by `${pubkey}:${unit_id}`
+      const unitFeatures = new Map<string, string>();
       const featureRows = db
         .prepare(
-          `SELECT target_pubkey, feature_type FROM local_features WHERE target_type = 'provider'`
+          `SELECT target_pubkey, target_id, feature_type FROM local_features
+           WHERE target_type = 'unit' AND target_id IS NOT NULL`
         )
         .all() as any[];
-      for (const f of featureRows) providerFeatures.set(f.target_pubkey, f.feature_type);
+      for (const f of featureRows) unitFeatures.set(`${f.target_pubkey}:${f.target_id}`, f.feature_type);
 
       const units: any[] = [];
       for (const r of rows) {
@@ -88,7 +89,7 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
         units.push({
           ...parsed,
           cashbackPercent: cashback,
-          featured: providerFeatures.get(r.pubkey) || null,
+          featured: unitFeatures.get(`${r.pubkey}:${r.unit_id}`) || null,
         });
       }
 
