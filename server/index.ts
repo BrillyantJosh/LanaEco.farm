@@ -10,6 +10,7 @@ import { createUploadsRouter } from './routes/uploads.js';
 import { createEcoUnitsRouter } from './routes/ecoUnits.js';
 import { createRegisterRouter } from './routes/register.js';
 import { createListingsRouter } from './routes/listings.js';
+import { createAdminRouter } from './routes/admin.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,6 +65,7 @@ app.use('/api/system-params', createSystemParamsRouter(db));
 app.use('/api/uploads', createUploadsRouter());
 app.use('/api/eco-units', createEcoUnitsRouter(db));
 app.use('/api/listings', createListingsRouter(db));
+app.use('/api/admin', createAdminRouter(db));
 
 // Registration with strict rate limiting
 const registerLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });

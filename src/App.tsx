@@ -1,13 +1,15 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SystemParamsProvider } from "@/contexts/SystemParamsContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Index from "./pages/Index.tsx";
+import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 
 const FarmersPage = lazy(() => import("./pages/FarmersPage.tsx"));
 const GuidelinesPage = lazy(() => import("./pages/GuidelinesPage.tsx"));
@@ -16,6 +18,8 @@ const ListingsPage = lazy(() => import("./pages/ListingsPage.tsx"));
 const ListingDetailPage = lazy(() => import("./pages/ListingDetailPage.tsx"));
 const AbundancePage = lazy(() => import("./pages/AbundancePage.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+const AdminLoginPage = lazy(() => import("./pages/AdminLoginPage.tsx"));
+const AdminPage = lazy(() => import("./pages/AdminPage.tsx"));
 
 // Redirect component for external URLs
 function ExternalRedirect({ url }: { url: string }) {
@@ -32,6 +36,7 @@ const PageLoader = () => (
 const App = () => (
   <LanguageProvider>
   <SystemParamsProvider>
+    <AuthProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -47,6 +52,16 @@ const App = () => (
                 <Route path="/ponudbe" element={<ListingsPage />} />
                 <Route path="/ponudba/:pubkey/:listingId" element={<ListingDetailPage />} />
                 <Route path="/ekonomija-obilja" element={<AbundancePage />} />
+                {/* Admin (per-portal moderation) */}
+                <Route path="/admin/login" element={<AdminLoginPage />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminProtectedRoute>
+                      <AdminPage />
+                    </AdminProtectedRoute>
+                  }
+                />
                 {/* Redirect login/register/dashboard to shop.lanapays.us */}
                 <Route path="/login" element={<ExternalRedirect url="https://shop.lanapays.us/login" />} />
                 <Route path="/register" element={<ExternalRedirect url="https://shop.lanapays.us/register" />} />
@@ -58,6 +73,7 @@ const App = () => (
           <Footer />
         </BrowserRouter>
       </TooltipProvider>
+    </AuthProvider>
   </SystemParamsProvider>
   </LanguageProvider>
 );

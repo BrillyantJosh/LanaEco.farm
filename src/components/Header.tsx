@@ -1,8 +1,10 @@
-import { Leaf, LogIn, Menu, X } from "lucide-react";
+import { Leaf, LogIn, Menu, X, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useAuth } from "@/contexts/AuthContext";
+import { isAdminHex } from "@/components/AdminProtectedRoute";
 
 const navKeys = [
   { key: 'nav.home' as const, path: "/" },
@@ -15,6 +17,8 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const { t } = useLanguage();
+  const { session } = useAuth();
+  const showAdmin = isAdminHex(session?.nostrHexId);
 
   return (
     <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b">
@@ -41,6 +45,16 @@ const Header = () => {
           ))}
 
           <LanguageSwitcher />
+
+          {showAdmin && (
+            <Link
+              to="/admin"
+              className="inline-flex items-center gap-1.5 font-sans text-sm font-medium px-3 py-2 rounded-lg border border-orange-300 text-orange-700 hover:bg-orange-50 transition-colors"
+            >
+              <ShieldCheck className="h-4 w-4" />
+              Admin
+            </Link>
+          )}
 
           <a
             href="https://shop.lanapays.us/login"
