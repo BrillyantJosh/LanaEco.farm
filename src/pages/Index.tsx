@@ -61,7 +61,7 @@ const Index = () => {
       .then(res => res.json())
       .then((data: EcoListing[]) => {
         // Sort by cashback % descending — best deals first
-        const sorted = [...data].sort((a: any, b: any) => (b.cashbackPercent || 5) - (a.cashbackPercent || 5));
+        const _fr=(f:any)=>f==="top"?0:f==="new"?1:2; const sorted = [...data].sort((a: any, b: any) => (_fr(a.featured)-_fr(b.featured)) || ((b.cashbackPercent || 5) - (a.cashbackPercent || 5)));
         setListings(sorted.slice(0, 6));
         setListingsLoading(false);
       })
