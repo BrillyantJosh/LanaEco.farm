@@ -28,7 +28,7 @@ const PROCESSOR_PUBKEY =
 
 // Kind constants for lanaeco-shop
 const KIND_UNIT = 30901;
-const KIND_LISTING = 36502;
+const KIND_LISTING = 36500;
 const KIND_FEE = 30902;
 const KIND_SUSPENSION = 30903;
 
