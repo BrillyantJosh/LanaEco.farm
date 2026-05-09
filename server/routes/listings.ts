@@ -74,23 +74,22 @@ export function createListingsRouter(db: Database.Database): Router {
         }
       }
 
-      // Map features: unit-level (pubkey:unit_id) and listing-level (pubkey:listing_id)
-      // Each entry is {type, created_at} so we can sort by feature recency.
+      // Map listing-level features only — unit-level features apply only to
+      // providers (NOT inherited to their listings). Each listing must be
+      // explicitly marked TOP/NEW via the Listings tab to be featured.
       type Feat = { type: string; createdAt: number };
-      const unitFeatures = new Map<string, Feat>();
       const listingFeatures = new Map<string, Feat>();
       const featureRows = db
         .prepare(
-          `SELECT target_type, target_pubkey, target_id, feature_type, created_at FROM local_features`
+          `SELECT target_pubkey, target_id, feature_type, created_at FROM local_features
+           WHERE target_type = 'listing' AND target_id IS NOT NULL`
         )
         .all() as any[];
       for (const f of featureRows) {
-        const v: Feat = { type: f.feature_type, createdAt: f.created_at || 0 };
-        if (f.target_type === 'unit' && f.target_id) {
-          unitFeatures.set(`${f.target_pubkey}:${f.target_id}`, v);
-        } else if (f.target_type === 'listing' && f.target_id) {
-          listingFeatures.set(`${f.target_pubkey}:${f.target_id}`, v);
-        }
+        listingFeatures.set(
+          `${f.target_pubkey}:${f.target_id}`,
+          { type: f.feature_type, createdAt: f.created_at || 0 }
+        );
       }
 
       const listings: any[] = [];
@@ -126,11 +125,8 @@ export function createListingsRouter(db: Database.Database): Router {
             ? r.lana_discount_per
             : DEFAULT_CASHBACK;
 
-        // Listing-level feature wins; otherwise inherit from the unit-level feature
-        const listingFeat =
-          listingFeatures.get(`${r.pubkey}:${r.listing_id}`) ||
-          unitFeatures.get(`${r.pubkey}:${r.unit_id}`) ||
-          null;
+        // Only listing-level features apply (no inheritance from unit-level)
+        const listingFeat = listingFeatures.get(`${r.pubkey}:${r.listing_id}`) || null;
 
         listings.push({
           ...parsed,
