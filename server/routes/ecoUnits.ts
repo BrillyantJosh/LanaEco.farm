@@ -114,7 +114,7 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
 
       // Sort: TOP first, NEW second, feature-recency (most-recently-marked wins
       // among same TOP/NEW), then cashback desc, then alphabetical name
-      const featureRank = (f: string | null) => (f === 'top' ? 0 : f === 'new' ? 1 : 2);
+      const featureRank = (f: string | null) => (f === 'new' ? 0 : f === 'top' ? 1 : 2);
       result.sort((a, b) => {
         const fa = featureRank(a.featured);
         const fb = featureRank(b.featured);

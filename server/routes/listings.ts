@@ -185,7 +185,7 @@ function applyFilters(listings: any[], query: any) {
   // Sort: TOP first, NEW second, then by feature-recency (most-recently-marked
   // wins among same TOP/NEW), then by cashback desc, then by listing date desc
   const featureRank = (f: string | null | undefined) =>
-    f === 'top' ? 0 : f === 'new' ? 1 : 2;
+    f === 'new' ? 0 : f === 'top' ? 1 : 2;
   result.sort((a, b) => {
     const fa = featureRank(a.featured);
     const fb = featureRank(b.featured);
