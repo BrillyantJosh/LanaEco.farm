@@ -180,7 +180,7 @@ export default function AdminPage() {
   };
 
   const toggleFeature = async (
-    target_type: 'provider' | 'listing',
+    target_type: 'provider' | 'listing' | 'unit',
     target_pubkey: string,
     target_id: string | null,
     feature_type: 'top' | 'new',
@@ -195,7 +195,9 @@ export default function AdminPage() {
         if (!res.ok) throw new Error('Failed to remove feature');
       } else {
         const body: any = { target_type, target_pubkey, feature_type };
-        if (target_type === 'listing' && target_id) body.target_id = target_id;
+        if ((target_type === 'listing' || target_type === 'unit') && target_id) {
+          body.target_id = target_id;
+        }
         const res = await fetch('/api/admin/feature', {
           method: 'POST',
           headers: headers(),
