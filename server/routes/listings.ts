@@ -4,7 +4,7 @@ import Database from 'better-sqlite3';
 const DEFAULT_CASHBACK = 5;
 // Categories this portal serves. Listings whose unit category is outside this
 // set are excluded. Edit per portal (must match ecoUnits.ts PORTAL_CATEGORIES).
-const PORTAL_CATEGORIES = new Set(['producer','eco farm','farmer']);
+const PORTAL_CATEGORIES = new Set(['producer','eco farm','eco farming','farmer']);
 
 /**
  * GET /api/listings — read from local SQLite (populated by heartbeat).
