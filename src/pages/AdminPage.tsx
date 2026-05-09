@@ -18,7 +18,7 @@ import {
 
 const PAGE_SIZE = 50;
 // Categories considered "shop" on this portal (lanaeco.farm is producer-focused).
-const SHOP_CATEGORIES = new Set(['producer', 'eco farm', 'farmer']);
+const SHOP_CATEGORIES = new Set(['producer', 'eco farm', 'eco farming', 'farmer']);
 
 interface AdminUnit {
   unitId: string;
