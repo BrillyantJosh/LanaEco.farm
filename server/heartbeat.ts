@@ -74,11 +74,8 @@ async function syncUnits(
   db: Database.Database,
   relays: string[]
 ): Promise<number> {
-  const since = getSinceForKind(db, KIND_UNIT);
-  const events = await fetchEvents(relays, {
-    kinds: [KIND_UNIT],
-    since: since > 0 ? since - SINCE_OVERLAP : undefined,
-  });
+  // Full snapshot — no `since` so we can detect deletions
+  const events = await fetchEvents(relays, { kinds: [KIND_UNIT] });
 
   const upsert = db.prepare(`
     INSERT INTO business_units (pubkey, unit_id, event_id, event_created_at, parsed_json, raw_event, fetched_at)
@@ -91,12 +88,17 @@ async function syncUnits(
       fetched_at = excluded.fetched_at
     WHERE excluded.event_created_at > business_units.event_created_at
   `);
+  const deleteByKey = db.prepare(
+    `DELETE FROM business_units WHERE pubkey = ? AND unit_id = ?`
+  );
 
   const now = Math.floor(Date.now() / 1000);
+  const seen = new Set<string>();
   const tx = db.transaction((evs: NostrEvent[]) => {
     for (const ev of evs) {
       const parsed = parseUnit(ev);
       if (!parsed.unitId) continue;
+      seen.add(`${ev.pubkey}:${parsed.unitId}`);
       upsert.run(
         ev.pubkey,
         parsed.unitId,
@@ -106,6 +108,18 @@ async function syncUnits(
         JSON.stringify(ev),
         now
       );
+    }
+    // Reconcile: delete rows no longer present on relays (only if we got
+    // at least one event back, to avoid wiping the DB on a relay outage).
+    if (seen.size > 0) {
+      const allRows = db
+        .prepare(`SELECT pubkey, unit_id FROM business_units`)
+        .all() as any[];
+      for (const r of allRows) {
+        if (!seen.has(`${r.pubkey}:${r.unit_id}`)) {
+          deleteByKey.run(r.pubkey, r.unit_id);
+        }
+      }
     }
   });
   tx(events);
@@ -118,11 +132,8 @@ async function syncListings(
   db: Database.Database,
   relays: string[]
 ): Promise<number> {
-  const since = getSinceForKind(db, KIND_LISTING);
-  const events = await fetchEvents(relays, {
-    kinds: [KIND_LISTING],
-    since: since > 0 ? since - SINCE_OVERLAP : undefined,
-  });
+  // Full snapshot — no `since` so we can detect deletions
+  const events = await fetchEvents(relays, { kinds: [KIND_LISTING] });
 
   const upsert = db.prepare(`
     INSERT INTO listings (pubkey, listing_id, unit_id, event_id, event_created_at, parsed_json, raw_event, fetched_at)
@@ -136,12 +147,17 @@ async function syncListings(
       fetched_at = excluded.fetched_at
     WHERE excluded.event_created_at > listings.event_created_at
   `);
+  const deleteByKey = db.prepare(
+    `DELETE FROM listings WHERE pubkey = ? AND listing_id = ?`
+  );
 
   const now = Math.floor(Date.now() / 1000);
+  const seen = new Set<string>();
   const tx = db.transaction((evs: NostrEvent[]) => {
     for (const ev of evs) {
       const parsed = parseListing(ev);
       if (!parsed.listingId) continue;
+      seen.add(`${ev.pubkey}:${parsed.listingId}`);
       const unitIdFromRef = parsed.unitRef.split(':')[2] || null;
       upsert.run(
         ev.pubkey,
@@ -153,6 +169,17 @@ async function syncListings(
         JSON.stringify(ev),
         now
       );
+    }
+    // Reconcile orphans (only if we got events back, to avoid wiping on outage)
+    if (seen.size > 0) {
+      const allRows = db
+        .prepare(`SELECT pubkey, listing_id FROM listings`)
+        .all() as any[];
+      for (const r of allRows) {
+        if (!seen.has(`${r.pubkey}:${r.listing_id}`)) {
+          deleteByKey.run(r.pubkey, r.listing_id);
+        }
+      }
     }
   });
   tx(events);
