@@ -2,6 +2,9 @@ import { Router, Request, Response } from 'express';
 import Database from 'better-sqlite3';
 
 const DEFAULT_CASHBACK = 5;
+// Categories this portal serves. Units (and their listings) outside this set
+// are excluded from the public API. Edit per portal.
+const PORTAL_CATEGORIES = new Set(['producer','eco farm','farmer']);
 
 /**
  * GET /api/eco-units — read from local SQLite (populated by heartbeat).
@@ -78,6 +81,8 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
         }
         if (parsed.status && parsed.status !== 'active') continue;
         if (!parsed.name) continue;
+        // Portal category filter — only show units that match this portal's categories
+        if (!PORTAL_CATEGORIES.has(String(parsed.category || '').trim().toLowerCase())) continue;
 
         const cashback =
           r.fee_status === 'active' &&

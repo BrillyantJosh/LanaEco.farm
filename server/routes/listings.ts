@@ -2,6 +2,9 @@ import { Router, Request, Response } from 'express';
 import Database from 'better-sqlite3';
 
 const DEFAULT_CASHBACK = 5;
+// Categories this portal serves. Listings whose unit category is outside this
+// set are excluded. Edit per portal (must match ecoUnits.ts PORTAL_CATEGORIES).
+const PORTAL_CATEGORIES = new Set(['producer','eco farm','farmer']);
 
 /**
  * GET /api/listings — read from local SQLite (populated by heartbeat).
@@ -37,6 +40,20 @@ export function createListingsRouter(db: Database.Database): Router {
         `
         )
         .all() as any[];
+
+      // Build set of unit_ids whose category matches this portal — listings
+      // whose unit isn't in this set are excluded.
+      const allowedUnitIds = new Set<string>();
+      const unitRows = db
+        .prepare(`SELECT unit_id, parsed_json FROM business_units`)
+        .all() as any[];
+      for (const u of unitRows) {
+        try {
+          const p = JSON.parse(u.parsed_json);
+          const cat = String(p.category || '').trim().toLowerCase();
+          if (PORTAL_CATEGORIES.has(cat)) allowedUnitIds.add(u.unit_id);
+        } catch {}
+      }
 
       // Build sets of locally blocked: provider-wide / unit-wide / specific-listing
       const providerBlocks = new Set<string>();
@@ -83,6 +100,8 @@ export function createListingsRouter(db: Database.Database): Router {
         ) {
           continue;
         }
+        // portal category filter (skip listings whose unit isn't in this portal's categories)
+        if (!allowedUnitIds.has(r.unit_id)) continue;
         // local block check
         if (providerBlocks.has(r.pubkey)) continue;
         if (unitBlocks.has(`${r.pubkey}:${r.unit_id}`)) continue;
