@@ -75,18 +75,21 @@ export function createListingsRouter(db: Database.Database): Router {
       }
 
       // Map features: unit-level (pubkey:unit_id) and listing-level (pubkey:listing_id)
-      const unitFeatures = new Map<string, string>();
-      const listingFeatures = new Map<string, string>();
+      // Each entry is {type, created_at} so we can sort by feature recency.
+      type Feat = { type: string; createdAt: number };
+      const unitFeatures = new Map<string, Feat>();
+      const listingFeatures = new Map<string, Feat>();
       const featureRows = db
         .prepare(
-          `SELECT target_type, target_pubkey, target_id, feature_type FROM local_features`
+          `SELECT target_type, target_pubkey, target_id, feature_type, created_at FROM local_features`
         )
         .all() as any[];
       for (const f of featureRows) {
+        const v: Feat = { type: f.feature_type, createdAt: f.created_at || 0 };
         if (f.target_type === 'unit' && f.target_id) {
-          unitFeatures.set(`${f.target_pubkey}:${f.target_id}`, f.feature_type);
+          unitFeatures.set(`${f.target_pubkey}:${f.target_id}`, v);
         } else if (f.target_type === 'listing' && f.target_id) {
-          listingFeatures.set(`${f.target_pubkey}:${f.target_id}`, f.feature_type);
+          listingFeatures.set(`${f.target_pubkey}:${f.target_id}`, v);
         }
       }
 
@@ -129,7 +132,12 @@ export function createListingsRouter(db: Database.Database): Router {
           unitFeatures.get(`${r.pubkey}:${r.unit_id}`) ||
           null;
 
-        listings.push({ ...parsed, cashbackPercent: cashback, featured: listingFeat });
+        listings.push({
+          ...parsed,
+          cashbackPercent: cashback,
+          featured: listingFeat?.type || null,
+          featuredAt: listingFeat?.createdAt || 0,
+        });
       }
 
       res.json(applyFilters(listings, req.query));
@@ -178,13 +186,20 @@ function applyFilters(listings: any[], query: any) {
     );
   }
 
-  // Sort: TOP first, NEW second, then by cashback desc, then by date desc
+  // Sort: TOP first, NEW second, then by feature-recency (most-recently-marked
+  // wins among same TOP/NEW), then by cashback desc, then by listing date desc
   const featureRank = (f: string | null | undefined) =>
     f === 'top' ? 0 : f === 'new' ? 1 : 2;
   result.sort((a, b) => {
     const fa = featureRank(a.featured);
     const fb = featureRank(b.featured);
     if (fa !== fb) return fa - fb;
+    // Same feature rank — within TOP or NEW, prefer the most recently featured
+    if (a.featured && b.featured) {
+      const fta = a.featuredAt || 0;
+      const ftb = b.featuredAt || 0;
+      if (ftb !== fta) return ftb - fta;
+    }
     const ca = a.cashbackPercent || DEFAULT_CASHBACK;
     const cb = b.cashbackPercent || DEFAULT_CASHBACK;
     if (cb !== ca) return cb - ca;

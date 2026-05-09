@@ -52,14 +52,15 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
       }
 
       // Map unit-level features (top/new) keyed by `${pubkey}:${unit_id}`
-      const unitFeatures = new Map<string, string>();
+      type Feat = { type: string; createdAt: number };
+      const unitFeatures = new Map<string, Feat>();
       const featureRows = db
         .prepare(
-          `SELECT target_pubkey, target_id, feature_type FROM local_features
+          `SELECT target_pubkey, target_id, feature_type, created_at FROM local_features
            WHERE target_type = 'unit' AND target_id IS NOT NULL`
         )
         .all() as any[];
-      for (const f of featureRows) unitFeatures.set(`${f.target_pubkey}:${f.target_id}`, f.feature_type);
+      for (const f of featureRows) unitFeatures.set(`${f.target_pubkey}:${f.target_id}`, { type: f.feature_type, createdAt: f.created_at || 0 });
 
       const units: any[] = [];
       for (const r of rows) {
@@ -91,10 +92,12 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
             ? r.lana_discount_per
             : DEFAULT_CASHBACK;
 
+        const unitFeat = unitFeatures.get(`${r.pubkey}:${r.unit_id}`) || null;
         units.push({
           ...parsed,
           cashbackPercent: cashback,
-          featured: unitFeatures.get(`${r.pubkey}:${r.unit_id}`) || null,
+          featured: unitFeat?.type || null,
+          featuredAt: unitFeat?.createdAt || 0,
         });
       }
 
@@ -109,12 +112,18 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
         );
       }
 
-      // Sort: TOP first, NEW second, then by cashback desc, then by name
+      // Sort: TOP first, NEW second, feature-recency (most-recently-marked wins
+      // among same TOP/NEW), then cashback desc, then alphabetical name
       const featureRank = (f: string | null) => (f === 'top' ? 0 : f === 'new' ? 1 : 2);
       result.sort((a, b) => {
         const fa = featureRank(a.featured);
         const fb = featureRank(b.featured);
         if (fa !== fb) return fa - fb;
+        if (a.featured && b.featured) {
+          const fta = a.featuredAt || 0;
+          const ftb = b.featuredAt || 0;
+          if (ftb !== fta) return ftb - fta;
+        }
         const ca = a.cashbackPercent || DEFAULT_CASHBACK;
         const cb = b.cashbackPercent || DEFAULT_CASHBACK;
         if (cb !== ca) return cb - ca;

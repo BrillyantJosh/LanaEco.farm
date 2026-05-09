@@ -74,7 +74,7 @@ export default function ListingsPage() {
       return true;
     });
     // Sort by cashback % descending — best deals first
-    const _fr=(f:any)=>f==="top"?0:f==="new"?1:2; result.sort((a: any, b: any) => (_fr(a.featured)-_fr(b.featured)) || ((b.cashbackPercent || 5) - (a.cashbackPercent || 5)));
+    const _fr=(f:any)=>f==="top"?0:f==="new"?1:2; result.sort((a: any, b: any) => (_fr(a.featured)-_fr(b.featured)) || ((a.featured&&b.featured)?((b.featuredAt||0)-(a.featuredAt||0)):0) || ((b.cashbackPercent || 5) - (a.cashbackPercent || 5)));
     setFiltered(result);
   }, [search, typeFilter, categoryFilter, listings, locale, unitCountryMap]);
 
