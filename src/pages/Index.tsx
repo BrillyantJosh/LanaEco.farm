@@ -78,7 +78,8 @@ const Index = () => {
     if (locale === 'en') return !countrySI;
     return true;
   });
-  const featured = localeUnits.slice(0, 6);
+  // Fallback: if locale filter would hide all units, show all
+  const featured = (localeUnits.length > 0 ? localeUnits : units).slice(0, 6);
 
   return (
     <div>
