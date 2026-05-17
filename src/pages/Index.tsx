@@ -37,7 +37,7 @@ interface EcoUnit {
 }
 
 const Index = () => {
-  const { t, locale } = useLanguage();
+  const { t } = useLanguage();
   const tTag = (prefix: string, val: string) => {
     const key = `${prefix}.${val}` as TranslationKey;
     const translated = t(key);
@@ -49,7 +49,7 @@ const Index = () => {
   const [listingsLoading, setListingsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/eco-units?category=Eco Farm,Eco Farming,Producer')
+    fetch('/api/eco-units')
       .then(res => res.json())
       .then((data: EcoUnit[]) => {
         setUnits(data.filter(u => u.status === 'active'));
@@ -68,18 +68,7 @@ const Index = () => {
       .catch(() => setListingsLoading(false));
   }, []);
 
-  const localeUnits = units.filter(u => {
-    const isSI = (v: string) => ['SI','SLO','SLOVENIA','SLOVENIJA','SL'].includes(v.trim().toUpperCase());
-    const c = u.country || '';
-    const rc = (u as any).receiverCountry || '';
-    const countrySI = c ? isSI(c) : (rc ? isSI(rc) : null);
-    if (countrySI === null) return true;
-    if (locale === 'sl') return countrySI;
-    if (locale === 'en') return !countrySI;
-    return true;
-  });
-  // Fallback: if locale filter would hide all units, show all
-  const featured = (localeUnits.length > 0 ? localeUnits : units).slice(0, 6);
+  const featured = units.slice(0, 6);
 
   return (
     <div>
