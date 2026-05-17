@@ -301,8 +301,8 @@ export async function runHeartbeat(db: Database.Database): Promise<void> {
     if (systemParams) {
       db.prepare(
         `
-        INSERT INTO kind_38888 (event_id, split, exchange_rates, electrum_servers, relays, trusted_signers, version, valid_from, split_target_lana, split_started_at, split_ends_at, raw_event, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        INSERT OR REPLACE INTO kind_38888 (id, event_id, split, exchange_rates, electrum_servers, relays, trusted_signers, version, valid_from, split_target_lana, split_started_at, split_ends_at, raw_event, updated_at)
+        VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `
       ).run(
         systemParams.event_id,
@@ -353,6 +353,7 @@ export async function runHeartbeat(db: Database.Database): Promise<void> {
     ).run(total, logId);
 
     console.log(`Heartbeat completed: ${total} events`);
+    db.prepare('DELETE FROM heartbeat_logs WHERE id NOT IN (SELECT id FROM heartbeat_logs ORDER BY id DESC LIMIT 200)').run();
   } catch (error: any) {
     console.error('Heartbeat failed:', error);
     db.prepare(
