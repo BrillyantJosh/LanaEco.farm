@@ -18,14 +18,14 @@ interface EcoUnit {
 }
 
 export default function FarmersPage() {
-  const { t, locale } = useLanguage();
+  const { t } = useLanguage();
   const [units, setUnits] = useState<EcoUnit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
-    fetch('/api/eco-units?category=Eco Farm,Eco Farming,Producer')
+    fetch('/api/eco-units')
       .then(res => res.json())
       .then((data: EcoUnit[]) => {
         setUnits(data.filter(u => u.status === 'active'));
@@ -45,17 +45,7 @@ export default function FarmersPage() {
       (u.content || '').toLowerCase().includes(s) ||
       (u.receiverCity || '').toLowerCase().includes(s);
     const matchesCat = !selectedCategory || u.category === selectedCategory;
-    const matchesLocale = (() => {
-      const isSI = (v: string) => ['SI','SLO','SLOVENIA','SLOVENIJA','SL'].includes(v.trim().toUpperCase());
-      const c = u.country || '';
-      const rc = (u as any).receiverCountry || '';
-      const countrySI = c ? isSI(c) : (rc ? isSI(rc) : null);
-      if (countrySI === null) return true; // no country info → show for all locales
-      if (locale === 'sl') return countrySI;
-      if (locale === 'en') return !countrySI;
-      return true;
-    })();
-    return matchesSearch && matchesCat && matchesLocale;
+    return matchesSearch && matchesCat;
   });
 
   return (
