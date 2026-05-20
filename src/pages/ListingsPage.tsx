@@ -11,14 +11,13 @@ const CATEGORY_FILTERS = [
 ];
 
 export default function ListingsPage() {
-  const { t, locale } = useLanguage();
+  const { t } = useLanguage();
   const [listings, setListings] = useState<EcoListing[]>([]);
   const [filtered, setFiltered] = useState<EcoListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [unitCountryMap, setUnitCountryMap] = useState<Record<string, string>>({});
 
   const TYPE_FILTERS = [
     { value: '', label: t('listingsPage.all') },
@@ -39,18 +38,6 @@ export default function ListingsPage() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  // Fetch unit country data for language-based filtering
-  useEffect(() => {
-    fetch('/api/eco-units')
-      .then(r => r.json())
-      .then((data: any[]) => {
-        const map: Record<string, string> = {};
-        data.forEach((u: any) => { if (u.unitId) map[u.unitId] = u.country || ''; });
-        setUnitCountryMap(map);
-      })
-      .catch(() => {});
-  }, []);
-
   useEffect(() => {
     let result = listings;
     if (search) {
@@ -63,20 +50,10 @@ export default function ListingsPage() {
     }
     if (typeFilter) result = result.filter(l => l.type === typeFilter);
     if (categoryFilter) result = result.filter(l => l.tags.includes(categoryFilter));
-    // Country filter — SL locale: only SI units; EN locale: only non-SI units (empty country = show always)
-    result = result.filter((l: any) => {
-      const isSI = (v: string) => ['SI','SLO','SLOVENIA','SLOVENIJA','SL'].includes(v.trim().toUpperCase());
-      const unitId = (l.unitRef || '').split(':')[2] || '';
-      const country = unitCountryMap[unitId] || '';
-      if (!country) return true; // no country set → show for all locales
-      if (locale === 'sl') return isSI(country);
-      if (locale === 'en') return !isSI(country);
-      return true;
-    });
     // Sort by cashback % descending — best deals first
     const _fr=(f:any)=>f==="new"?0:f==="top"?1:2; result.sort((a: any, b: any) => (_fr(a.featured)-_fr(b.featured)) || ((a.featured&&b.featured)?((b.featuredAt||0)-(a.featuredAt||0)):0) || ((b.cashbackPercent || 5) - (a.cashbackPercent || 5)));
     setFiltered(result);
-  }, [search, typeFilter, categoryFilter, listings, locale, unitCountryMap]);
+  }, [search, typeFilter, categoryFilter, listings]);
 
   return (
     <div className="container mx-auto px-4 py-8">
