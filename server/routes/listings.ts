@@ -95,13 +95,14 @@ export function createListingsRouter(db: Database.Database): Router {
       const listings: any[] = [];
       for (const r of rows) {
         // global suspension check
-        if (
-          r.suspended_unit_id &&
-          r.suspension_status === 'suspended' &&
-          (!r.suspension_active_until || r.suspension_active_until > now)
-        ) {
-          continue;
-        }
+        // Strict allowlist: a unit is public ONLY if its latest KIND 30903
+        // has status='active' (and any expiry hasn't passed). Hides
+        // pending / suspended / frozen-label / rejected / quota_blocked /
+        // quota_warning_80, plus any unit that never received a KIND 30903.
+        const statusActive =
+          r.suspension_status === 'active' &&
+          (!r.suspension_active_until || r.suspension_active_until > now);
+        if (!statusActive) continue;
         // portal category filter (skip listings whose unit isn't in this portal's categories)
         if (!allowedUnitIds.has(r.unit_id)) continue;
         // local block check

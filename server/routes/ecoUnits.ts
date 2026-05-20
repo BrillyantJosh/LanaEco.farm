@@ -64,13 +64,14 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
 
       const units: any[] = [];
       for (const r of rows) {
-        if (
-          r.suspended_unit_id &&
-          r.suspension_status === 'suspended' &&
-          (!r.suspension_active_until || r.suspension_active_until > now)
-        ) {
-          continue;
-        }
+        // Strict allowlist: a unit is public ONLY if its latest KIND 30903
+        // has status='active' (and any expiry hasn't passed). Hides
+        // pending / suspended / frozen-label / rejected / quota_blocked /
+        // quota_warning_80, plus any unit that never received a KIND 30903.
+        const statusActive =
+          r.suspension_status === 'active' &&
+          (!r.suspension_active_until || r.suspension_active_until > now);
+        if (!statusActive) continue;
         if (providerBlocks.has(r.pubkey)) continue;
         if (unitBlocks.has(`${r.pubkey}:${r.unit_id}`)) continue;
 
