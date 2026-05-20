@@ -58,22 +58,23 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
       )}
 
       <div className="p-4">
-        {/* Type badge + price */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5">
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-sans font-medium ${TYPE_COLORS[listing.type] || 'bg-muted text-muted-foreground'}`}>
-              {tTag('type', listing.type)}
-            </span>
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-sans font-bold bg-green-600 text-white shadow-sm">
-              🌿 {(listing as any).cashbackPercent || 5}% {t('badge.abundance')}
-            </span>
-          </div>
+        {/* Type badge + price (row 1) */}
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-sans font-medium whitespace-nowrap ${TYPE_COLORS[listing.type] || 'bg-muted text-muted-foreground'}`}>
+            {tTag('type', listing.type)}
+          </span>
           {listing.price && (
-            <span className="text-sm font-semibold text-foreground font-sans">
+            <span className="text-sm font-semibold text-foreground font-sans whitespace-nowrap text-right">
               {listing.price} {listing.priceCurrency}
               {listing.unit && <span className="text-xs text-muted-foreground font-normal">/{tTag('lunit', listing.unit)}</span>}
             </span>
           )}
+        </div>
+        {/* Cashback badge (row 2) */}
+        <div className="mb-2">
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-sans font-bold bg-green-600 text-white shadow-sm whitespace-nowrap">
+            🌿 {(listing as any).cashbackPercent || 5}% {t('badge.abundance')}
+          </span>
         </div>
 
         {/* Title */}
