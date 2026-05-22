@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, MapPin, Leaf, Loader2, Store, Tag } from "lucide-react";
 import { useLanguage } from '@/i18n/LanguageContext';
+import { unitMatchesLocale } from '@/lib/locale';
 
 interface EcoUnit {
   unitId: string;
@@ -18,7 +19,7 @@ interface EcoUnit {
 }
 
 export default function FarmersPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [units, setUnits] = useState<EcoUnit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -45,7 +46,8 @@ export default function FarmersPage() {
       (u.content || '').toLowerCase().includes(s) ||
       (u.receiverCity || '').toLowerCase().includes(s);
     const matchesCat = !selectedCategory || u.category === selectedCategory;
-    return matchesSearch && matchesCat;
+    const matchesLocale = unitMatchesLocale(u, locale);
+    return matchesSearch && matchesCat && matchesLocale;
   });
 
   return (

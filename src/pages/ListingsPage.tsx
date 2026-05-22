@@ -4,6 +4,7 @@ import { ListingCard } from '@/components/ListingCard';
 import type { EcoListing } from '@/lib/nostr';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { TranslationKey } from '@/i18n/translations';
+import { unitMatchesLocale, unitIdFromRef } from '@/lib/locale';
 
 const CATEGORY_FILTERS = [
   'vegetables', 'fruits', 'dairy', 'meat', 'eggs', 'honey',
@@ -11,9 +12,10 @@ const CATEGORY_FILTERS = [
 ];
 
 export default function ListingsPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [listings, setListings] = useState<EcoListing[]>([]);
   const [filtered, setFiltered] = useState<EcoListing[]>([]);
+  const [unitCountryMap, setUnitCountryMap] = useState<Map<string, { country?: string; receiverCountry?: string }>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -36,6 +38,13 @@ export default function ListingsPage() {
       })
       .catch(console.error)
       .finally(() => setIsLoading(false));
+    // Load unit country map for locale-based listing filter
+    fetch('/api/eco-units')
+      .then(r => r.json())
+      .then((units: any[]) => {
+        setUnitCountryMap(new Map(units.map(u => [u.unitId, { country: u.country, receiverCountry: u.receiverCountry }])));
+      })
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -50,10 +59,19 @@ export default function ListingsPage() {
     }
     if (typeFilter) result = result.filter(l => l.type === typeFilter);
     if (categoryFilter) result = result.filter(l => l.tags.includes(categoryFilter));
+    // Locale filter: SL→SI variants only, EN→UK variants only (strict).
+    // A listing inherits its country from its parent unit (joined by unitRef).
+    result = result.filter((l: any) => {
+      const uid = unitIdFromRef(l.unitRef);
+      if (!uid) return false;
+      const u = unitCountryMap.get(uid);
+      if (!u) return false;
+      return unitMatchesLocale(u, locale);
+    });
     // Sort by cashback % descending — best deals first
     const _fr=(f:any)=>f==="new"?0:f==="top"?1:2; result.sort((a: any, b: any) => (_fr(a.featured)-_fr(b.featured)) || ((a.featured&&b.featured)?((b.featuredAt||0)-(a.featuredAt||0)):0) || ((b.cashbackPercent || 5) - (a.cashbackPercent || 5)));
     setFiltered(result);
-  }, [search, typeFilter, categoryFilter, listings]);
+  }, [search, typeFilter, categoryFilter, listings, locale, unitCountryMap]);
 
   return (
     <div className="container mx-auto px-4 py-8">

@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ArrowRight, Leaf, Sprout, ShieldCheck, MapPin, Loader2, ShoppingBag, Tag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { TranslationKey } from '@/i18n/translations';
+import { unitMatchesLocale, unitIdFromRef } from '@/lib/locale';
 import heroImageWebp from "@/assets/hero-farm.webp";
 import heroImageJpg from "@/assets/hero-farm.jpg";
 import productsImageWebp from "@/assets/products-bg.webp";
@@ -16,6 +17,7 @@ interface EcoListing {
   price: string;
   priceCurrency: string;
   unit: string;
+  unitRef?: string;
   content: string;
   images: string[];
   eco: string[];
@@ -30,6 +32,7 @@ interface EcoUnit {
   categoryDetail: string;
   country: string;
   receiverCity: string;
+  receiverCountry?: string;
   images: string[];
   content: string;
   status: string;
@@ -37,7 +40,7 @@ interface EcoUnit {
 }
 
 const Index = () => {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const tTag = (prefix: string, val: string) => {
     const key = `${prefix}.${val}` as TranslationKey;
     const translated = t(key);
@@ -62,13 +65,33 @@ const Index = () => {
       .then((data: EcoListing[]) => {
         // Sort by cashback % descending — best deals first
         const _fr=(f:any)=>f==="new"?0:f==="top"?1:2; const sorted = [...data].sort((a: any, b: any) => (_fr(a.featured)-_fr(b.featured)) || ((a.featured&&b.featured)?((b.featuredAt||0)-(a.featuredAt||0)):0) || ((b.cashbackPercent || 5) - (a.cashbackPercent || 5)));
-        setListings(sorted.slice(0, 6));
+        setListings(sorted);
         setListingsLoading(false);
       })
       .catch(() => setListingsLoading(false));
   }, []);
 
-  const featured = units.slice(0, 6);
+  // Locale filter: SL→SI variants only, EN→UK variants only (strict).
+  const featured = useMemo(
+    () => units.filter(u => unitMatchesLocale(u, locale)).slice(0, 6),
+    [units, locale],
+  );
+
+  // Listings inherit country from their parent unit (via unitRef).
+  const unitCountryMap = useMemo(
+    () => new Map(units.map(u => [u.unitId, { country: u.country, receiverCountry: u.receiverCountry }])),
+    [units],
+  );
+  const localizedListings = useMemo(
+    () => listings.filter(l => {
+      const uid = unitIdFromRef(l.unitRef);
+      if (!uid) return false;
+      const u = unitCountryMap.get(uid);
+      if (!u) return false;
+      return unitMatchesLocale(u, locale);
+    }).slice(0, 6),
+    [listings, unitCountryMap, locale],
+  );
 
   return (
     <div>
@@ -240,7 +263,7 @@ const Index = () => {
       </section>
 
       {/* Latest Listings */}
-      {!listingsLoading && listings.length > 0 && (
+      {!listingsLoading && localizedListings.length > 0 && (
         <section className="container mx-auto px-4 py-16">
           <div className="flex items-end justify-between mb-8">
             <div>
@@ -252,7 +275,7 @@ const Index = () => {
             </Link>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {listings.map((listing) => {
+            {localizedListings.map((listing) => {
               const isTopDeal = (listing.cashbackPercent || 5) >= 15;
               return (
               <Link
