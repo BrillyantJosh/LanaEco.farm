@@ -20,7 +20,7 @@ export default function ListingDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
 
   const TYPE_LABELS: Record<string, string> = {
-    product: t('type.product'), subscription: t('type.subscription'), service: t('type.service'), experience: t('type.experience'),
+    produce: t('type.produce'), product: t('type.product'), subscription: t('type.subscription'), service: t('type.service'), experience: t('type.experience'),
   };
 
   const tTag = (prefix: string, val: string) => {

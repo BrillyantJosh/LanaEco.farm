@@ -80,6 +80,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
   const isEdit = !!listing;
 
   const LISTING_TYPES = [
+    { value: 'produce', label: t('type.produce') },
     { value: 'product', label: t('type.product') },
     { value: 'subscription', label: t('type.subscription') },
     { value: 'service', label: t('type.service') },

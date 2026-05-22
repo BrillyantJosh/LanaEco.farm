@@ -449,6 +449,7 @@ const en = {
   'form.errorPublish': 'Failed to publish to any relay. Try again.',
 
   // Listing types
+  'type.produce': 'Produce',
   'type.product': 'Product',
   'type.subscription': 'Subscription',
   'type.service': 'Service',
@@ -958,6 +959,7 @@ const sl: typeof en = {
   'form.errorPublish': 'Objava ni uspela na noben relay. Poskusite znova.',
 
   // Listing types
+  'type.produce': 'Pridelek',
   'type.product': 'Izdelek',
   'type.subscription': 'Naročnina',
   'type.service': 'Storitev',

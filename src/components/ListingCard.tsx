@@ -23,6 +23,7 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
   const { t } = useLanguage();
 
   const TYPE_LABELS: Record<string, string> = {
+    produce: t('type.produce'),
     product: t('type.product'),
     subscription: t('type.subscription'),
     service: t('type.service'),
