@@ -37,7 +37,7 @@ interface FetchOpts {
 function fetchFromRelay(relayUrl: string, filter: FetchOpts): Promise<NostrEvent[]> {
   return new Promise((resolve) => {
     const events: NostrEvent[] = [];
-    const timeout = filter.timeoutMs ?? 12000;
+    const timeout = filter.timeoutMs ?? 25000;
     const timeoutId = setTimeout(() => {
       try { ws?.close(); } catch {}
       resolve(events);

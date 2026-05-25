@@ -23,6 +23,11 @@ import {
 
 const HEARTBEAT_INTERVAL = 2 * 60 * 1000; // 2 minutes
 const SINCE_OVERLAP = 60; // 60s overlap for safety on incremental fetches
+// Soft orphan reconciliation: a row is only removed once it hasn't been
+// seen in any relay fetch for this many seconds. Protects against single-
+// cycle relay timeouts that would otherwise wipe legitimate rows.
+// 30 min = ~15 heartbeats — a real deletion is reflected within an hour.
+const STALE_GRACE_SEC = 30 * 60;
 const PROCESSOR_PUBKEY =
   '79730aba75d71584e8a4f9d0cc1173085e75590ce489760078d2bf6f5210d692';
 
@@ -88,8 +93,13 @@ async function syncUnits(
       fetched_at = excluded.fetched_at
     WHERE excluded.event_created_at > business_units.event_created_at
   `);
-  const deleteByKey = db.prepare(
-    `DELETE FROM business_units WHERE pubkey = ? AND unit_id = ?`
+  // Re-fetched but not newer? Still bump fetched_at so the row isn't
+  // considered stale by the orphan reconciliation below.
+  const bumpSeen = db.prepare(
+    `UPDATE business_units SET fetched_at = ? WHERE pubkey = ? AND unit_id = ?`
+  );
+  const deleteStale = db.prepare(
+    `DELETE FROM business_units WHERE fetched_at < ?`
   );
 
   const now = Math.floor(Date.now() / 1000);
@@ -108,18 +118,12 @@ async function syncUnits(
         JSON.stringify(ev),
         now
       );
+      bumpSeen.run(now, ev.pubkey, parsed.unitId);
     }
-    // Reconcile: delete rows no longer present on relays (only if we got
-    // at least one event back, to avoid wiping the DB on a relay outage).
+    // Soft orphan reconciliation: delete only rows not seen for ≥STALE_GRACE_SEC.
+    // Survives single-cycle relay timeouts; truly deleted rows disappear within ~30 min.
     if (seen.size > 0) {
-      const allRows = db
-        .prepare(`SELECT pubkey, unit_id FROM business_units`)
-        .all() as any[];
-      for (const r of allRows) {
-        if (!seen.has(`${r.pubkey}:${r.unit_id}`)) {
-          deleteByKey.run(r.pubkey, r.unit_id);
-        }
-      }
+      deleteStale.run(now - STALE_GRACE_SEC);
     }
   });
   tx(events);
@@ -147,8 +151,11 @@ async function syncListings(
       fetched_at = excluded.fetched_at
     WHERE excluded.event_created_at > listings.event_created_at
   `);
-  const deleteByKey = db.prepare(
-    `DELETE FROM listings WHERE pubkey = ? AND listing_id = ?`
+  const bumpSeen = db.prepare(
+    `UPDATE listings SET fetched_at = ? WHERE pubkey = ? AND listing_id = ?`
+  );
+  const deleteStale = db.prepare(
+    `DELETE FROM listings WHERE fetched_at < ?`
   );
 
   const now = Math.floor(Date.now() / 1000);
@@ -169,17 +176,11 @@ async function syncListings(
         JSON.stringify(ev),
         now
       );
+      bumpSeen.run(now, ev.pubkey, parsed.listingId);
     }
-    // Reconcile orphans (only if we got events back, to avoid wiping on outage)
+    // Soft orphan reconciliation: delete only rows not seen for ≥STALE_GRACE_SEC.
     if (seen.size > 0) {
-      const allRows = db
-        .prepare(`SELECT pubkey, listing_id FROM listings`)
-        .all() as any[];
-      for (const r of allRows) {
-        if (!seen.has(`${r.pubkey}:${r.listing_id}`)) {
-          deleteByKey.run(r.pubkey, r.listing_id);
-        }
-      }
+      deleteStale.run(now - STALE_GRACE_SEC);
     }
   });
   tx(events);
