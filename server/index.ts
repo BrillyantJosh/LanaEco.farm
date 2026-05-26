@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getDb, closeDb } from './db/connection.js';
-import { startHeartbeat, stopHeartbeat } from './heartbeat.js';
+import { startLiveSync, stopLiveSync } from './lib/liveSync.js';
 import { createSystemParamsRouter } from './routes/systemParams.js';
 import { createUploadsRouter } from './routes/uploads.js';
 import { createEcoUnitsRouter } from './routes/ecoUnits.js';
@@ -92,13 +92,13 @@ app.get('/{*path}', (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`LanaEco.farm server running on port ${PORT}`);
-  startHeartbeat(db);
+  startLiveSync(db, { listingKinds: [36502, 36510] }).catch(err => console.error('[liveSync] start failed:', err));
 });
 
 // Graceful shutdown
 const shutdown = () => {
   console.log('Shutting down...');
-  stopHeartbeat();
+  stopLiveSync();
   closeDb();
   process.exit(0);
 };
