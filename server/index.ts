@@ -92,7 +92,9 @@ app.get('/{*path}', (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`LanaEco.farm server running on port ${PORT}`);
-  startLiveSync(db).catch(err => console.error('[liveSync] start failed:', err));
+  // lanaeco.farm is specialised for the "Producer / Eco Farm" category.
+  // shop.lanapays.us publishes those listings as KIND 36500 only.
+  startLiveSync(db, { listingKinds: [36500] }).catch(err => console.error('[liveSync] start failed:', err));
 });
 
 // Graceful shutdown
