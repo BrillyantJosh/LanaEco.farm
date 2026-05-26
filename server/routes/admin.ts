@@ -13,6 +13,10 @@ export const ADMIN_HEXES = [
   '56e8670aa65491f8595dc3a71c94aa7445dcdca755ca5f77c07218498a362061',
 ];
 
+// Same set as server/routes/listings.ts — admin only shows units/listings
+// whose category matches this portal. Keep in sync with listings.ts.
+const PORTAL_CATEGORIES = new Set(['producer','eco farm','eco farming','farmer']);
+
 interface AdminRequest extends Request {
   adminHex?: string;
 }
@@ -71,7 +75,14 @@ export function createAdminRouter(db: Database.Database): Router {
       `
       )
       .all() as any[];
-    const result = rows.map((r) => {
+    const filtered = rows.filter((r) => {
+      try {
+        const p = JSON.parse(r.parsed_json);
+        const cat = String(p.category || '').trim().toLowerCase();
+        return PORTAL_CATEGORIES.has(cat);
+      } catch { return false; }
+    });
+    const result = filtered.map((r) => {
       let parsed: any = {};
       try { parsed = JSON.parse(r.parsed_json); } catch {}
       return {
@@ -89,8 +100,23 @@ export function createAdminRouter(db: Database.Database): Router {
     res.json(result);
   });
 
-  // GET /api/admin/listings — all listings with block + suspension + feature status
+  // GET /api/admin/listings — listings (scoped to this portal's categories)
+  // with block + suspension + feature status
   router.get('/listings', requireAdmin, (req: Request, res: Response) => {
+    // Build set of unit_ids whose category matches this portal — listings
+    // whose unit isn't in this set are excluded (same rule as public route).
+    const allowedUnitIds = new Set<string>();
+    const unitRows = db
+      .prepare(`SELECT unit_id, parsed_json FROM business_units`)
+      .all() as any[];
+    for (const u of unitRows) {
+      try {
+        const p = JSON.parse(u.parsed_json);
+        const cat = String(p.category || '').trim().toLowerCase();
+        if (PORTAL_CATEGORIES.has(cat)) allowedUnitIds.add(u.unit_id);
+      } catch {}
+    }
+
     const rows = db
       .prepare(
         `
@@ -115,7 +141,8 @@ export function createAdminRouter(db: Database.Database): Router {
       `
       )
       .all() as any[];
-    const result = rows.map((r) => {
+    const filtered = rows.filter((r) => allowedUnitIds.has(r.unit_id));
+    const result = filtered.map((r) => {
       let parsed: any = {};
       try { parsed = JSON.parse(r.parsed_json); } catch {}
       return {
