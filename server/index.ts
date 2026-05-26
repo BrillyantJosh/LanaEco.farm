@@ -92,7 +92,7 @@ app.get('/{*path}', (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`LanaEco.farm server running on port ${PORT}`);
-  startLiveSync(db, { listingKinds: [36502, 36510] }).catch(err => console.error('[liveSync] start failed:', err));
+  startLiveSync(db).catch(err => console.error('[liveSync] start failed:', err));
 });
 
 // Graceful shutdown

@@ -36,6 +36,24 @@ import { fetchEvents, type NostrEvent } from './relaySync.js';
 const PROCESSOR_PUBKEY =
   '79730aba75d71584e8a4f9d0cc1173085e75590ce489760078d2bf6f5210d692';
 
+/**
+ * The full set of "listing" kinds we recognise. shop.lanapays.us maps
+ * each merchant category to a different KIND in the 36500–36511 range
+ * (Producer=36500, Café/Restaurant=36501, Shop=36502, Kids=36503,
+ * Construction=36504, Fashion=36505, Furniture=36506, Pet=36507,
+ * Accommodation=36508, Care/Beauty/Wellness=36509, Marketplace=36510,
+ * Body Arts=36511). KIND 31923 is NIP-52 calendar events used only by
+ * lana-events (hashtag-scoped). Every portal subscribes to ALL kinds —
+ * the per-portal PORTAL_CATEGORIES filter at the API layer hides
+ * listings whose parent unit isn't in this portal's scope.
+ */
+const ALL_LISTING_KINDS = [
+  31923,
+  36500, 36501, 36502, 36503, 36504, 36505,
+  36506, 36507, 36508, 36509, 36510, 36511,
+];
+const LISTING_KIND_SET = new Set(ALL_LISTING_KINDS);
+
 const KIND_38888_POLL_INTERVAL = 5 * 60 * 1000; // 5 min
 const SAFETY_NET_INTERVAL = 60 * 60 * 1000;     // 60 min
 const PING_INTERVAL = 30_000;
@@ -210,29 +228,22 @@ function handleDeletion(ev: NostrEvent, now: number): void {
       // Ownership check: deleter must equal target
       if (targetPubkey !== deleterPubkey) continue;
       recordTombstone(kind, targetPubkey, dTag, ev.created_at, now);
-      switch (kind) {
-        case 30901:
-          dbRef.prepare(
-            `DELETE FROM business_units WHERE pubkey = ? AND unit_id = ? AND event_created_at <= ?`
-          ).run(targetPubkey, dTag, ev.created_at);
-          break;
-        case 31923:
-        case 36502:
-        case 36510:
-          dbRef.prepare(
-            `DELETE FROM listings WHERE pubkey = ? AND listing_id = ? AND event_created_at <= ?`
-          ).run(targetPubkey, dTag, ev.created_at);
-          break;
-        case 30902:
-          dbRef.prepare(
-            `DELETE FROM fee_policies WHERE unit_id = ? AND event_created_at <= ?`
-          ).run(dTag, ev.created_at);
-          break;
-        case 30903:
-          dbRef.prepare(
-            `DELETE FROM global_suspensions WHERE unit_id = ? AND event_created_at <= ?`
-          ).run(dTag, ev.created_at);
-          break;
+      if (kind === 30901) {
+        dbRef.prepare(
+          `DELETE FROM business_units WHERE pubkey = ? AND unit_id = ? AND event_created_at <= ?`
+        ).run(targetPubkey, dTag, ev.created_at);
+      } else if (kind === 30902) {
+        dbRef.prepare(
+          `DELETE FROM fee_policies WHERE unit_id = ? AND event_created_at <= ?`
+        ).run(dTag, ev.created_at);
+      } else if (kind === 30903) {
+        dbRef.prepare(
+          `DELETE FROM global_suspensions WHERE unit_id = ? AND event_created_at <= ?`
+        ).run(dTag, ev.created_at);
+      } else if (LISTING_KIND_SET.has(kind)) {
+        dbRef.prepare(
+          `DELETE FROM listings WHERE pubkey = ? AND listing_id = ? AND event_created_at <= ?`
+        ).run(targetPubkey, dTag, ev.created_at);
       }
     }
   }
@@ -321,12 +332,11 @@ function dispatchEvent(ev: NostrEvent, relayUrl: string, skipDedup = false): voi
     switch (ev.kind) {
       case 5: handleDeletion(ev, now); break;
       case 30901: upsertUnit(ev, now); break;
-      case 31923:
-      case 36502:
-      case 36510: upsertListing(ev, now); break;
       case 30902: upsertFeePolicy(ev, now); break;
       case 30903: upsertSuspension(ev, now); break;
-      default: return;
+      default:
+        if (LISTING_KIND_SET.has(ev.kind)) upsertListing(ev, now);
+        return;
     }
   } catch (err: any) {
     console.error(`[liveSync] dispatch kind=${ev.kind}:`, err.message || err);
@@ -527,7 +537,9 @@ export async function startLiveSync(
   isRunning = true;
   dbRef = db;
   cfg = {
-    listingKinds: config?.listingKinds ?? [36502, 36510],
+    // Default to ALL listing kinds; the API filter (PORTAL_CATEGORIES) does
+    // the per-portal scoping, so over-subscription is harmless.
+    listingKinds: config?.listingKinds ?? ALL_LISTING_KINDS.slice(),
     listingHashtag: config?.listingHashtag,
   };
   console.log(
