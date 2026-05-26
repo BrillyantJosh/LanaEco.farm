@@ -93,6 +93,21 @@ export function initializeSchema(db: Database.Database): void {
       events_seen INTEGER NOT NULL DEFAULT 0
     );
 
+    -- Tombstones for KIND 5 (NIP-09) deletions of replaceable events.
+    -- liveSync writes one row per (kind, pubkey, d_tag) when it sees a KIND 5
+    -- deletion referencing that replaceable address. Upsert paths check this
+    -- table and skip events whose created_at <= tombstone_created_at, so a
+    -- late-arriving target event can't resurrect a deleted row.
+    CREATE TABLE IF NOT EXISTS tombstones (
+      kind INTEGER NOT NULL,
+      pubkey TEXT NOT NULL,
+      d_tag TEXT NOT NULL,
+      tombstone_created_at INTEGER NOT NULL,
+      created_at INTEGER NOT NULL,
+      PRIMARY KEY (kind, pubkey, d_tag)
+    );
+    CREATE INDEX IF NOT EXISTS idx_tombstones_pubkey ON tombstones(pubkey);
+
     CREATE TABLE IF NOT EXISTS local_features (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       target_type TEXT NOT NULL,        -- 'provider' | 'listing'

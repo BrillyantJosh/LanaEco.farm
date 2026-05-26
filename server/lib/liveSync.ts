@@ -145,11 +145,105 @@ async function refreshKind38888(): Promise<string[]> {
   }
 }
 
+// ─────────────────────────────────────────── tombstones (NIP-09)
+
+/**
+ * Returns true if a KIND 5 deletion event has already invalidated this
+ * (kind, pubkey, d_tag) at or after the given event_created_at. Upserts
+ * call this first so a late-arriving deleted event can't resurrect a row.
+ */
+function isTombstoned(kind: number, pubkey: string, dTag: string, eventCreatedAt: number): boolean {
+  if (!dTag) return false;
+  const row = dbRef.prepare(
+    `SELECT tombstone_created_at FROM tombstones WHERE kind = ? AND pubkey = ? AND d_tag = ?`
+  ).get(kind, pubkey, dTag) as any;
+  if (!row) return false;
+  return row.tombstone_created_at >= eventCreatedAt;
+}
+
+function recordTombstone(kind: number, pubkey: string, dTag: string, tombstoneCreatedAt: number, now: number): void {
+  dbRef.prepare(`
+    INSERT INTO tombstones (kind, pubkey, d_tag, tombstone_created_at, created_at)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(kind, pubkey, d_tag) DO UPDATE SET
+      tombstone_created_at = CASE
+        WHEN excluded.tombstone_created_at > tombstones.tombstone_created_at
+        THEN excluded.tombstone_created_at
+        ELSE tombstones.tombstone_created_at
+      END,
+      created_at = excluded.created_at
+  `).run(kind, pubkey, dTag, tombstoneCreatedAt, now);
+}
+
+/**
+ * Process a KIND 5 (NIP-09) deletion event. The deleting pubkey MUST equal
+ * the target pubkey — relays enforce this, but we double-check.
+ *
+ * `e` tags reference event IDs directly; `a` tags reference replaceable
+ * coordinates (kind:pubkey:d). For each, we delete the corresponding row
+ * AND write a tombstone so a late-arriving target can't resurrect.
+ */
+function handleDeletion(ev: NostrEvent, now: number): void {
+  const deleterPubkey = ev.pubkey;
+  for (const tag of ev.tags || []) {
+    if (!Array.isArray(tag) || tag.length < 2) continue;
+    if (tag[0] === 'e' && tag[1]) {
+      const eventId = tag[1];
+      // Ownership check via `AND pubkey = ?` clause; tables that aren't
+      // keyed on pubkey (fee_policies, global_suspensions) match by event_id
+      // only — relays already enforce NIP-09 ownership.
+      dbRef.prepare('DELETE FROM business_units WHERE event_id = ? AND pubkey = ?')
+        .run(eventId, deleterPubkey);
+      dbRef.prepare('DELETE FROM listings WHERE event_id = ? AND pubkey = ?')
+        .run(eventId, deleterPubkey);
+      dbRef.prepare('DELETE FROM fee_policies WHERE event_id = ?')
+        .run(eventId);
+      dbRef.prepare('DELETE FROM global_suspensions WHERE event_id = ?')
+        .run(eventId);
+    } else if (tag[0] === 'a' && tag[1]) {
+      const parts = tag[1].split(':');
+      if (parts.length < 3) continue;
+      const kind = parseInt(parts[0], 10);
+      const targetPubkey = parts[1];
+      const dTag = parts.slice(2).join(':'); // d-tag may contain colons
+      if (isNaN(kind) || !dTag) continue;
+      // Ownership check: deleter must equal target
+      if (targetPubkey !== deleterPubkey) continue;
+      recordTombstone(kind, targetPubkey, dTag, ev.created_at, now);
+      switch (kind) {
+        case 30901:
+          dbRef.prepare(
+            `DELETE FROM business_units WHERE pubkey = ? AND unit_id = ? AND event_created_at <= ?`
+          ).run(targetPubkey, dTag, ev.created_at);
+          break;
+        case 31923:
+        case 36502:
+        case 36510:
+          dbRef.prepare(
+            `DELETE FROM listings WHERE pubkey = ? AND listing_id = ? AND event_created_at <= ?`
+          ).run(targetPubkey, dTag, ev.created_at);
+          break;
+        case 30902:
+          dbRef.prepare(
+            `DELETE FROM fee_policies WHERE unit_id = ? AND event_created_at <= ?`
+          ).run(dTag, ev.created_at);
+          break;
+        case 30903:
+          dbRef.prepare(
+            `DELETE FROM global_suspensions WHERE unit_id = ? AND event_created_at <= ?`
+          ).run(dTag, ev.created_at);
+          break;
+      }
+    }
+  }
+}
+
 // ─────────────────────────────────────────── upserts (per kind)
 
 function upsertUnit(ev: NostrEvent, now: number): void {
   const parsed = parseUnit(ev);
   if (!parsed.unitId) return;
+  if (isTombstoned(30901, ev.pubkey, parsed.unitId, ev.created_at)) return;
   dbRef.prepare(`
     INSERT INTO business_units (pubkey, unit_id, event_id, event_created_at, parsed_json, raw_event, fetched_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -166,6 +260,7 @@ function upsertUnit(ev: NostrEvent, now: number): void {
 function upsertListing(ev: NostrEvent, now: number): void {
   const parsed = parseListing(ev);
   if (!parsed.listingId) return;
+  if (isTombstoned(ev.kind, ev.pubkey, parsed.listingId, ev.created_at)) return;
   const unitId = parsed.unitRef?.split(':')[2] || null;
   dbRef.prepare(`
     INSERT INTO listings (pubkey, listing_id, unit_id, event_id, event_created_at, parsed_json, raw_event, fetched_at)
@@ -185,6 +280,7 @@ function upsertFeePolicy(ev: NostrEvent, now: number): void {
   if (ev.pubkey !== PROCESSOR_PUBKEY) return; // only processor publishes fees
   const parsed = parseFeePolicy(ev);
   if (!parsed.unitId) return;
+  if (isTombstoned(30902, ev.pubkey, parsed.unitId, ev.created_at)) return;
   dbRef.prepare(`
     INSERT INTO fee_policies (unit_id, event_id, event_created_at, lana_discount_per, status, raw_event, fetched_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -202,6 +298,7 @@ function upsertFeePolicy(ev: NostrEvent, now: number): void {
 function upsertSuspension(ev: NostrEvent, now: number): void {
   const parsed = parseSuspension(ev);
   if (!parsed.unitId) return;
+  if (isTombstoned(30903, ev.pubkey, parsed.unitId, ev.created_at)) return;
   dbRef.prepare(`
     INSERT INTO global_suspensions (unit_id, event_id, event_created_at, status, reason, active_until, raw_event, fetched_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -222,6 +319,7 @@ function dispatchEvent(ev: NostrEvent, relayUrl: string, skipDedup = false): voi
   const now = Math.floor(Date.now() / 1000);
   try {
     switch (ev.kind) {
+      case 5: handleDeletion(ev, now); break;
       case 30901: upsertUnit(ev, now); break;
       case 31923:
       case 36502:
@@ -308,9 +406,9 @@ function sendSubscriptions(r: RelayState): void {
     ? { since: r.lastSeenCreatedAt - SINCE_OVERLAP }
     : {};
 
-  // unit + fee + suspension (no hashtag scoping)
+  // unit + fee + suspension + KIND 5 deletions (no hashtag scoping)
   r.ws.send(JSON.stringify(['REQ', r.subIds.misc, {
-    kinds: [30901, 30902, 30903],
+    kinds: [30901, 30902, 30903, 5],
     ...sinceObj,
   }]));
 
@@ -402,7 +500,7 @@ async function runSafetyNet(): Promise<void> {
   console.log('[liveSync] safety net sweep');
   const relayList = getRelayList(dbRef);
   if (relayList.length === 0) return;
-  const allKinds = Array.from(new Set([30901, 30902, 30903, ...cfg.listingKinds]));
+  const allKinds = Array.from(new Set([5, 30901, 30902, 30903, ...cfg.listingKinds]));
   try {
     const events = await fetchEvents(relayList, { kinds: allKinds });
     let n = 0;
