@@ -72,9 +72,13 @@ const Index = () => {
   }, []);
 
   // Locale filter: SL→SI variants only, EN→UK variants only (strict).
-  const featured = useMemo(
-    () => units.filter(u => unitMatchesLocale(u, locale)).slice(0, 6),
+  const localeUnits = useMemo(
+    () => units.filter(u => unitMatchesLocale(u, locale)),
     [units, locale],
+  );
+  const featured = useMemo(
+    () => localeUnits.slice(0, 6),
+    [localeUnits],
   );
 
   // Listings inherit country from their parent unit (via unitRef).
@@ -185,6 +189,11 @@ const Index = () => {
               {t('eco.subtitle')}
             </p>
           </div>
+          {localeUnits.length > 6 && (
+            <Link to="/kmetje" className="hidden md:inline-flex items-center gap-1 text-primary font-sans text-sm font-medium hover:underline">
+              {t('eco.all')} <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
         </div>
 
         {isLoading && (
@@ -258,6 +267,13 @@ const Index = () => {
                 </div>
               </Link>
             ))}
+          </div>
+        )}
+        {!isLoading && localeUnits.length > 6 && (
+          <div className="mt-6 md:hidden text-center">
+            <Link to="/kmetje" className="inline-flex items-center gap-1 text-primary font-sans text-sm font-medium">
+              {t('eco.all')} <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         )}
       </section>

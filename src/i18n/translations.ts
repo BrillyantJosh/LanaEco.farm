@@ -69,6 +69,7 @@ const en = {
   // Eco farms section
   'eco.title': 'Sustainable and organic farms, foragers and other providers of quality homegrown food',
   'eco.subtitle': 'Live units registered in the "Lana Eco Farm" network',
+  'eco.all': 'All providers',
   'eco.loadingRelays': 'Loading from relays...',
   'eco.noFarms': 'No eco farms registered yet.',
   'eco.registerYours': 'Register yours!',
@@ -579,6 +580,7 @@ const sl: typeof en = {
   // Eco farms section
   'eco.title': 'Trajnostne in ekološke kmetije, nabiralci in drugi ponudniki kvalitetne domače hrane',
   'eco.subtitle': 'Žive enote registrirane v "Lana Eco Farm" omrežju',
+  'eco.all': 'Vsi ponudniki',
   'eco.loadingRelays': 'Nalaganje iz relejev...',
   'eco.noFarms': 'Še ni registriranih eko kmetij.',
   'eco.registerYours': 'Registrirajte svojo!',
