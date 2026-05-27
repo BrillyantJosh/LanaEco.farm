@@ -26,7 +26,7 @@ function detectLocale(): Locale {
 
   // 3. Auto-detect from browser
   const browserLang = (typeof navigator !== 'undefined' && (navigator.language || (navigator as any).userLanguage)) || 'en';
-  return browserLang.startsWith('sl') ? 'sl' : 'en';
+  return browserLang.startsWith('en') ? 'en' : 'sl';
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
