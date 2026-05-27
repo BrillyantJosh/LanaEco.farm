@@ -258,9 +258,9 @@ export default function UnitDetailPage() {
                       to={`/ponudba/${listing.pubkey}/${listing.listingId}`}
                       className="group bg-card border rounded-xl overflow-hidden hover:shadow-md transition"
                     >
-                      {listing.images[0] && (
+                      {(listing.thumbs?.[0] || listing.images[0]) && (
                         <div className="aspect-[16/9] overflow-hidden bg-muted">
-                          <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                          <img src={(listing.thumbs?.[0] || listing.images[0])} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                         </div>
                       )}
                       <div className="p-3">

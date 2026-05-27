@@ -109,9 +109,9 @@ export default function FarmersPage() {
               className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
             >
               <div className="aspect-[16/10] overflow-hidden bg-muted">
-                {unit.images[0] ? (
+                {(unit.thumbs?.[0] || unit.images[0]) ? (
                   <img
-                    src={unit.images[0]}
+                    src={(unit.thumbs?.[0] || unit.images[0])}
                     alt={unit.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"

@@ -222,9 +222,9 @@ const Index = () => {
                 className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
               >
                 <div className="aspect-[16/10] overflow-hidden bg-muted">
-                  {unit.images[0] ? (
+                  {(unit.thumbs?.[0] || unit.images[0]) ? (
                     <img
-                      src={unit.images[0]}
+                      src={(unit.thumbs?.[0] || unit.images[0])}
                       alt={unit.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
@@ -300,8 +300,8 @@ const Index = () => {
                 className={`group rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 ${isTopDeal ? 'bg-green-50 border-2 border-green-300 ring-2 ring-green-100' : 'bg-card border'}`}
               >
                 <div className="aspect-[16/10] overflow-hidden bg-muted">
-                  {listing.images[0] ? (
-                    <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  {(listing.thumbs?.[0] || listing.images[0]) ? (
+                    <img src={(listing.thumbs?.[0] || listing.images[0])} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <ShoppingBag className="w-10 h-10 text-muted-foreground/30" />
