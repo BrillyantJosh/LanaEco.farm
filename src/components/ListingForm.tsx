@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { uploadImageWithThumb } from '@/lib/mediaUpload';
 import { Save, ArrowLeft, Loader2, Plus, Trash2, Upload, X } from 'lucide-react';
 import { signNostrEvent } from '@/lib/nostrSigning';
 import { publishToRelays, type EcoListing, type BusinessUnit } from '@/lib/nostr';
@@ -66,6 +67,7 @@ interface FormState {
   durationMin: string;
   bookingRequired: boolean;
   images: string[];
+  imageThumbs: string[];
 }
 
 export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps) {
@@ -131,6 +133,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
     durationMin: listing?.durationMin || '',
     bookingRequired: listing?.bookingRequired === 'true',
     images: listing?.images || [],
+    imageThumbs: (listing as any)?.thumbs || [],
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -155,6 +158,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
 
     setIsUploading(true);
     const newImages: string[] = [];
+    const newThumbs: string[] = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -163,23 +167,22 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
         continue;
       }
 
-      const formData = new FormData();
-      formData.append('file', file);
-
       try {
-        const res = await fetch('/api/uploads', { method: 'POST', body: formData });
-        if (!res.ok) throw new Error('Upload failed');
-        const data = await res.json();
-        // Build full URL for Nostr event
-        const fullUrl = `${window.location.origin}${data.url}`;
-        newImages.push(fullUrl);
+        if (!session) continue;
+        const res = await uploadImageWithThumb(file, session.nostrPrivateKey);
+        newImages.push(res.url);
+        newThumbs.push(res.thumbUrl);
       } catch (err) {
         setError(`Failed to upload "${file.name}"`);
       }
     }
 
     if (newImages.length > 0) {
-      updateField('images', [...form.images, ...newImages]);
+      setForm(prev => ({
+        ...prev,
+        images: [...prev.images, ...newImages],
+        imageThumbs: [...prev.imageThumbs, ...newThumbs],
+      }));
     }
 
     setIsUploading(false);
@@ -188,7 +191,11 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
   };
 
   const removeImage = (index: number) => {
-    updateField('images', form.images.filter((_, i) => i !== index));
+    setForm(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+      imageThumbs: prev.imageThumbs.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSave = async () => {
@@ -243,7 +250,7 @@ export function ListingForm({ unit, listing, onBack, onSaved }: ListingFormProps
         if (form.bookingRequired) tags.push(['booking_required', 'true']);
       }
 
-      for (const img of form.images) tags.push(['image', img]);
+      form.images.forEach((img, i) => { tags.push(['image', img]); if (form.imageThumbs[i]) tags.push(['thumb', form.imageThumbs[i]]); });
 
       // Default payment: LanaPays
       tags.push(['payment', 'lana_pay']);

@@ -58,6 +58,8 @@ interface FormData {
   category: string;
   categoryDetail: string;
   images: string[];
+  imageThumbs: string[];
+  logoThumb: string;
   status: string;
   openingHoursJson: string;
   video: string;
@@ -97,6 +99,8 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
     category: unit?.category || CATEGORY_KEYS[0].value,
     categoryDetail: unit?.categoryDetail || '',
     images: unit?.images?.length ? [...unit.images] : [],
+    imageThumbs: (unit as any)?.thumbs?.length ? [...(unit as any).thumbs] : [],
+    logoThumb: (unit as any)?.logoThumb || '',
     status: unit?.status || 'active',
     openingHoursJson: unit?.openingHoursJson || '',
     video: unit?.video || '',
@@ -160,14 +164,22 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
     }
   };
 
-  const handleImageUpload = (url: string) => {
+  const handleImageUpload = (url: string, thumbUrl?: string) => {
     if (url) {
-      setForm(prev => ({ ...prev, images: [...prev.images, url] }));
+      setForm(prev => ({
+        ...prev,
+        images: [...prev.images, url],
+        imageThumbs: [...prev.imageThumbs, thumbUrl || url],
+      }));
     }
   };
 
   const removeImage = (index: number) => {
-    setForm(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
+    setForm(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+      imageThumbs: prev.imageThumbs.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -249,15 +261,22 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
       }
 
       // Add images
-      for (const img of form.images) {
+      form.images.forEach((img, i) => {
+
         tags.push(['image', img]);
-      }
+
+        if (form.imageThumbs[i]) tags.push(['thumb', form.imageThumbs[i]]);
+
+      });
 
       // Optional fields
       if (form.openingHoursJson) tags.push(['opening_hours_json', form.openingHoursJson]);
       if (form.video) tags.push(['video', form.video]);
       if (form.url) tags.push(['url', form.url]);
-      if (form.logo) tags.push(['logo', form.logo]);
+      if (form.logo) {
+        tags.push(['logo', form.logo]);
+        if (form.logoThumb) tags.push(['logo_thumb', form.logoThumb]);
+      }
       if (form.note) tags.push(['note', form.note]);
 
       // Sign event
@@ -582,7 +601,7 @@ export function BusinessUnitForm({ unit, onBack, onSaved }: BusinessUnitFormProp
           <div>
             <label className={labelClass()}>{t('buf.logo')}</label>
             <ImageUpload
-              onUpload={(url) => updateField('logo', url)}
+              onUpload={(url, thumbUrl) => { updateField('logo', url); updateField('logoThumb', thumbUrl || url); }}
               currentUrl={form.logo || undefined}
               label=""
             />
