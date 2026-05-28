@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Search, Filter, Loader2, ShoppingBag } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Search, Filter, Loader2, ShoppingBag, Globe } from 'lucide-react';
 import { ListingCard } from '@/components/ListingCard';
 import type { EcoListing } from '@/lib/nostr';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { TranslationKey } from '@/i18n/translations';
-import { unitIdFromRef } from '@/lib/locale';
+import { unitIdFromRef, unitCountry, countryLabel } from '@/lib/locale';
 import { useCountryFilter } from '@/lib/countryFilter';
 
 const CATEGORY_FILTERS = [
@@ -13,7 +13,7 @@ const CATEGORY_FILTERS = [
 ];
 
 export default function ListingsPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [country, setCountry] = useCountryFilter();
   const [listings, setListings] = useState<EcoListing[]>([]);
   const [filtered, setFiltered] = useState<EcoListing[]>([]);
@@ -68,7 +68,7 @@ export default function ListingsPage() {
         if (!uid) return false;
         const u = unitCountryMap.get(uid);
         if (!u) return false;
-        return (u.country || '').toUpperCase() === country.toUpperCase();
+        return unitCountry(u) === country;
       });
     }
     // Sort by cashback % descending — best deals first
@@ -76,7 +76,15 @@ export default function ListingsPage() {
     setFiltered(result);
   }, [search, typeFilter, categoryFilter, listings, country, unitCountryMap]);
 
-  const countryOptions = Array.from(new Set(Array.from(unitCountryMap.values()).map(u => u.country).filter(Boolean))).sort() as string[];
+  const countryOptions = useMemo(() => {
+    const codes = new Set<string>();
+    for (const u of unitCountryMap.values()) {
+      const c = unitCountry(u);
+      if (c) codes.add(c);
+    }
+    return Array.from(codes).map(code => ({ code, label: countryLabel(code, locale) }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [unitCountryMap, locale]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -84,6 +92,27 @@ export default function ListingsPage() {
         <h1 className="font-display text-3xl font-bold mb-2">{t('listingsPage.title')}</h1>
         <p className="text-muted-foreground font-sans">{t('listingsPage.subtitle')}</p>
       </div>
+
+      {/* Country filter — prominent row */}
+      {countryOptions.length > 1 && (
+        <div className="mb-4 flex items-center gap-2 flex-wrap">
+          <Globe className="w-4 h-4 text-primary shrink-0" />
+          <label htmlFor="country-filter" className="text-sm font-sans font-medium text-foreground">
+            {t('country.filter')}:
+          </label>
+          <select
+            id="country-filter"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="flex-1 sm:flex-initial min-w-[180px] px-4 py-2.5 rounded-lg border-2 border-primary/30 bg-card text-foreground font-sans text-sm font-semibold hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer transition"
+          >
+            <option value="">{t('country.all')}</option>
+            {countryOptions.map(c => (
+              <option key={c.code} value={c.code}>{c.label}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -104,14 +133,6 @@ export default function ListingsPage() {
           <option value="">{t('listingsPage.allCategories')}</option>
           {CATEGORY_FILTERS.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        {countryOptions.length > 1 && (
-          <select value={country} onChange={e => setCountry(e.target.value)}
-            className="px-3 py-2.5 border rounded-lg text-sm font-sans"
-            aria-label={t('country.filter')}>
-            <option value="">{t('country.all')}</option>
-            {countryOptions.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        )}
       </div>
 
       {isLoading && (

@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Search, MapPin, Leaf, Loader2, Store, Tag } from "lucide-react";
+import { Search, MapPin, Leaf, Loader2, Store, Tag, Globe } from "lucide-react";
 import { useLanguage } from '@/i18n/LanguageContext';
 import { useCountryFilter } from '@/lib/countryFilter';
+import { unitCountry, countryLabel } from '@/lib/locale';
 
 interface EcoUnit {
   unitId: string;
@@ -19,7 +20,7 @@ interface EcoUnit {
 }
 
 export default function FarmersPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [country, setCountry] = useCountryFilter();
   const [units, setUnits] = useState<EcoUnit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +38,15 @@ export default function FarmersPage() {
   }, []);
 
   const categories = Array.from(new Set(units.map(u => u.category).filter(Boolean))).sort();
-  const countries = Array.from(new Set(units.map(u => u.country).filter(Boolean))).sort();
+  const countries = useMemo(() => {
+    const codes = new Set<string>();
+    for (const u of units) {
+      const c = unitCountry(u);
+      if (c) codes.add(c);
+    }
+    return Array.from(codes).map(code => ({ code, label: countryLabel(code, locale) }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [units, locale]);
 
   const filtered = units.filter(u => {
     const s = search.toLowerCase();
@@ -47,7 +56,7 @@ export default function FarmersPage() {
       (u.content || '').toLowerCase().includes(s) ||
       (u.receiverCity || '').toLowerCase().includes(s);
     const matchesCat = !selectedCategory || u.category === selectedCategory;
-    const matchesCountry = !country || u.country === country;
+    const matchesCountry = !country || unitCountry(u) === country;
     return matchesSearch && matchesCat && matchesCountry;
   });
 
@@ -58,8 +67,29 @@ export default function FarmersPage() {
         {t('farmers.subtitle')}
       </p>
 
+      {/* Country filter — prominent row */}
+      {countries.length > 1 && (
+        <div className="mt-6 flex items-center gap-2 flex-wrap">
+          <Globe className="w-4 h-4 text-primary shrink-0" />
+          <label htmlFor="country-filter" className="text-sm font-sans font-medium text-foreground">
+            {t('country.filter')}:
+          </label>
+          <select
+            id="country-filter"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="flex-1 sm:flex-initial min-w-[180px] px-4 py-2.5 rounded-lg border-2 border-primary/30 bg-card text-foreground font-sans text-sm font-semibold hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer transition"
+          >
+            <option value="">{t('country.all')}</option>
+            {countries.map((c) => (
+              <option key={c.code} value={c.code}>{c.label}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {/* Filters */}
-      <div className="mt-6 flex flex-col sm:flex-row gap-3">
+      <div className="mt-4 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
@@ -77,17 +107,6 @@ export default function FarmersPage() {
         >
           <option value="">{t('productsPage.allCategories')}</option>
           {categories.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-        <select
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          className="px-4 py-2.5 rounded-lg border bg-card text-foreground font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-          aria-label={t('country.filter')}
-        >
-          <option value="">{t('country.all')}</option>
-          {countries.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </select>

@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
-import { ArrowRight, Leaf, Sprout, ShieldCheck, MapPin, Loader2, ShoppingBag, Tag } from "lucide-react";
+import { ArrowRight, Leaf, Sprout, ShieldCheck, MapPin, Loader2, ShoppingBag, Tag, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { TranslationKey } from '@/i18n/translations';
-import { unitIdFromRef } from '@/lib/locale';
+import { unitIdFromRef, unitCountry, countryLabel } from '@/lib/locale';
 import { useCountryFilter } from '@/lib/countryFilter';
 import heroImageWebp from "@/assets/hero-farm.webp";
 import heroImageJpg from "@/assets/hero-farm.jpg";
@@ -41,7 +41,7 @@ interface EcoUnit {
 }
 
 const Index = () => {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [country, setCountry] = useCountryFilter();
   const tTag = (prefix: string, val: string) => {
     const key = `${prefix}.${val}` as TranslationKey;
@@ -74,12 +74,17 @@ const Index = () => {
   }, []);
 
   // Country filter: optional, empty = show all.
-  const countryOptions = useMemo(
-    () => Array.from(new Set(units.map(u => u.country).filter(Boolean))).sort(),
-    [units],
-  );
+  const countryOptions = useMemo(() => {
+    const codes = new Set<string>();
+    for (const u of units) {
+      const c = unitCountry(u);
+      if (c) codes.add(c);
+    }
+    return Array.from(codes).map(code => ({ code, label: countryLabel(code, locale) }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [units, locale]);
   const localeUnits = useMemo(
-    () => country ? units.filter(u => (u.country || '').toUpperCase() === country.toUpperCase()) : units,
+    () => country ? units.filter(u => unitCountry(u) === country) : units,
     [units, country],
   );
   const featured = useMemo(
@@ -99,7 +104,7 @@ const Index = () => {
       if (!uid) return false;
       const u = unitCountryMap.get(uid);
       if (!u) return false;
-      return (u.country || '').toUpperCase() === country.toUpperCase();
+      return unitCountry(u) === country;
     }).slice(0, 6),
     [listings, unitCountryMap, country],
   );
@@ -189,34 +194,39 @@ const Index = () => {
 
       {/* Eco Farming Units from Nostr */}
       <section id="kmetje" className="container mx-auto px-4 pb-16">
-        <div className="flex items-end justify-between mb-8 gap-3 flex-wrap">
+        <div className="flex items-end justify-between mb-6 gap-3 flex-wrap">
           <div>
             <h2 className="font-display text-3xl font-bold">{t('eco.title')}</h2>
             <p className="text-muted-foreground font-sans mt-1">
               {t('eco.subtitle')}
             </p>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            {countryOptions.length > 1 && (
-              <select
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="px-3 py-2 rounded-lg border bg-card text-foreground font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                aria-label={t('country.filter')}
-              >
-                <option value="">{t('country.all')}</option>
-                {countryOptions.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            )}
-            {localeUnits.length > 6 && (
-              <Link to="/kmetje" className="hidden md:inline-flex items-center gap-1 text-primary font-sans text-sm font-medium hover:underline">
-                {t('eco.all')} <ArrowRight className="h-4 w-4" />
-              </Link>
-            )}
-          </div>
+          {localeUnits.length > 6 && (
+            <Link to="/kmetje" className="hidden md:inline-flex items-center gap-1 text-primary font-sans text-sm font-medium hover:underline">
+              {t('eco.all')} <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
         </div>
+
+        {countryOptions.length > 1 && (
+          <div className="mb-6 flex items-center gap-2 flex-wrap">
+            <Globe className="w-4 h-4 text-primary shrink-0" />
+            <label htmlFor="country-filter" className="text-sm font-sans font-medium text-foreground">
+              {t('country.filter')}:
+            </label>
+            <select
+              id="country-filter"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              className="flex-1 sm:flex-initial min-w-[180px] px-4 py-2.5 rounded-lg border-2 border-primary/30 bg-card text-foreground font-sans text-sm font-semibold hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer transition"
+            >
+              <option value="">{t('country.all')}</option>
+              {countryOptions.map(c => (
+                <option key={c.code} value={c.code}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {isLoading && (
           <div className="flex items-center justify-center py-16">
