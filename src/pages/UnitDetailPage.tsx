@@ -17,6 +17,7 @@ interface EcoUnit {
   categoryDetail: string;
   images: string[];
   status: string;
+  registeredAt?: number;
   longitude: string;
   latitude: string;
   logo: string;
@@ -142,6 +143,13 @@ export default function UnitDetailPage() {
 
   return (
     <div className="pb-16">
+      {unit.status === 'archived' && (
+        <div className="container mx-auto px-4 mt-6">
+          <div className="p-4 rounded-lg bg-amber-50 border-2 border-amber-200 text-amber-900 font-sans text-sm">
+            {t('unit.archived.banner' as any)}
+          </div>
+        </div>
+      )}
       {/* Hero image */}
       {heroImage && (
         <div className="relative w-full h-[40vh] md:h-[50vh] overflow-hidden">

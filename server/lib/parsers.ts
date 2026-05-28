@@ -19,6 +19,7 @@ export interface ParsedUnit {
   categoryDetail: string;
   images: string[];
   status: string;
+  registeredAt: number;
   longitude: string;
   latitude: string;
   logo: string;
@@ -51,6 +52,8 @@ export function parseUnit(event: NostrEvent): ParsedUnit {
     categoryDetail: getTag(event, 'category_detail'),
     images: getTags(event, 'image').map(remap),
     status: getTag(event, 'status') || 'active',
+    // 0 = unknown (legacy unit, no registered_at tag)
+    registeredAt: parseInt(getTag(event, 'registered_at') || '0', 10) || 0,
     longitude: getTag(event, 'longitude'),
     latitude: getTag(event, 'latitude'),
     logo: remap(getTag(event, 'logo')),

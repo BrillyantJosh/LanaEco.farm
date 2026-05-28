@@ -489,6 +489,8 @@ const en = {
 
   // Abundance badge
   'badge.abundance': 'for Abundance',
+  'badge.new': 'NEW',
+  'unit.archived.banner': 'This provider has been archived by its owner and may no longer be active.',
 
   // Delivery options
   'delivery.pickup': 'Pickup',
@@ -1002,6 +1004,8 @@ const sl: typeof en = {
 
   // Abundance badge
   'badge.abundance': 'za Obilje',
+  'badge.new': 'NOVO',
+  'unit.archived.banner': 'Ta ponudnik je bil arhiviran s strani lastnika in morda ni več aktiven.',
 
   // Delivery options
   'delivery.pickup': 'Prevzem',

@@ -37,7 +37,15 @@ interface EcoUnit {
   images: string[];
   content: string;
   status: string;
+  registeredAt?: number;
   cashbackPercent: number;
+}
+
+const NEW_BADGE_WINDOW_DAYS = 30;
+function isNew(registeredAt?: number): boolean {
+  if (!registeredAt) return false;
+  const ageDays = (Date.now() / 1000 - registeredAt) / 86400;
+  return ageDays >= 0 && ageDays <= NEW_BADGE_WINDOW_DAYS;
 }
 
 const Index = () => {
@@ -57,7 +65,14 @@ const Index = () => {
     fetch('/api/eco-units')
       .then(res => res.json())
       .then((data: EcoUnit[]) => {
-        setUnits(data.filter(u => u.status === 'active'));
+        const filtered = data.filter(u => u.status === 'active');
+        filtered.sort((a, b) => {
+          const aNew = isNew(a.registeredAt) ? 1 : 0;
+          const bNew = isNew(b.registeredAt) ? 1 : 0;
+          if (aNew !== bNew) return bNew - aNew;
+          return 0;
+        });
+        setUnits(filtered);
         setIsLoading(false);
       })
       .catch(() => setIsLoading(false));
@@ -268,7 +283,12 @@ const Index = () => {
                 to={`/enota/${unit.unitId}`}
                 className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
               >
-                <div className="aspect-[16/10] overflow-hidden bg-muted">
+                <div className="aspect-[16/10] overflow-hidden bg-muted relative">
+                  {isNew(unit.registeredAt) && (
+                    <span className="absolute top-2 left-2 z-10 px-2.5 py-1 text-[10px] font-sans font-bold uppercase tracking-wider rounded-full bg-emerald-500 text-white shadow-md">
+                      {t('badge.new' as any)}
+                    </span>
+                  )}
                   {(unit.thumbs?.[0] || unit.images[0]) ? (
                     <img
                       src={(unit.thumbs?.[0] || unit.images[0])}

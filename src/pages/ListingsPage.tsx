@@ -17,7 +17,7 @@ export default function ListingsPage() {
   const [country, setCountry] = useCountryFilter();
   const [listings, setListings] = useState<EcoListing[]>([]);
   const [filtered, setFiltered] = useState<EcoListing[]>([]);
-  const [unitCountryMap, setUnitCountryMap] = useState<Map<string, { country?: string; receiverCountry?: string }>>(new Map());
+  const [unitCountryMap, setUnitCountryMap] = useState<Map<string, { country?: string; receiverCountry?: string; status?: string }>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -44,7 +44,7 @@ export default function ListingsPage() {
     fetch('/api/eco-units')
       .then(r => r.json())
       .then((units: any[]) => {
-        setUnitCountryMap(new Map(units.map(u => [u.unitId, { country: u.country, receiverCountry: u.receiverCountry }])));
+        setUnitCountryMap(new Map(units.map(u => [u.unitId, { country: u.country, receiverCountry: u.receiverCountry, status: u.status }])));
       })
       .catch(console.error);
   }, []);
@@ -61,6 +61,14 @@ export default function ListingsPage() {
     }
     if (typeFilter) result = result.filter(l => l.type === typeFilter);
     if (categoryFilter) result = result.filter(l => l.tags.includes(categoryFilter));
+    // Skip listings whose parent unit is archived.
+    result = result.filter((l: any) => {
+      const uid = unitIdFromRef(l.unitRef);
+      if (!uid) return true;
+      const u = unitCountryMap.get(uid);
+      if (!u) return true;
+      return u.status !== 'archived';
+    });
     // Country filter (optional). A listing inherits its country from its parent unit (joined by unitRef).
     if (country) {
       result = result.filter((l: any) => {
