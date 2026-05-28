@@ -47,6 +47,28 @@ const COUNTRY_LABELS: Record<string, { sl: string; en: string }> = {
   us: { sl: 'ZDA', en: 'United States' },
 };
 
+const COUNTRY_FLAGS: Record<string, string> = {
+  si: '\u{1F1F8}\u{1F1EE}',
+  uk: '\u{1F1EC}\u{1F1E7}',
+  it: '\u{1F1EE}\u{1F1F9}',
+  de: '\u{1F1E9}\u{1F1EA}',
+  at: '\u{1F1E6}\u{1F1F9}',
+  hr: '\u{1F1ED}\u{1F1F7}',
+  hu: '\u{1F1ED}\u{1F1FA}',
+  fr: '\u{1F1EB}\u{1F1F7}',
+  es: '\u{1F1EA}\u{1F1F8}',
+  nl: '\u{1F1F3}\u{1F1F1}',
+  be: '\u{1F1E7}\u{1F1EA}',
+  ch: '\u{1F1E8}\u{1F1ED}',
+  pl: '\u{1F1F5}\u{1F1F1}',
+  cz: '\u{1F1E8}\u{1F1FF}',
+  sk: '\u{1F1F8}\u{1F1F0}',
+  rs: '\u{1F1F7}\u{1F1F8}',
+  ba: '\u{1F1E7}\u{1F1E6}',
+  mk: '\u{1F1F2}\u{1F1F0}',
+  us: '\u{1F1FA}\u{1F1F8}',
+};
+
 const VARIANTS_TO_CODE = new Map<string, string>();
 for (const [code, variants] of Object.entries(COUNTRY_VARIANTS)) {
   for (const v of variants) VARIANTS_TO_CODE.set(v, code);
@@ -89,4 +111,9 @@ export function unitIdFromRef(unitRef: string | null | undefined): string | null
   if (!unitRef) return null;
   const parts = unitRef.split(':');
   return parts[2] || null;
+}
+
+/** Emoji flag for a country code; falls back to globe emoji. */
+export function countryFlag(code: string): string {
+  return COUNTRY_FLAGS[code] || '\u{1F310}';
 }

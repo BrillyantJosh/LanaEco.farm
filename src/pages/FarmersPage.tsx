@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Search, MapPin, Leaf, Loader2, Store, Tag, Globe } from "lucide-react";
 import { useLanguage } from '@/i18n/LanguageContext';
 import { useCountryFilter } from '@/lib/countryFilter';
-import { unitCountry, countryLabel } from '@/lib/locale';
+import { unitCountry, countryLabel, countryFlag } from '@/lib/locale';
 
 interface EcoUnit {
   unitId: string;
@@ -69,22 +69,37 @@ export default function FarmersPage() {
 
       {/* Country filter — prominent row */}
       {countries.length > 1 && (
-        <div className="mt-6 flex items-center gap-2 flex-wrap">
-          <Globe className="w-4 h-4 text-primary shrink-0" />
-          <label htmlFor="country-filter" className="text-sm font-sans font-medium text-foreground">
-            {t('country.filter')}:
-          </label>
-          <select
-            id="country-filter"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            className="flex-1 sm:flex-initial min-w-[180px] px-4 py-2.5 rounded-lg border-2 border-primary/30 bg-card text-foreground font-sans text-sm font-semibold hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer transition"
+        <div className="mb-6 flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 text-sm font-sans font-medium text-foreground mr-1">
+            <Globe className="w-4 h-4 text-primary" />
+            <span>{t('country.filter')}:</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCountry('')}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-sans font-medium border-2 transition ${
+              country === ''
+                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                : 'bg-card text-foreground border-muted hover:border-primary/50'
+            }`}
           >
-            <option value="">{t('country.all')}</option>
-            {countries.map((c) => (
-              <option key={c.code} value={c.code}>{c.label}</option>
-            ))}
-          </select>
+            {t('country.all')}
+          </button>
+          {countries.map(c => (
+            <button
+              key={c.code}
+              type="button"
+              onClick={() => setCountry(c.code)}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-sans font-medium border-2 transition ${
+                country === c.code
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  : 'bg-card text-foreground border-muted hover:border-primary/50'
+              }`}
+            >
+              <span className="text-base leading-none">{countryFlag(c.code)}</span>
+              {c.label}
+            </button>
+          ))}
         </div>
       )}
 
