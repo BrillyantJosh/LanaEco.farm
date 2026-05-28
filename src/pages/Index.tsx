@@ -3,7 +3,8 @@ import { ArrowRight, Leaf, Sprout, ShieldCheck, MapPin, Loader2, ShoppingBag, Ta
 import { Link } from "react-router-dom";
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { TranslationKey } from '@/i18n/translations';
-import { unitMatchesLocale, unitIdFromRef } from '@/lib/locale';
+import { unitIdFromRef } from '@/lib/locale';
+import { useCountryFilter } from '@/lib/countryFilter';
 import heroImageWebp from "@/assets/hero-farm.webp";
 import heroImageJpg from "@/assets/hero-farm.jpg";
 import productsImageWebp from "@/assets/products-bg.webp";
@@ -40,7 +41,8 @@ interface EcoUnit {
 }
 
 const Index = () => {
-  const { t, locale } = useLanguage();
+  const { t } = useLanguage();
+  const [country, setCountry] = useCountryFilter();
   const tTag = (prefix: string, val: string) => {
     const key = `${prefix}.${val}` as TranslationKey;
     const translated = t(key);
@@ -71,10 +73,14 @@ const Index = () => {
       .catch(() => setListingsLoading(false));
   }, []);
 
-  // Locale filter: SL→SI variants only, EN→UK variants only (strict).
+  // Country filter: optional, empty = show all.
+  const countryOptions = useMemo(
+    () => Array.from(new Set(units.map(u => u.country).filter(Boolean))).sort(),
+    [units],
+  );
   const localeUnits = useMemo(
-    () => units.filter(u => unitMatchesLocale(u, locale)),
-    [units, locale],
+    () => country ? units.filter(u => (u.country || '').toUpperCase() === country.toUpperCase()) : units,
+    [units, country],
   );
   const featured = useMemo(
     () => localeUnits.slice(0, 6),
@@ -88,13 +94,14 @@ const Index = () => {
   );
   const localizedListings = useMemo(
     () => listings.filter(l => {
+      if (!country) return true;
       const uid = unitIdFromRef(l.unitRef);
       if (!uid) return false;
       const u = unitCountryMap.get(uid);
       if (!u) return false;
-      return unitMatchesLocale(u, locale);
+      return (u.country || '').toUpperCase() === country.toUpperCase();
     }).slice(0, 6),
-    [listings, unitCountryMap, locale],
+    [listings, unitCountryMap, country],
   );
 
   return (
@@ -182,18 +189,33 @@ const Index = () => {
 
       {/* Eco Farming Units from Nostr */}
       <section id="kmetje" className="container mx-auto px-4 pb-16">
-        <div className="flex items-end justify-between mb-8">
+        <div className="flex items-end justify-between mb-8 gap-3 flex-wrap">
           <div>
             <h2 className="font-display text-3xl font-bold">{t('eco.title')}</h2>
             <p className="text-muted-foreground font-sans mt-1">
               {t('eco.subtitle')}
             </p>
           </div>
-          {localeUnits.length > 6 && (
-            <Link to="/kmetje" className="hidden md:inline-flex items-center gap-1 text-primary font-sans text-sm font-medium hover:underline">
-              {t('eco.all')} <ArrowRight className="h-4 w-4" />
-            </Link>
-          )}
+          <div className="flex items-center gap-3 flex-wrap">
+            {countryOptions.length > 1 && (
+              <select
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                className="px-3 py-2 rounded-lg border bg-card text-foreground font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                aria-label={t('country.filter')}
+              >
+                <option value="">{t('country.all')}</option>
+                {countryOptions.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            )}
+            {localeUnits.length > 6 && (
+              <Link to="/kmetje" className="hidden md:inline-flex items-center gap-1 text-primary font-sans text-sm font-medium hover:underline">
+                {t('eco.all')} <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
+          </div>
         </div>
 
         {isLoading && (

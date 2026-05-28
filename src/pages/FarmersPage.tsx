@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, MapPin, Leaf, Loader2, Store, Tag } from "lucide-react";
 import { useLanguage } from '@/i18n/LanguageContext';
-import { unitMatchesLocale } from '@/lib/locale';
+import { useCountryFilter } from '@/lib/countryFilter';
 
 interface EcoUnit {
   unitId: string;
@@ -19,7 +19,8 @@ interface EcoUnit {
 }
 
 export default function FarmersPage() {
-  const { t, locale } = useLanguage();
+  const { t } = useLanguage();
+  const [country, setCountry] = useCountryFilter();
   const [units, setUnits] = useState<EcoUnit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -46,8 +47,8 @@ export default function FarmersPage() {
       (u.content || '').toLowerCase().includes(s) ||
       (u.receiverCity || '').toLowerCase().includes(s);
     const matchesCat = !selectedCategory || u.category === selectedCategory;
-    const matchesLocale = unitMatchesLocale(u, locale);
-    return matchesSearch && matchesCat && matchesLocale;
+    const matchesCountry = !country || u.country === country;
+    return matchesSearch && matchesCat && matchesCountry;
   });
 
   return (
@@ -76,6 +77,17 @@ export default function FarmersPage() {
         >
           <option value="">{t('productsPage.allCategories')}</option>
           {categories.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+        <select
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+          className="px-4 py-2.5 rounded-lg border bg-card text-foreground font-sans text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          aria-label={t('country.filter')}
+        >
+          <option value="">{t('country.all')}</option>
+          {countries.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </select>

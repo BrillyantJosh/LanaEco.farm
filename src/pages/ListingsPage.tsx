@@ -4,7 +4,8 @@ import { ListingCard } from '@/components/ListingCard';
 import type { EcoListing } from '@/lib/nostr';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { TranslationKey } from '@/i18n/translations';
-import { unitMatchesLocale, unitIdFromRef } from '@/lib/locale';
+import { unitIdFromRef } from '@/lib/locale';
+import { useCountryFilter } from '@/lib/countryFilter';
 
 const CATEGORY_FILTERS = [
   'vegetables', 'fruits', 'dairy', 'meat', 'eggs', 'honey',
@@ -12,7 +13,8 @@ const CATEGORY_FILTERS = [
 ];
 
 export default function ListingsPage() {
-  const { t, locale } = useLanguage();
+  const { t } = useLanguage();
+  const [country, setCountry] = useCountryFilter();
   const [listings, setListings] = useState<EcoListing[]>([]);
   const [filtered, setFiltered] = useState<EcoListing[]>([]);
   const [unitCountryMap, setUnitCountryMap] = useState<Map<string, { country?: string; receiverCountry?: string }>>(new Map());
@@ -59,19 +61,22 @@ export default function ListingsPage() {
     }
     if (typeFilter) result = result.filter(l => l.type === typeFilter);
     if (categoryFilter) result = result.filter(l => l.tags.includes(categoryFilter));
-    // Locale filter: SL→SI variants only, EN→UK variants only (strict).
-    // A listing inherits its country from its parent unit (joined by unitRef).
-    result = result.filter((l: any) => {
-      const uid = unitIdFromRef(l.unitRef);
-      if (!uid) return false;
-      const u = unitCountryMap.get(uid);
-      if (!u) return false;
-      return unitMatchesLocale(u, locale);
-    });
+    // Country filter (optional). A listing inherits its country from its parent unit (joined by unitRef).
+    if (country) {
+      result = result.filter((l: any) => {
+        const uid = unitIdFromRef(l.unitRef);
+        if (!uid) return false;
+        const u = unitCountryMap.get(uid);
+        if (!u) return false;
+        return (u.country || '').toUpperCase() === country.toUpperCase();
+      });
+    }
     // Sort by cashback % descending — best deals first
     const _fr=(f:any)=>f==="new"?0:f==="top"?1:2; result.sort((a: any, b: any) => (_fr(a.featured)-_fr(b.featured)) || ((a.featured&&b.featured)?((b.featuredAt||0)-(a.featuredAt||0)):0) || ((b.cashbackPercent || 5) - (a.cashbackPercent || 5)));
     setFiltered(result);
-  }, [search, typeFilter, categoryFilter, listings, locale, unitCountryMap]);
+  }, [search, typeFilter, categoryFilter, listings, country, unitCountryMap]);
+
+  const countryOptions = Array.from(new Set(Array.from(unitCountryMap.values()).map(u => u.country).filter(Boolean))).sort() as string[];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -99,6 +104,14 @@ export default function ListingsPage() {
           <option value="">{t('listingsPage.allCategories')}</option>
           {CATEGORY_FILTERS.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
+        {countryOptions.length > 1 && (
+          <select value={country} onChange={e => setCountry(e.target.value)}
+            className="px-3 py-2.5 border rounded-lg text-sm font-sans"
+            aria-label={t('country.filter')}>
+            <option value="">{t('country.all')}</option>
+            {countryOptions.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        )}
       </div>
 
       {isLoading && (
