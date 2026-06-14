@@ -18,6 +18,7 @@ interface EcoUnit {
   status: string;
   registeredAt?: number;
   cashbackPercent: number;
+  featured?: 'top' | 'new' | null;
 }
 
 const NEW_BADGE_WINDOW_DAYS = 30;
@@ -165,7 +166,17 @@ export default function FarmersPage() {
               className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
             >
               <div className="aspect-[16/10] overflow-hidden bg-muted relative">
-                {isNew(unit.registeredAt) && (
+                {unit.featured === 'top' && (
+                  <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[11px] font-sans font-bold shadow-md">
+                    ★ TOP
+                  </span>
+                )}
+                {unit.featured === 'new' && (
+                  <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full bg-blue-500 text-white text-[11px] font-sans font-bold shadow-md">
+                    NEW
+                  </span>
+                )}
+                {unit.featured !== 'top' && unit.featured !== 'new' && isNew(unit.registeredAt) && (
                   <span className="absolute top-2 left-2 z-10 px-2.5 py-1 text-[10px] font-sans font-bold uppercase tracking-wider rounded-full bg-emerald-500 text-white shadow-md">
                     {t('badge.new' as any)}
                   </span>
