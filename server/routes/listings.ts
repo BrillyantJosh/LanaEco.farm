@@ -51,6 +51,7 @@ export function createListingsRouter(db: Database.Database): Router {
         try {
           const p = JSON.parse(u.parsed_json);
           const cat = String(p.category || '').trim().toLowerCase();
+          if (p.status && p.status !== 'active') continue; // archived/non-active unit → hide its listings too
           if (PORTAL_CATEGORIES.has(cat)) allowedUnitIds.add(u.unit_id);
         } catch {}
       }
