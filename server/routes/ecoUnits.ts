@@ -125,6 +125,13 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
           const ftb = b.featuredAt || 0;
           if (ftb !== fta) return ftb - fta;
         }
+        // Among non-featured units, freshly-registered (< 30 days) bubble up.
+        // This never outranks an admin TOP/NEW, since differing featureRank
+        // already returned above.
+        const NEW_WINDOW = 30 * 86400;
+        const aReg = a.registeredAt && now - a.registeredAt >= 0 && now - a.registeredAt <= NEW_WINDOW ? 1 : 0;
+        const bReg = b.registeredAt && now - b.registeredAt >= 0 && now - b.registeredAt <= NEW_WINDOW ? 1 : 0;
+        if (aReg !== bReg) return bReg - aReg;
         const ca = a.cashbackPercent || DEFAULT_CASHBACK;
         const cb = b.cashbackPercent || DEFAULT_CASHBACK;
         if (cb !== ca) return cb - ca;

@@ -65,14 +65,10 @@ const Index = () => {
     fetch('/api/eco-units')
       .then(res => res.json())
       .then((data: EcoUnit[]) => {
-        const filtered = data.filter(u => u.status === 'active');
-        filtered.sort((a, b) => {
-          const aNew = isNew(a.registeredAt) ? 1 : 0;
-          const bNew = isNew(b.registeredAt) ? 1 : 0;
-          if (aNew !== bNew) return bNew - aNew;
-          return 0;
-        });
-        setUnits(filtered);
+        // Server already returns units fully sorted (admin TOP/NEW first, then
+        // freshly-registered, then cashback). Preserve that order — do NOT re-sort,
+        // or the client would override the admin's TOP ranking.
+        setUnits(data.filter(u => u.status === 'active'));
         setIsLoading(false);
       })
       .catch(() => setIsLoading(false));

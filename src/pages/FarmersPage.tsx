@@ -39,14 +39,9 @@ export default function FarmersPage() {
     fetch('/api/eco-units')
       .then(res => res.json())
       .then((data: EcoUnit[]) => {
-        const filtered = data.filter(u => u.status === 'active');
-        filtered.sort((a, b) => {
-          const aNew = isNew(a.registeredAt) ? 1 : 0;
-          const bNew = isNew(b.registeredAt) ? 1 : 0;
-          if (aNew !== bNew) return bNew - aNew;
-          return 0;
-        });
-        setUnits(filtered);
+        // Preserve server ordering (admin TOP/NEW first). Do NOT re-sort here,
+        // or the client would override the admin's TOP ranking.
+        setUnits(data.filter(u => u.status === 'active'));
       })
       .catch(console.error)
       .finally(() => setIsLoading(false));
