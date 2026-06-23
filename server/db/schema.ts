@@ -15,6 +15,8 @@ export function initializeSchema(db: Database.Database): void {
       split_target_lana INTEGER DEFAULT 0,
       split_started_at INTEGER DEFAULT 0,
       split_ends_at INTEGER DEFAULT 0,
+      split_approaching INTEGER DEFAULT 0,
+      freeze_lana_retail_account_above INTEGER DEFAULT 0,
       raw_event TEXT,
       updated_at TEXT DEFAULT (datetime('now'))
     );
@@ -120,4 +122,8 @@ export function initializeSchema(db: Database.Database): void {
     );
     CREATE INDEX IF NOT EXISTS idx_features_target ON local_features(target_pubkey, target_type);
   `);
+
+  // Migration: KIND 38888 v3 fields (split_approaching + retail wallet freeze threshold)
+  try { db.exec(`ALTER TABLE kind_38888 ADD COLUMN split_approaching INTEGER DEFAULT 0`); } catch {}
+  try { db.exec(`ALTER TABLE kind_38888 ADD COLUMN freeze_lana_retail_account_above INTEGER DEFAULT 0`); } catch {}
 }

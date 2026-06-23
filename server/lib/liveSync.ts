@@ -133,8 +133,9 @@ function saveKind38888(db: Database.Database, p: any): void {
     INSERT OR REPLACE INTO kind_38888
       (id, event_id, split, exchange_rates, electrum_servers, relays,
        trusted_signers, version, valid_from, split_target_lana,
-       split_started_at, split_ends_at, raw_event, updated_at)
-    VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+       split_started_at, split_ends_at, split_approaching,
+       freeze_lana_retail_account_above, raw_event, updated_at)
+    VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
   `).run(
     p.event_id,
     p.split,
@@ -147,6 +148,8 @@ function saveKind38888(db: Database.Database, p: any): void {
     p.split_target_lana || 0,
     p.split_started_at || 0,
     p.split_ends_at || 0,
+    p.split_approaching ? 1 : 0,
+    p.freeze_lana_retail_account_above || 0,
     p.raw_event,
   );
 }

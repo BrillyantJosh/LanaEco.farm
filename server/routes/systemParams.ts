@@ -26,6 +26,8 @@ export function createSystemParamsRouter(db: Database.Database): Router {
       split_target_lana: row.split_target_lana,
       split_started_at: row.split_started_at,
       split_ends_at: row.split_ends_at,
+      split_approaching: row.split_approaching === 1,
+      freeze_lana_retail_account_above: row.freeze_lana_retail_account_above,
       updated_at: row.updated_at
     });
   });
