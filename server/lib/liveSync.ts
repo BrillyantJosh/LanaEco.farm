@@ -152,6 +152,11 @@ function saveKind38888(db: Database.Database, p: any): void {
     p.freeze_lana_retail_account_above || 0,
     p.raw_event,
   );
+  // Single-row invariant: we always write id=1, and every read is
+  // `ORDER BY id DESC LIMIT 1`. Purge any legacy higher-id rows (e.g. from the
+  // old per-poll auto-increment heartbeat) so a stale row can never shadow the
+  // fresh one — and to keep the table from bloating.
+  db.prepare('DELETE FROM kind_38888 WHERE id != 1').run();
 }
 
 async function refreshKind38888(): Promise<string[]> {
