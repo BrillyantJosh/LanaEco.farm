@@ -69,7 +69,7 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
         // pending / suspended / frozen-label / rejected / quota_blocked /
         // quota_warning_80, plus any unit that never received a KIND 30903.
         const statusActive =
-          r.suspension_status === 'active' &&
+          (r.suspension_status === 'active' || String(r.suspension_status || '').startsWith('quota_warning')) &&
           (!r.suspension_active_until || r.suspension_active_until > now);
         if (!statusActive) continue;
         if (providerBlocks.has(r.pubkey)) continue;
