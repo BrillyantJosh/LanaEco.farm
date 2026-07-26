@@ -7,9 +7,12 @@ import type { TranslationKey } from '@/i18n/translations';
 import { unitIdFromRef, unitCountry, countryLabel, countryFlag } from '@/lib/locale';
 import { useCountryFilter } from '@/lib/countryFilter';
 
+// Produce categories from the KIND 36500 `t` vocabulary (see
+// lananostr.site/kinds.json). 'nuts' is its own category, separate from
+// 'seeds' — tree nuts are a different product and used to land in 'other'.
 const CATEGORY_FILTERS = [
   'vegetables', 'fruits', 'dairy', 'meat', 'eggs', 'honey',
-  'herbs', 'grains', 'preserved', 'drinks', 'mushrooms', 'flowers', 'seeds'
+  'herbs', 'grains', 'preserved', 'drinks', 'mushrooms', 'flowers', 'seeds', 'nuts'
 ];
 
 export default function ListingsPage() {
@@ -154,7 +157,14 @@ export default function ListingsPage() {
         <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
           className="px-3 py-2.5 border rounded-lg text-sm font-sans">
           <option value="">{t('listingsPage.allCategories')}</option>
-          {CATEGORY_FILTERS.map(c => <option key={c} value={c}>{c}</option>)}
+          {/* Translate the label — this dropdown used to print the raw English
+              slug, so Slovene visitors saw "seeds"/"nuts" instead of
+              "semena"/"oreščki". Same cat.* keys the cards already use. */}
+          {CATEGORY_FILTERS.map(c => {
+            const key = `cat.${c}` as TranslationKey;
+            const label = t(key);
+            return <option key={c} value={c}>{label !== key ? label : c}</option>;
+          })}
         </select>
       </div>
 

@@ -277,6 +277,7 @@ const en = {
   'cat.mushrooms': 'mushrooms',
   'cat.flowers': 'flowers',
   'cat.seeds': 'seeds',
+  'cat.nuts': 'nuts',
   'cat.other': 'other',
 
   // Delivery
@@ -792,6 +793,7 @@ const sl: typeof en = {
   'cat.mushrooms': 'gobe',
   'cat.flowers': 'rože',
   'cat.seeds': 'semena',
+  'cat.nuts': 'oreščki',
   'cat.other': 'drugo',
 
   // Delivery
