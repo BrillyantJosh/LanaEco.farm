@@ -123,16 +123,21 @@ export default function UnitDetailPage() {
   const galleryImages = images.slice(1);
 
   let openingHours: OpeningHours | null = null;
+  let openingHoursByAgreement = false;
   try {
     if (unit.openingHoursJson) {
       const parsed = JSON.parse(unit.openingHoursJson);
-      const week = (parsed.week || parsed) as Record<string, unknown>;
-      openingHours = {};
-      for (const [key, slots] of Object.entries(week)) {
-        if (Array.isArray(slots) && slots.length > 0) {
-          openingHours[key] = { enabled: true, open: (slots[0] as any).open || '', close: (slots[0] as any).close || '' };
-        } else if (Array.isArray(slots)) {
-          openingHours[key] = { enabled: false, open: '', close: '' };
+      if (parsed.by_agreement) {
+        openingHoursByAgreement = true;
+      } else {
+        const week = (parsed.week || parsed) as Record<string, unknown>;
+        openingHours = {};
+        for (const [key, slots] of Object.entries(week)) {
+          if (Array.isArray(slots) && slots.length > 0) {
+            openingHours[key] = { enabled: true, open: (slots[0] as any).open || '', close: (slots[0] as any).close || '' };
+          } else if (Array.isArray(slots)) {
+            openingHours[key] = { enabled: false, open: '', close: '' };
+          }
         }
       }
     }
@@ -383,12 +388,15 @@ export default function UnitDetailPage() {
             </div>
 
             {/* Opening hours */}
-            {openingHours && (
+            {(openingHours || openingHoursByAgreement) && (
               <div className="bg-card border rounded-xl p-5">
                 <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" />
                   {t('unit.openingHours')}
                 </h3>
+                {openingHoursByAgreement ? (
+                  <p className="text-sm font-sans text-foreground font-medium">{t('unit.byAgreement' as any)}</p>
+                ) : (
                 <div className="space-y-2">
                   {Object.entries(dayLabels).map(([key, label]) => {
                     const day = openingHours?.[key];
@@ -402,6 +410,7 @@ export default function UnitDetailPage() {
                     );
                   })}
                 </div>
+                )}
               </div>
             )}
 

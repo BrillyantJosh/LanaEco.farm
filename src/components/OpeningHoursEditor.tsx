@@ -24,6 +24,15 @@ interface OpeningHoursEditorProps {
   onChange: (json: string) => void;
 }
 
+function parseByAgreement(json: string): boolean {
+  if (!json) return false;
+  try {
+    return !!JSON.parse(json).by_agreement;
+  } catch {
+    return false;
+  }
+}
+
 function parseJson(json: string): Record<DayKey, DaySchedule> {
   const defaults: Record<DayKey, DaySchedule> = {
     mon: { enabled: true, open: '09:00', close: '18:00' },
@@ -59,7 +68,7 @@ function parseJson(json: string): Record<DayKey, DaySchedule> {
   return defaults;
 }
 
-function toJson(schedule: Record<DayKey, DaySchedule>): string {
+function toJson(schedule: Record<DayKey, DaySchedule>, byAgreement: boolean): string {
   const week: Record<string, { open: string; close: string }[]> = {};
   for (const day of DAYS) {
     const s = schedule[day.key];
@@ -71,16 +80,18 @@ function toJson(schedule: Record<DayKey, DaySchedule>): string {
     week,
     exceptions: [],
     always_open: false,
+    by_agreement: byAgreement,
     notes: ''
   });
 }
 
 export function OpeningHoursEditor({ value, onChange }: OpeningHoursEditorProps) {
   const [schedule, setSchedule] = useState(() => parseJson(value));
+  const [byAgreement, setByAgreement] = useState(() => parseByAgreement(value));
 
   useEffect(() => {
-    onChange(toJson(schedule));
-  }, [schedule]);
+    onChange(toJson(schedule, byAgreement));
+  }, [schedule, byAgreement]);
 
   const updateDay = (day: DayKey, updates: Partial<DaySchedule>) => {
     setSchedule(prev => ({
@@ -109,6 +120,27 @@ export function OpeningHoursEditor({ value, onChange }: OpeningHoursEditorProps)
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Opening Hours</span>
       </div>
 
+      <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+        <button
+          type="button"
+          onClick={() => setByAgreement(!byAgreement)}
+          className="flex-shrink-0"
+          title="By appointment"
+        >
+          {byAgreement ? (
+            <ToggleRight className="w-7 h-7 text-blue-500" />
+          ) : (
+            <ToggleLeft className="w-7 h-7 text-gray-300 dark:text-gray-600" />
+          )}
+        </button>
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">By appointment</span>
+      </div>
+
+      {byAgreement ? (
+        <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+          Customers will contact you directly to arrange a time — no fixed hours are shown.
+        </p>
+      ) : (
       <div className="space-y-2">
         {DAYS.map(({ key, label }) => (
           <div key={key} className="flex items-center gap-3">
@@ -165,6 +197,7 @@ export function OpeningHoursEditor({ value, onChange }: OpeningHoursEditorProps)
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }
