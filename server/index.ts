@@ -1,4 +1,5 @@
 import express from 'express';
+import compression from 'compression';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
@@ -16,6 +17,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Gzip every response. Measured 2026-08-05 on direct.lana.fund: a 5.1 MB
+// admin JSON feed was going out UNCOMPRESSED — nothing in the chain (app or
+// nginx-proxy) set Content-Encoding — and the page took ~10 s. The same
+// payload gzips ~10x. Registered first so it wraps every route.
+app.use(compression());
 app.set('trust proxy', 1); // Trust nginx proxy — use real client IP for rate limiting
 const PORT = process.env.SERVER_PORT || process.env.PORT || 3007;
 
