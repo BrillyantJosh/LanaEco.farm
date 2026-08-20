@@ -98,6 +98,7 @@ async function fetchFromRelay(relayUrl: string, timeout = 15000): Promise<NostrE
 
     ws.on('close', () => {
       clearTimeout(timeoutId);
+      resolve(null);
     });
   });
 }
