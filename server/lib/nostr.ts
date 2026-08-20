@@ -230,8 +230,12 @@ export async function publishEventToRelays(
         resolve(false);
       });
 
+      // A relay may close without ever sending OK (NIP-42 auth-required, or a
+      // restart mid-publish). This must answer too: the timeout guard is already
+      // cleared by then, so nothing else would ever settle this promise.
       ws.on('close', () => {
         clearTimeout(timeoutId);
+        resolve(false);
       });
     });
   };
