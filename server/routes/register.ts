@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
 
-const SUPABASE_CHECK_URL = 'https://laluxmwarlejdwyboudz.supabase.co/functions/v1/check';
-const SUPABASE_REGISTER_URL = 'https://laluxmwarlejdwyboudz.supabase.co/functions/v1/register-virgin-wallets';
+const REGISTRAR_BASE_URL = process.env.REGISTRAR_URL || 'https://lanatrace.us';
+const SUPABASE_CHECK_URL = `${REGISTRAR_BASE_URL}/functions/v1/check`;
+const SUPABASE_REGISTER_URL = `${REGISTRAR_BASE_URL}/functions/v1/register-virgin-wallets`;
 
 // Validate wallet format: starts with 'L', 26-35 chars, alphanumeric
 function isValidWalletId(wallet_id: string): boolean {
