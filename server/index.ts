@@ -13,6 +13,7 @@ import { createRegisterRouter } from './routes/register.js';
 import { createListingsRouter } from './routes/listings.js';
 import { createAdminRouter } from './routes/admin.js';
 import { createOrdersRouter } from './routes/orders.js';
+import { isStaticAssetRequest } from './lib/rateLimitSkip.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,14 +56,16 @@ const globalLimiter = rateLimit({
   max: 500,
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => {
-    // Skip rate limiting for static assets — the order status page polls
-    // every 5 s and must never be starved by its own JS/CSS bundle.
-    const url = req.url;
-    return url.startsWith('/assets/') || url.endsWith('.js') || url.endsWith('.css') || url.endsWith('.png') || url.endsWith('.ico') || url.endsWith('.jpg') || url.endsWith('.jpeg') || url.endsWith('.svg') || url.endsWith('.woff') || url.endsWith('.woff2') || url.endsWith('.webp');
-  },
+  // Static files of the page only (GET/HEAD, by path — never by the query
+  // string): the order status page polls the API and must never be starved
+  // by its own JS/CSS bundle. See lib/rateLimitSkip.ts.
+  skip: (req) => isStaticAssetRequest(req),
 });
 app.use(globalLimiter);
+
+// POST /api/uploads has no auth (it is the fallback when media.lanaloves.us
+// fails) and costs two sharp re-encodes and disk per call: its own limit.
+const uploadLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 
 // Request logging. originalUrl, not url: by 'finish' a mounted router has
 // stripped its prefix from req.url, so every /api/listings call was logged
@@ -83,7 +86,7 @@ const db = getDb();
 
 // Routes
 app.use('/api/system-params', createSystemParamsRouter(db));
-app.use('/api/uploads', createUploadsRouter());
+app.use('/api/uploads', (req, res, next) => (req.method === 'POST' ? uploadLimiter(req, res, next) : next()), createUploadsRouter());
 app.use('/api/eco-units', createEcoUnitsRouter(db));
 app.use('/api/listings', createListingsRouter(db));
 app.use('/api/admin', createAdminRouter(db));
