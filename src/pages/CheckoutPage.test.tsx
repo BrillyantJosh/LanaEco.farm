@@ -54,7 +54,8 @@ beforeEach(() => {
   fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
     const body = init?.body ? JSON.parse(String(init.body)) : null;
     if (url === '/api/orders/quote') {
-      return { ok: true, status: 200, json: async () => quoteFor(body.fulfillment) };
+      // 'auto' (the first quote): this listing can be shipped
+      return { ok: true, status: 200, json: async () => quoteFor(body.fulfillment === 'auto' ? 'shipping' : body.fulfillment) };
     }
     posted.push({ url, body });
     return { ok: true, status: 200, json: async () => ({ pay_url: 'https://pay.test/checkout/x' }) };
@@ -243,7 +244,7 @@ describe('CheckoutPage — a pickup-only product (lanaeco.farm)', () => {
       const body = init?.body ? JSON.parse(String(init.body)) : null;
       if (url === '/api/orders/quote') {
         quoted.push(body.fulfillment);
-        if (body.fulfillment !== 'pickup') return { ok: false, status: 400, json: async () => ({ code: 'INVALID_REQUEST', reason: 'fulfillment' }) };
+        if (body.fulfillment === 'shipping') return { ok: false, status: 400, json: async () => ({ code: 'INVALID_REQUEST', reason: 'fulfillment' }) };
         return { ok: true, status: 200, json: async () => ({ ...quoteFor('pickup'), fulfillmentModes: ['pickup'] }) };
       }
       posted.push({ url, body });
@@ -256,8 +257,9 @@ describe('CheckoutPage — a pickup-only product (lanaeco.farm)', () => {
   it('starts on pickup, offers no shipping, says so, and asks for no address', async () => {
     const quoted = pickupOnlyServer();
     await renderPage();
-    expect(quoted[0]).toBe('shipping');
-    expect(quoted).toContain('pickup');
+    // the first quote lets the server pick; shipping is never asked for (no refused request)
+    expect(quoted[0]).toBe('auto');
+    expect(quoted).not.toContain('shipping');
     const buttons = Array.from(container.querySelectorAll('fieldset button')).map(b => b.textContent?.trim());
     expect(buttons).toEqual(['Prevzem pri pridelovalcu']);
     expect(container.querySelector('[data-testid="checkout-pickup-only"]')?.textContent).toBe('Ti izdelki so le za prevzem pri pridelovalcu — brez poštnine.');
@@ -315,7 +317,8 @@ describe('CheckoutPage — the cart of one shop becomes ONE order', () => {
     cartStore.add({ pubkey: OTHER_HEX, listingId: 'other', unitId: OTHER_UNIT, qty: 1, display: disp('Drugje') });
     cartStore.add({ pubkey: OWNER_HEX, listingId: 'lst2', unitId: UNIT_ID, qty: 2, display: disp('Hruške') });
     quoteBodies = [];
-    quoteImpl = (body) => cartQuote(body.fulfillment);
+    // 'auto' (the first quote): these products can be shipped
+    quoteImpl = (body) => cartQuote(body.fulfillment === 'auto' ? 'shipping' : body.fulfillment);
     orderStatus = 201;
     fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
       const body = init?.body ? JSON.parse(String(init.body)) : null;
@@ -363,7 +366,7 @@ describe('CheckoutPage — the cart of one shop becomes ONE order', () => {
     expect((container.querySelector('[data-testid="checkout-total"]')?.textContent || '').replace(/\u00a0/g, ' ')).toBe('26,46 €');
     expect(container.querySelector('a[href="/kosarica"]')?.textContent).toContain('Nazaj v košarico');
     // only this shop's lines were quoted, and only which product + how many (+ the shop they are filed under)
-    expect(quoteBodies[0]).toEqual({ lines: [{ pubkey: OWNER_HEX, listingId: 'lst1', qty: 3 }, { pubkey: OWNER_HEX, listingId: 'lst2', qty: 2 }], fulfillment: 'shipping', unitId: UNIT_ID });
+    expect(quoteBodies[0]).toEqual({ lines: [{ pubkey: OWNER_HEX, listingId: 'lst1', qty: 3 }, { pubkey: OWNER_HEX, listingId: 'lst2', qty: 2 }], fulfillment: 'auto', unitId: UNIT_ID });
   });
 
   it('the heading names the shop, and says the other shops\' products stay in the cart', async () => {
@@ -439,7 +442,7 @@ describe('CheckoutPage — the cart of one shop becomes ONE order', () => {
       );
     });
     await flush();
-    expect(quoteBodies[0]).toEqual({ lines: [{ pubkey: OWNER_HEX, listingId: 'lst1', qty: 3 }], fulfillment: 'shipping' });
+    expect(quoteBodies[0]).toEqual({ lines: [{ pubkey: OWNER_HEX, listingId: 'lst1', qty: 3 }], fulfillment: 'auto' });
     await fillPickup();
     await submit();
     const { order } = orderPosts()[0].body;

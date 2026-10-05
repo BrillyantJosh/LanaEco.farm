@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
 import { limitKind, lineKey, lineTotal, qtyBounds, sumLines, toQuoteLines, type CartLine, type ShopGroup } from '@/lib/cart';
-import { fetchCartQuoteAnyMode, itemMatchesLine, QuoteFailure, type Quote } from '@/lib/cartQuote';
+import { fetchCartQuote, itemMatchesLine, QuoteFailure, type Quote } from '@/lib/cartQuote';
 import { formatPrice, formatQty } from '@/lib/format';
 import type { TranslationKey } from '@/i18n/translations';
 
@@ -71,7 +71,7 @@ function ShopCart({ group }: { group: ShopGroup }) {
     const timer = setTimeout(() => {
       // Shipping when the products allow it; a pickup-only product (farm)
       // makes the whole order pickup — priced without a shipping fee.
-      fetchCartQuoteAnyMode(JSON.parse(linesKey), 'shipping', ctl.signal, group.unitId)
+      fetchCartQuote(JSON.parse(linesKey), 'auto', ctl.signal, group.unitId)
         .then(quote => { if (!ctl.signal.aborted) setState({ forKey: linesKey, quote, failure: null }); })
         .catch(err => {
           if (ctl.signal.aborted) return;

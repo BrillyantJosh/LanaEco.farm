@@ -60,7 +60,12 @@ export class QuoteFailure extends Error {
  * under: a product that has moved to another unit is then refused as its own
  * line, never blamed on its neighbours.
  */
-export async function fetchCartQuote(lines: QuoteLine[], fulfillment: 'shipping' | 'pickup', signal?: AbortSignal, unitId?: string): Promise<Quote> {
+/**
+ * `fulfillment: 'auto'` = shipping when every line can be shipped, else
+ * pickup (a pickup-only farm product is never shipped); the quote's
+ * `fulfillment` says which was priced. An order always names one.
+ */
+export async function fetchCartQuote(lines: QuoteLine[], fulfillment: 'shipping' | 'pickup' | 'auto', signal?: AbortSignal, unitId?: string): Promise<Quote> {
   const res = await fetch('/api/orders/quote', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -84,26 +89,6 @@ export async function fetchCartQuote(lines: QuoteLine[], fulfillment: 'shipping'
     );
   }
   return body as Quote;
-}
-
-/** Was this refusal only about the hand-over (shipping / pickup), not the products? */
-export function isFulfillmentRefusal(err: unknown): boolean {
-  return err instanceof QuoteFailure && err.code === 'INVALID_REQUEST' && err.reason === 'fulfillment';
-}
-
-/**
- * Price these lines, preferring `preferred`; when ONLY the hand-over is
- * refused — on lanaeco.farm a pickup-only product is never shipped — price
- * the other one. The quote's `fulfillment` says which was priced and
- * `fulfillmentModes` which are allowed. Any other refusal is thrown as is.
- */
-export async function fetchCartQuoteAnyMode(lines: QuoteLine[], preferred: 'shipping' | 'pickup', signal?: AbortSignal, unitId?: string): Promise<Quote> {
-  try {
-    return await fetchCartQuote(lines, preferred, signal, unitId);
-  } catch (err) {
-    if (!isFulfillmentRefusal(err)) throw err;
-    return fetchCartQuote(lines, preferred === 'shipping' ? 'pickup' : 'shipping', signal, unitId);
-  }
 }
 
 /** Does a quote item belong to this request line? (a = '<kind>:<pubkey>:<listing id>') */

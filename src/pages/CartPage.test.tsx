@@ -160,8 +160,8 @@ describe('CartPage', () => {
     const byShop = (x: any, y: any) => (x.lines[0].pubkey < y.lines[0].pubkey ? -1 : 1);
     // (+ the shop the cart files them under, so a moved product is blamed alone)
     expect([...posted].sort(byShop)).toEqual([
-      { lines: [{ pubkey: OWNER_A, listingId: 'jabolka', qty: 3 }, { pubkey: OWNER_A, listingId: 'hruske', qty: 2 }], fulfillment: 'shipping', unitId: UNIT_A },
-      { lines: [{ pubkey: OWNER_B, listingId: 'med', qty: 1 }], fulfillment: 'shipping', unitId: UNIT_B },
+      { lines: [{ pubkey: OWNER_A, listingId: 'jabolka', qty: 3 }, { pubkey: OWNER_A, listingId: 'hruske', qty: 2 }], fulfillment: 'auto', unitId: UNIT_A },
+      { lines: [{ pubkey: OWNER_B, listingId: 'med', qty: 1 }], fulfillment: 'auto', unitId: UNIT_B },
     ]);
     expect(JSON.stringify(posted)).not.toContain('0.01');
     // "Na blagajno" per shop → that shop's checkout
@@ -294,6 +294,7 @@ describe('CartPage', () => {
     const pickupOnly = (body: any) => {
       if (body.lines[0].pubkey !== OWNER_A) return null;
       if (body.fulfillment === 'shipping') return { status: 400, body: { code: 'INVALID_REQUEST', reason: 'fulfillment' } };
+      // 'auto' and 'pickup' price pickup
       override = null;
       const r = quoteResponse(body);
       override = pickupOnly;
@@ -305,7 +306,8 @@ describe('CartPage', () => {
     await settle();
     await wait(0);
     const [a, b] = shops();
-    expect(posted.filter(p => p.lines[0].pubkey === OWNER_A).map(p => p.fulfillment)).toEqual(['shipping', 'pickup']);
+    // ONE quote, 'auto': the server picks pickup — no refused request on the way
+    expect(posted.filter(p => p.lines[0].pubkey === OWNER_A).map(p => p.fulfillment)).toEqual(['auto']);
     expect(a.querySelector('[data-testid="cart-pickup-only"]')?.textContent).toBe('Ti izdelki so le za prevzem pri pridelovalcu — brez poštnine.');
     expect(a.querySelector('[data-testid="cart-shipping"]')).toBeNull();
     expect(text(a.querySelector('[data-testid="cart-total"]'))).toBe('21,46 €'); // 13.50 + 7.96, no fee

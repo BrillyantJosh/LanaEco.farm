@@ -427,13 +427,17 @@ export function createOrdersRouter(db: Database.Database): Router {
   //                        | {lines:[{pubkey, listingId, qty}], fulfillment, unitId?}
   // `maxItems` = how many different products one ORDER may carry right now
   // (SHOP_MAX_ITEMS); a cart quote may price up to MAX_ITEMS_PER_ORDER lines.
+  // fulfillment 'auto' (the cart page, the checkout's first quote): shipping
+  // when every line can be shipped, else pickup — a pickup-only farm product
+  // is never shipped; the quote's `fulfillment` says which was priced. Only
+  // a quote takes 'auto': an order names shipping or pickup.
   router.post('/quote', quoteLimiter, (req: Request, res: Response) => {
     const b = req.body || {};
     const toQty = (v: unknown) => (typeof v === 'number' ? v : parseInt(String(v ?? ''), 10));
     const isCart = Array.isArray(b.lines);
     try {
-      const fulfillment = String(b.fulfillment || 'shipping');
-      const quote = isCart
+      const wanted = String(b.fulfillment || 'shipping');
+      const price = (fulfillment: string): Quote => (isCart
         ? buildCartQuote(db, {
           lines: (b.lines as unknown[]).slice(0, MAX_ITEMS_PER_ORDER + 1).map((l: any): QuoteLineRequest => ({
             pubkey: String(l?.pubkey || ''),
@@ -448,7 +452,18 @@ export function createOrdersRouter(db: Database.Database): Router {
           listingId: String(b.listingId || ''),
           qty: toQty(b.qty),
           fulfillment,
-        });
+        }));
+      let quote: Quote;
+      if (wanted === 'auto') {
+        try {
+          quote = price('shipping');
+        } catch (err) {
+          if (!(err instanceof QuoteError && err.code === 'INVALID_REQUEST' && err.reason === 'fulfillment')) throw err;
+          quote = price('pickup');
+        }
+      } else {
+        quote = price(wanted);
+      }
       const { listingCreatedAt: _omit, ...pub } = quote;
       res.json({ ...pub, maxItems: maxItemsPerOrder(), relays: getEffectiveRelays(db) });
     } catch (err) {

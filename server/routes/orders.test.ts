@@ -637,6 +637,23 @@ describe('hand-over on lanaeco.farm: the listing\'s own delivery tag', () => {
     expect(pick.body.shipping).toBe('0.00');
     expect(pick.body.total).toBe('8.00');
   });
+  it('fulfillment "auto" (cart page, first checkout quote): shipping when every line ships, else pickup — no 400', async () => {
+    seedFarm();
+    const apples = { pubkey: owner.pk, listingId: LISTING_ID, qty: 1 };
+    const ship = await quote({ ...apples, fulfillment: 'auto' });
+    expect(ship.status).toBe(200);
+    expect(ship.body).toMatchObject({ fulfillment: 'shipping', shipping: '5.00', fulfillmentModes: ['shipping', 'pickup'] });
+    const pick = await quote({ lines: [apples, beets()], fulfillment: 'auto' });
+    expect(pick.status).toBe(200);
+    expect(pick.body).toMatchObject({ fulfillment: 'pickup', shipping: '0.00', total: '9.00', fulfillmentModes: ['pickup'] });
+    // any other refusal is still that refusal
+    const off = await quote({ pubkey: owner.pk, listingId: 'nope', qty: 1, fulfillment: 'auto' });
+    expect(off.body).toMatchObject({ code: 'NOT_BUYABLE', reason: 'listing_unknown' });
+    // an order never takes 'auto'
+    const g = goodOrder({ items: [['item', itemBeets(), '1', 'kg', '4.00', 'EUR']], shipping: '0.00', total: '4.00', fulfillment: 'auto' });
+    stubBroker(201);
+    expect((await request(app).post('/api/orders').send({ order: g.order, delivery: g.delivery })).status).toBe(400);
+  });
   it('a pickup-only listing of a shop without online pickup cannot be bought (pickup_only)', async () => {
     seedFarm({ pickup: false });
     for (const fulfillment of ['shipping', 'pickup']) {

@@ -34,7 +34,7 @@ import {
 } from '@/lib/checkoutValidation';
 import { useCart, cartStore } from '@/contexts/CartContext';
 import { lineKey, lineTotal, shopKey, sumLines, toQuoteLines } from '@/lib/cart';
-import { fetchCartQuote, fetchCartQuoteAnyMode, sameQuote, QuoteFailure, type Quote, type QuoteLine } from '@/lib/cartQuote';
+import { fetchCartQuote, sameQuote, QuoteFailure, type Quote, type QuoteLine } from '@/lib/cartQuote';
 import { formatPrice } from '@/lib/format';
 
 /** The old order's items (public view) as quote lines — for a retry of a cart order. */
@@ -106,6 +106,8 @@ export default function CheckoutPage() {
   // Set once the order exists: its lines then leave the cart, and the page
   // must not re-quote an emptied cart while the browser leaves for pay_url.
   const placed = useRef(false);
+  /** Set once a quote has fixed the hand-over (the first 'auto' quote, or the shopper's click). */
+  const handOverSet = useRef(false);
 
   const set = (k: keyof CheckoutForm) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
 
@@ -115,14 +117,19 @@ export default function CheckoutPage() {
     if (current.length === 0) { setQuote(null); setQuoteError('EMPTY'); setLoading(false); return; }
     let alive = true;
     setLoading(true);
-    // A pickup-only product (farm) is never shipped: when only the hand-over
-    // is refused, the other one is priced and becomes the choice.
-    fetchCartQuoteAnyMode(current, fulfillment, undefined, quoteUnitId)
+    // Until the shopper picks one, the server picks: shipping when every
+    // product can be shipped, else pickup (a pickup-only farm product is
+    // never shipped) — and that becomes the choice.
+    const auto = !handOverSet.current;
+    fetchCartQuote(current, auto ? 'auto' : fulfillment, undefined, quoteUnitId)
       .then(q => {
         if (!alive) return;
         setQuote(q);
         setQuoteError(null);
-        if (q.fulfillment !== fulfillment && (q.fulfillment === 'shipping' || q.fulfillment === 'pickup')) setFulfillment(q.fulfillment);
+        if (auto && (q.fulfillment === 'shipping' || q.fulfillment === 'pickup')) {
+          handOverSet.current = true;
+          if (q.fulfillment !== fulfillment) setFulfillment(q.fulfillment);
+        }
       })
       .catch(err => {
         if (!alive) return;
@@ -319,13 +326,13 @@ export default function CheckoutPage() {
               <legend className="text-xs font-sans font-medium text-muted-foreground mb-2 uppercase tracking-wider">{t('checkout.fulfillment')}</legend>
               <div className="flex gap-2">
                 {canShip && (
-                  <button type="button" onClick={() => setFulfillment('shipping')}
+                  <button type="button" onClick={() => { handOverSet.current = true; setFulfillment('shipping'); }}
                     className={`flex-1 inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-sans transition ${fulfillment === 'shipping' ? 'border-primary bg-primary/10 text-primary' : 'border-input text-muted-foreground hover:bg-muted'}`}>
                     <Truck className="w-4 h-4" /> {t('checkout.shipping')}
                   </button>
                 )}
                 {canPickup && (
-                  <button type="button" onClick={() => setFulfillment('pickup')}
+                  <button type="button" onClick={() => { handOverSet.current = true; setFulfillment('pickup'); }}
                     className={`flex-1 inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-sans transition ${fulfillment === 'pickup' ? 'border-primary bg-primary/10 text-primary' : 'border-input text-muted-foreground hover:bg-muted'}`}>
                     <Store className="w-4 h-4" /> {t('checkout.pickup')}
                   </button>
