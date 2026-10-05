@@ -85,4 +85,42 @@ describe('order mirror on the live subscription', () => {
       .toEqual([{ order_id: farmId, unit_id: UNIT_ID, payment_state: 'paid' }]);
     expect(db.prepare('SELECT order_id FROM order_settle_review').all()).toEqual([]);
   });
+
+  it('a newer version of an order it holds is taken and judged afresh, even when it names another portal\'s item', async () => {
+    // v1: this portal's order, paid. v2 (same d, later): the buyer's
+    // replacement that adds a 36502 line. The other copies (lanaeco.shop,
+    // mobile) replace v1 with v2 and judge it not paid; this mirror must
+    // not keep v1's 'paid' by dropping v2 as "another portal's order".
+    const orderId = orderIdFor(buyer);
+    const t0 = Math.floor(Date.now() / 1000) - 120;
+    const itemA = `${LISTING_KIND}:${owner.pk}:${LISTING_ID}`;
+    const v1 = orderEvent(buyer, { orderId, ownerHex: owner.pk, itemA, client: 'www.lanaeco.farm', created_at: t0 });
+    const v2 = orderEvent(buyer, {
+      orderId, ownerHex: owner.pk, itemA, client: 'www.lanaeco.farm', created_at: t0 + 30, total: '13.50',
+      items: [
+        ['item', itemA, '2', 'kg', '5.00', 'EUR'],
+        ['item', `36502:${owner.pk}:other-listing`, '1', 'piece', '1.00', 'EUR'],
+      ],
+    });
+    const pays = purchaseEvent(brain, { invoiceNumber: orderId, receiptDescription: bindingString(buyer.pk, orderId) });
+    const base = (f: any) => [
+      ...(asksFor(f, 30901) ? [unitEvent(owner, { fee: '2.50' })] : []),
+      ...(asksFor(f, 30903) ? [suspensionEvent(processor, owner)] : []),
+      ...(asksFor(f, LISTING_KIND) ? [listingEvent(owner, { price: '5.00' })] : []),
+      ...(asksFor(f, 30933) ? [pays] : []),
+    ];
+    const state = () => db.prepare('SELECT order_event_id, payment_state FROM orders WHERE order_id = ?').get(orderId) as any;
+
+    relay = await fakeRelay(f => [...base(f), ...(asksFor(f, 36520) ? [v1] : [])]);
+    await startLiveSync(db, { listingKinds: [LISTING_KIND], relays: [relay.url] });
+    await until(() => state()?.payment_state === 'paid');
+    expect(state().order_event_id).toBe(v1.id);
+    stopLiveSync();
+    await relay.close();
+
+    relay = await fakeRelay(f => [...base(f), ...(asksFor(f, 36520) ? [v2] : [])]);
+    await startLiveSync(db, { listingKinds: [LISTING_KIND], relays: [relay.url] });
+    await until(() => state()?.order_event_id === v2.id);
+    expect(state().payment_state).not.toBe('paid');
+  });
 });

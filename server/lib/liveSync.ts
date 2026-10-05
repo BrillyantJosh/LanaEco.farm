@@ -511,7 +511,12 @@ function upsertShopOrder(ev: NostrEvent, now: number): void {
   // so the mirror could only call it amount_mismatch and, once its 30933
   // lands, list it in order_settle_review as not_computable — another
   // portal's paid order on Brilly's list, and on the per-unit open-order cap.
-  if (parsed.items.length === 0 || parsed.items.some(it => !cfg.listingKinds.includes(it.kind))) return;
+  // The rule only keeps OUT orders this mirror does not hold: a newer version
+  // of an order it holds always reaches upsertOrderEvent and is judged afresh,
+  // as in every other copy — else a buyer's replacement naming a foreign item
+  // would be dropped here and the old version's 'paid' would stand.
+  const foreign = parsed.items.length === 0 || parsed.items.some(it => !cfg.listingKinds.includes(it.kind));
+  if (foreign && !dbRef.prepare('SELECT 1 FROM orders WHERE order_id = ?').get(parsed.orderId)) return;
   if (isTombstoned(KIND_SHOP_ORDER, ev.pubkey, parsed.orderId, ev.created_at)) return;
   upsertOrderEvent(dbRef, ev, now);
 }
