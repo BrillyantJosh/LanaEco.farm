@@ -9,6 +9,8 @@ import heroImageWebp from "@/assets/hero-farm.webp";
 import heroImageJpg from "@/assets/hero-farm.jpg";
 import productsImageWebp from "@/assets/products-bg.webp";
 import productsImageJpg from "@/assets/products-bg.jpg";
+import { QuickAddOverlay } from "@/components/ListingCard";
+import type { EcoListing as FullListing } from "@/lib/nostr";
 
 interface EcoListing {
   listingId: string;
@@ -370,10 +372,10 @@ const Index = () => {
             {localizedListings.map((listing) => {
               const isTopDeal = (listing.cashbackPercent || 5) >= 15;
               return (
+              <div key={`${listing.pubkey}-${listing.listingId}`} className="relative">
               <Link
-                key={`${listing.pubkey}-${listing.listingId}`}
                 to={`/ponudba/${listing.pubkey}/${listing.listingId}`}
-                className={`group rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 ${isTopDeal ? 'bg-green-50 border-2 border-green-300 ring-2 ring-green-100' : 'bg-card border'}`}
+                className={`group block h-full rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 ${isTopDeal ? 'bg-green-50 border-2 border-green-300 ring-2 ring-green-100' : 'bg-card border'}`}
               >
                 <div className="aspect-[16/10] overflow-hidden bg-muted">
                   {(listing.thumbs?.[0] || listing.images[0]) ? (
@@ -407,6 +409,9 @@ const Index = () => {
                   )}
                 </div>
               </Link>
+              {/* "+" on the photo's corner (Lana Online Shop) — only when buyable */}
+              <QuickAddOverlay listing={listing as unknown as FullListing} frame="inset-x-0 top-0 aspect-[16/10]" />
+              </div>
               );
             })}
           </div>

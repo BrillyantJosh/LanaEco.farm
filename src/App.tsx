@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +20,11 @@ const AbundancePage = lazy(() => import("./pages/AbundancePage.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const AdminLoginPage = lazy(() => import("./pages/AdminLoginPage.tsx"));
 const AdminPage = lazy(() => import("./pages/AdminPage.tsx"));
+// Lana Online Shop — identical paths on every LanaRetail portal (SPEC §9.3)
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage.tsx"));
+const OrderStatusPage = lazy(() => import("./pages/OrderStatusPage.tsx"));
+const MyOrdersPage = lazy(() => import("./pages/MyOrdersPage.tsx"));
+const CartPage = lazy(() => import("./pages/CartPage.tsx"));
 
 // Redirect component for external URLs
 function ExternalRedirect({ url }: { url: string }) {
@@ -52,6 +57,13 @@ const App = () => (
                 <Route path="/ponudbe" element={<ListingsPage />} />
                 <Route path="/ponudba/:pubkey/:listingId" element={<ListingDetailPage />} />
                 <Route path="/ekonomija-obilja" element={<AbundancePage />} />
+                {/* Lana Online Shop */}
+                <Route path="/kosarica" element={<CartPage />} />
+                <Route path="/cart" element={<Navigate to="/kosarica" replace />} />
+                <Route path="/kosarica/narocilo/:ownerHex/:unitId" element={<CheckoutPage />} />
+                <Route path="/narocilo/novo/:pubkey/:listingId" element={<CheckoutPage />} />
+                <Route path="/narocilo/:orderId" element={<OrderStatusPage />} />
+                <Route path="/moja-narocila" element={<MyOrdersPage />} />
                 {/* Admin (per-portal moderation) */}
                 <Route path="/admin/login" element={<AdminLoginPage />} />
                 <Route

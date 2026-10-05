@@ -1,17 +1,54 @@
-import { Leaf, LogIn, Menu, X, ShieldCheck } from "lucide-react";
+import { Leaf, LogIn, Menu, X, ShieldCheck, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
+import type { TranslationKey } from "@/i18n/translations";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import { isAdminHex } from "@/components/AdminProtectedRoute";
+import { useCart } from "@/contexts/CartContext";
+import { pluralForm } from "@/lib/format";
 
 const navKeys = [
   { key: 'nav.home' as const, path: "/" },
   { key: 'nav.farms' as const, path: "/kmetje" },
   { key: 'nav.listings' as const, path: "/ponudbe" },
   { key: 'nav.guidelines' as const, path: "/smernice" },
+  { key: 'nav.myOrders' as const, path: "/moja-narocila" },
 ];
+
+/**
+ * Cart icon with a badge = how many DIFFERENT products are in the cart (kg
+ * and kos do not add up). In the bar itself on every width — never hidden
+ * inside the mobile menu.
+ */
+export function CartButton({ className = '' }: { className?: string }) {
+  const { t, locale } = useLanguage();
+  const { count } = useCart();
+  const location = useLocation();
+  const active = location.pathname === '/kosarica' || location.pathname.startsWith('/kosarica/');
+  const items = t(`cart.count.${pluralForm(locale, count)}` as TranslationKey, { count });
+  return (
+    <Link
+      to="/kosarica"
+      aria-label={t('cart.aria', { items })}
+      aria-current={active ? 'page' : undefined}
+      data-testid="header-cart"
+      className={`relative inline-flex items-center justify-center rounded-lg p-2 transition-colors hover:text-primary ${active ? 'text-primary' : 'text-foreground'} ${className}`}
+    >
+      <ShoppingCart className="h-6 w-6" aria-hidden="true" />
+      {count > 0 && (
+        <span
+          aria-hidden="true"
+          data-testid="header-cart-count"
+          className="absolute -right-0.5 -top-0.5 min-w-[1.25rem] rounded-full bg-primary px-1 text-center text-[11px] font-sans font-bold leading-5 text-primary-foreground"
+        >
+          {count > 99 ? '99+' : count}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -22,16 +59,18 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b">
-      <div className="container mx-auto flex items-center justify-between py-4 px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <Leaf className="h-7 w-7 text-primary" />
-          <span className="font-display text-xl font-bold text-foreground">
+      <div className="container mx-auto flex items-center justify-between gap-2 py-4 px-4">
+        {/* The name may shorten on a very small phone (320 px): the cart,
+            language and menu buttons must always fit in the bar. */}
+        <Link to="/" className="flex min-w-0 items-center gap-2">
+          <Leaf className="h-6 w-6 min-[360px]:h-7 min-[360px]:w-7 shrink-0 text-primary" />
+          <span className="truncate font-display text-base min-[360px]:text-xl font-bold text-foreground">
             {t('nav.brand')}
           </span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-6">
+        {/* Desktop nav (lg: "Moja naročila" and the cart need the room) */}
+        <nav className="hidden lg:flex items-center gap-6">
           {navKeys.map((item) => (
             <Link
               key={item.path}
@@ -44,6 +83,7 @@ const Header = () => {
             </Link>
           ))}
 
+          <CartButton />
           <LanguageSwitcher />
 
           {showAdmin && (
@@ -65,8 +105,9 @@ const Header = () => {
           </a>
         </nav>
 
-        {/* Mobile toggle */}
-        <div className="md:hidden flex items-center gap-2">
+        {/* Mobile toggle — the cart stays in the bar */}
+        <div className="lg:hidden flex shrink-0 items-center gap-1 sm:gap-2">
+          <CartButton />
           <LanguageSwitcher />
           <button className="text-foreground" onClick={() => setMenuOpen(!menuOpen)}>
             {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -76,7 +117,7 @@ const Header = () => {
 
       {/* Mobile nav */}
       {menuOpen && (
-        <nav className="md:hidden bg-background border-b px-4 pb-4">
+        <nav className="lg:hidden bg-background border-b px-4 pb-4">
           {navKeys.map((item) => (
             <Link
               key={item.path}

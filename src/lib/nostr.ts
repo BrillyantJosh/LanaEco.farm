@@ -372,6 +372,19 @@ export interface EcoListing {
   language: string;
   // Raw
   rawEvent: NostrEvent;
+  // Lana Online Shop — added by GET /api/listings (SPEC §9.3), absent on
+  // client-parsed events. `buyable === true` is the ONLY signal that shows
+  // the Buy button; anything else (false / undefined) hides it, and the
+  // product page says why (notBuyableReason).
+  kind?: number;
+  buyable?: boolean;
+  notBuyableReason?: string | null;
+  unitCurrency?: string | null;
+  unitOwnerHex?: string | null;
+  unitName?: string | null;
+  shippingFee?: string;
+  pickup?: boolean;
+  availableQty?: number | null;
 }
 
 /**

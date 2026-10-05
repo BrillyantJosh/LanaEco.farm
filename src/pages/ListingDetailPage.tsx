@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, MapPin, Leaf, Tag, Calendar, ShoppingBag, Truck, CreditCard, Clock, Users, CheckCircle, ExternalLink } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, MapPin, Leaf, Tag, Calendar, ShoppingBag, Truck, CreditCard, Clock, Users, CheckCircle, ExternalLink, Minus, Plus, ShoppingCart, Info, Store } from 'lucide-react';
 import type { EcoListing } from '@/lib/nostr';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { TranslationKey } from '@/i18n/translations';
+import { Button } from '@/components/ui/button';
+import { useCart } from '@/contexts/CartContext';
+import { limitKind, qtyBounds, type CartDisplay } from '@/lib/cart';
+import { formatPrice, formatQty } from '@/lib/format';
+import { notBuyableKey } from '@/lib/notBuyable';
 
 
   function getYouTubeId(url: string): string | null {
@@ -13,11 +19,14 @@ import type { TranslationKey } from '@/i18n/translations';
   }
 
 export default function ListingDetailPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { pubkey, listingId } = useParams<{ pubkey: string; listingId: string }>();
   const [listing, setListing] = useState<EcoListing | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [qty, setQty] = useState(1);
+  const navigate = useNavigate();
+  const cart = useCart();
 
   const TYPE_LABELS: Record<string, string> = {
     produce: t('type.produce'), product: t('type.product'), subscription: t('type.subscription'), service: t('type.service'), experience: t('type.experience'),
@@ -29,15 +38,25 @@ export default function ListingDetailPage() {
     return translated !== key ? translated : val.replace(/_/g, ' ');
   };
 
+  // One listing from the server — the same visibility and buyable gates as
+  // the list (404 = not shown here), not the whole catalogue.
   useEffect(() => {
-    fetch('/api/listings')
-      .then(r => r.json())
-      .then((data: EcoListing[]) => {
-        const found = data.find(l => l.pubkey === pubkey && l.listingId === listingId);
-        setListing(found || null);
+    if (!pubkey || !listingId) return;
+    const ctrl = new AbortController();
+    setIsLoading(true);
+    setSelectedImage(0);
+    fetch(`/api/listings/${encodeURIComponent(pubkey)}/${encodeURIComponent(listingId)}`, { signal: ctrl.signal })
+      .then(async r => (r.ok ? ((await r.json()) as EcoListing) : null))
+      .then(found => setListing(found))
+      .catch(err => {
+        if (ctrl.signal.aborted) return;
+        console.error(err);
+        setListing(null);
       })
-      .catch(console.error)
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        if (!ctrl.signal.aborted) setIsLoading(false);
+      });
+    return () => ctrl.abort();
   }, [pubkey, listingId]);
 
   if (isLoading) {
@@ -60,7 +79,68 @@ export default function ListingDetailPage() {
 
   const allImages = [...listing.images, ...listing.thumbs].filter(Boolean);
   const unitId = listing.unitRef.split(':')[2];
-  const unitPubkey = listing.unitRef.split(':')[1];
+
+  // Lana Online Shop — "Dodaj v košarico" shows ONLY when the server said
+  // buyable === true; otherwise the page says why (notBuyableKey).
+  const intOr = (v: string | undefined, d: number) => (/^\d+$/.test(String(v || '').trim()) ? parseInt(String(v).trim(), 10) : d);
+  const currency = listing.priceCurrency || listing.unitCurrency || '';
+  const cartDisplay: CartDisplay = {
+    title: listing.title,
+    image: listing.images[0] || listing.thumbs[0] || '',
+    price: listing.price || '',
+    currency,
+    unit: listing.unit || '',
+    unitName: listing.unitName || '',
+    minOrder: /^\d+$/.test(String(listing.minOrder || '').trim()) ? intOr(listing.minOrder, 1) : null,
+    maxOrder: /^\d+$/.test(String(listing.maxOrder || '').trim()) ? intOr(listing.maxOrder, 0) : null,
+    availableQty: typeof listing.availableQty === 'number' ? listing.availableQty : null,
+  };
+  const bounds = qtyBounds(cartDisplay);
+  const minQty = bounds.min;
+  let maxQty = intOr(listing.maxOrder, 99);
+  if (typeof listing.availableQty === 'number') maxQty = Math.min(maxQty, listing.availableQty);
+  const buyable = listing.buyable === true && maxQty >= minQty && !!unitId;
+  // What is already in the cart counts against the limit; a product already
+  // in the cart can grow by 1 (its minimum is met).
+  const inCart = cart.inCart({ pubkey: listing.pubkey, listingId: listing.listingId });
+  const stepMin = inCart > 0 ? 1 : minQty;
+  const stepMax = Math.max(0, Math.min(maxQty, bounds.max) - inCart);
+  const canAdd = buyable && stepMax >= stepMin;
+  const clampedQty = Math.min(Math.max(qty, stepMin), Math.max(stepMin, stepMax));
+  // "No more in stock" only when stock is what stops it; a per-order cap says so.
+  const limitText = t(limitKind(cartDisplay) === 'order' ? 'cart.maxPerOrder' : 'cart.maxReached', {
+    n: formatQty(Math.min(maxQty, bounds.max), listing.unit, locale),
+  });
+  const addToCart = () => {
+    if (!canAdd) return;
+    const r = cart.add({ pubkey: listing.pubkey, listingId: listing.listingId, unitId, qty: clampedQty, display: cartDisplay });
+    if (r.refused === 'max_reached') { toast.error(limitText); return; }
+    if (r.refused === 'too_many_lines') { toast.error(t('cart.tooManyInCart', { n: 30 })); return; }
+    if (r.refused) return;
+    setQty(1);
+    toast.success(t('cart.added', { qty: formatQty(r.added, listing.unit, locale) }), {
+      description: listing.title,
+      action: { label: t('cart.open'), onClick: () => navigate('/kosarica') },
+    });
+  };
+  // "Kupi zdaj" = THIS product, this quantity, its own order — straight to the
+  // checkout, the cart untouched.
+  const buyNow = () => {
+    if (!canAdd) return;
+    navigate(`/narocilo/novo/${listing.pubkey}/${encodeURIComponent(listing.listingId)}?qty=${clampedQty}`);
+  };
+  // Stock line: the count after paid orders when the server knows it, else
+  // the published tag; nothing when sold out — the reason already says so.
+  const stockTag = String(listing.stock ?? '').trim();
+  const soldOut = listing.availableQty === 0 || stockTag === '0' || listing.notBuyableReason === 'sold_out';
+  const stockText = soldOut || !stockTag ? ''
+    : typeof listing.availableQty === 'number' ? formatQty(listing.availableQty, listing.unit, locale)
+    : /^\d+$/.test(stockTag) ? formatQty(parseInt(stockTag, 10), listing.unit, locale)
+    : `${stockTag} ${listing.unit ? tTag('lunit', listing.unit) : ''}`.trim();
+  // Not buyable: always say why. Buyable for the server but less in stock
+  // than the smallest order gets the general text (still a reason).
+  const notBuyableText = buyable ? null : t(notBuyableKey(listing.buyable === true ? null : listing.notBuyableReason));
+  const shippingFee = String(listing.shippingFee || '0.00');
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-5xl">
@@ -135,9 +215,59 @@ export default function ListingDetailPage() {
 
           {/* Price */}
           <div className="text-2xl font-bold text-foreground font-sans">
-            {listing.price} {listing.priceCurrency}
+            {formatPrice(listing.price, currency, locale)}
             {listing.unit && <span className="text-base font-normal text-muted-foreground"> / {tTag('lunit', listing.unit)}</span>}
           </div>
+
+          {/* Buy (Lana Online Shop) — several products, one order per producer */}
+          {buyable ? (
+            <div className="space-y-2" data-testid="buy-block">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="inline-flex items-center rounded-lg border" role="group" aria-label={t('shop.qty')}>
+                  <button type="button" onClick={() => setQty(Math.max(stepMin, clampedQty - 1))} disabled={!canAdd || clampedQty <= stepMin}
+                    className="inline-flex h-11 w-11 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-40" aria-label={t('cart.fewerAria', { title: listing.title })}>
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="min-w-[2.5rem] text-center text-sm font-sans font-medium" data-testid="detail-qty">{canAdd ? clampedQty : 0}</span>
+                  <button type="button" onClick={() => setQty(Math.min(stepMax, clampedQty + 1))} disabled={!canAdd || clampedQty >= stepMax}
+                    className="inline-flex h-11 w-11 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-40" aria-label={t('cart.moreAria', { title: listing.title })}>
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+                <Button type="button" onClick={addToCart} disabled={!canAdd} title={canAdd ? undefined : limitText} data-testid="add-to-cart">
+                  <ShoppingCart className="w-4 h-4" /> {t('cart.add')}
+                </Button>
+                {canAdd && (
+                  <Button type="button" variant="outline" onClick={buyNow} data-testid="buy-now">
+                    {t('cart.buyNow')}
+                  </Button>
+                )}
+              </div>
+              {inCart > 0 && (
+                <p className="text-sm font-sans text-muted-foreground" data-testid="in-cart">
+                  {t('cart.inCart', { n: formatQty(inCart, listing.unit, locale) })}
+                  {' · '}
+                  <Link to="/kosarica" className="text-primary hover:underline">{t('cart.open')}</Link>
+                  {!canAdd && <span> · {limitText}</span>}
+                </p>
+              )}
+              {/* What the producer charges for delivery, and whether pickup is offered */}
+              <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-sans text-muted-foreground" data-testid="shipping-terms">
+                <span className="inline-flex items-center gap-1">
+                  <Truck className="w-3.5 h-3.5" />
+                  {shippingFee === '0.00' ? t('shop.shippingFree') : t('shop.shippingFee', { fee: formatPrice(shippingFee, currency, locale) })}
+                </span>
+                {listing.pickup && (
+                  <span className="inline-flex items-center gap-1"><Store className="w-3.5 h-3.5" /> {t('shop.pickupAvailable')}</span>
+                )}
+              </p>
+            </div>
+          ) : (
+            <p className="flex items-start gap-2 rounded-lg border bg-muted/40 p-3 text-sm font-sans text-muted-foreground" role="status" data-testid="not-buyable">
+              <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <span>{notBuyableText}</span>
+            </p>
+          )}
 
           {/* Description */}
           {listing.content && (
@@ -178,9 +308,9 @@ export default function ListingDetailPage() {
           )}
 
           {/* Stock */}
-          {listing.stock && (
+          {stockText && (
             <div className="text-sm font-sans text-muted-foreground">
-              {t('common.inStock')} <span className="font-medium text-foreground">{listing.stock} {listing.unit ? tTag('lunit', listing.unit) : ''}</span>
+              {t('common.inStock')} <span className="font-medium text-foreground">{stockText}</span>
               {listing.minOrder && <span> (min: {listing.minOrder})</span>}
               {listing.maxOrder && <span> (max: {listing.maxOrder})</span>}
             </div>

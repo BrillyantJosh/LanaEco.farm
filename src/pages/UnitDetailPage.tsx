@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Globe, Tag, Leaf, ChevronLeft, ChevronRight, X, ExternalLink, ShoppingBag, Loader2, Mail, Phone } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { TranslationKey } from '@/i18n/translations';
+import { QuickAddOverlay } from '@/components/ListingCard';
+import type { EcoListing as FullListing } from '@/lib/nostr';
 
 interface EcoUnit {
   eventId: string;
@@ -268,10 +270,10 @@ export default function UnitDetailPage() {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {listings.map(listing => (
+                    <div key={`${listing.pubkey}-${listing.listingId}`} className="relative">
                     <Link
-                      key={`${listing.pubkey}-${listing.listingId}`}
                       to={`/ponudba/${listing.pubkey}/${listing.listingId}`}
-                      className="group bg-card border rounded-xl overflow-hidden hover:shadow-md transition"
+                      className="group block h-full bg-card border rounded-xl overflow-hidden hover:shadow-md transition"
                     >
                       {(listing.thumbs?.[0] || listing.images[0]) && (
                         <div className="aspect-[16/9] overflow-hidden bg-muted">
@@ -305,6 +307,11 @@ export default function UnitDetailPage() {
                         )}
                       </div>
                     </Link>
+                    {/* "+" on the photo's corner (Lana Online Shop) — only when buyable and there is a photo */}
+                    {(listing.thumbs?.[0] || listing.images[0]) && (
+                      <QuickAddOverlay listing={listing as unknown as FullListing} frame="inset-x-0 top-0 aspect-[16/9]" />
+                    )}
+                    </div>
                   ))}
                 </div>
               </section>

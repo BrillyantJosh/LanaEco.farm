@@ -1,8 +1,12 @@
-import { Link } from 'react-router-dom';
-import { MapPin, Leaf, ShoppingBag, Calendar, Users, Tag } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Leaf, ShoppingBag, Calendar, Tag, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 import type { EcoListing } from '@/lib/nostr';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { TranslationKey } from '@/i18n/translations';
+import { formatPrice, formatQty } from '@/lib/format';
+import { useCart } from '@/contexts/CartContext';
+import { limitKind, qtyBounds, type CartDisplay } from '@/lib/cart';
 
 const TYPE_COLORS: Record<string, string> = {
   product: 'bg-primary/10 text-primary',
@@ -19,8 +23,116 @@ interface ListingCardProps {
   isDeleting?: boolean;
 }
 
+/** min_order / max_order arrive as tag strings: a whole number, else null. */
+function wholeOrNull(v: unknown): number | null {
+  const s = String(v ?? '').trim();
+  return /^\d{1,6}$/.test(s) ? parseInt(s, 10) : null;
+}
+
+/** The online-shop facts a tile needs, from the listing the server sent. */
+function shopView(l: EcoListing) {
+  const stock = String(l.stock ?? '').trim();
+  const availableQty = typeof l.availableQty === 'number' ? l.availableQty : null;
+  const soldOut = availableQty === 0 || stock === '0' || l.notBuyableReason === 'sold_out';
+  return {
+    image: l.images[0] || l.thumbs[0] || '',
+    currency: l.priceCurrency || l.unitCurrency || '',
+    soldOut,
+    availableQty,
+    unitId: String(l.unitRef || '').split(':')[2] || '',
+    unitName: l.unitName || '',
+    minOrder: wholeOrNull(l.minOrder),
+    maxOrder: wholeOrNull(l.maxOrder),
+  };
+}
+
+/**
+ * The quick "+" on a tile: adds the product's smallest order (1 kos, 1 kg —
+ * or its min_order) to the cart and says so in a short toast. A sibling of
+ * the tile's link, never inside it (a button may not sit in an <a>).
+ */
+function QuickAdd({ listing, v }: { listing: EcoListing; v: ReturnType<typeof shopView> }) {
+  const { t, locale } = useLanguage();
+  const navigate = useNavigate();
+  const cart = useCart();
+  const display: CartDisplay = {
+    title: listing.title,
+    image: v.image,
+    price: String(listing.price ?? ''),
+    currency: v.currency,
+    unit: listing.unit || '',
+    unitName: v.unitName,
+    minOrder: v.minOrder,
+    maxOrder: v.maxOrder,
+    availableQty: v.availableQty,
+  };
+  const { min, max } = qtyBounds(display);
+  const have = cart.inCart({ pubkey: listing.pubkey, listingId: listing.listingId });
+  const full = have >= max;
+  const step = have > 0 ? 1 : min;
+  const unitWord = (n: number) => formatQty(n, listing.unit, locale);
+  // "No more in stock" only when stock is what stops it; a per-order cap says so.
+  const fullText = t(limitKind(display) === 'order' ? 'cart.maxPerOrder' : 'cart.maxReached', { n: unitWord(max) });
+
+  const onClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // A full "+" stays tappable (aria-disabled, not disabled): on a phone there
+    // is no tooltip, so the tap itself explains why nothing was added.
+    if (full) { toast.error(fullText); return; }
+    const r = cart.add({ pubkey: listing.pubkey, listingId: listing.listingId, unitId: v.unitId, qty: step, display });
+    if (r.refused === 'max_reached') { toast.error(fullText); return; }
+    if (r.refused === 'too_many_lines') { toast.error(t('cart.tooManyInCart', { n: 30 })); return; }
+    if (r.refused) return;
+    toast.success(t('cart.added', { qty: unitWord(r.added) }), {
+      description: listing.title,
+      action: { label: t('cart.open'), onClick: () => navigate('/kosarica') },
+    });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-disabled={full || undefined}
+      aria-label={full ? `${t('cart.addAria', { title: listing.title })} – ${fullText}` : t('cart.addAria', { title: listing.title })}
+      title={full ? fullText : t('cart.add')}
+      data-testid="quick-add"
+      className="pointer-events-auto absolute bottom-2 right-2 inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 aria-disabled:cursor-not-allowed aria-disabled:opacity-40 aria-disabled:hover:bg-primary"
+    >
+      <Plus className="h-5 w-5" aria-hidden="true" />
+    </button>
+  );
+}
+
+/**
+ * Buy only what the server said is buyable (an older server sends nothing),
+ * and only while at least the minimum order is in stock.
+ */
+function canQuickAdd(listing: EcoListing, v: ReturnType<typeof shopView>): boolean {
+  const minQty = Math.max(1, v.minOrder ?? 1);
+  return listing.buyable === true && !v.soldOut && (v.availableQty === null || v.availableQty >= minQty) && !!v.unitId;
+}
+
+/**
+ * The quick "+" for any listing tile: an absolutely placed box (`frame` =
+ * its position and size, e.g. the tile's photo) with the "+" on its
+ * bottom-right corner. Renders nothing unless the listing can be bought.
+ * The tile's wrapper must be `relative`, and the "+" a sibling of its link.
+ */
+export function QuickAddOverlay({ listing, frame }: { listing: EcoListing; frame: string }) {
+  const v = shopView(listing);
+  if (!canQuickAdd(listing, v)) return null;
+  return (
+    <div className={`pointer-events-none absolute ${frame}`}>
+      <QuickAdd listing={listing} v={v} />
+    </div>
+  );
+}
+
 export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting }: ListingCardProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const v = shopView(listing);
 
   const TYPE_LABELS: Record<string, string> = {
     produce: t('type.produce'),
@@ -44,7 +156,12 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
     <div className={`rounded-xl overflow-hidden hover:shadow-md transition group ${isTopDeal ? 'bg-green-50 border-2 border-green-300 ring-2 ring-green-100' : 'bg-card border'}`}>
       {/* Image */}
       {mainImage ? (
-        <div className="aspect-[4/3] overflow-hidden bg-muted">
+        <div className="aspect-[4/3] overflow-hidden bg-muted relative">
+          {v.soldOut && (
+            <span className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-full bg-foreground/80 text-background text-[11px] font-sans font-semibold">
+              {t('shop.soldOut')}
+            </span>
+          )}
           <img
             src={mainImage}
             alt={listing.title}
@@ -53,7 +170,12 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
           />
         </div>
       ) : (
-        <div className="aspect-[4/3] bg-muted flex items-center justify-center">
+        <div className="aspect-[4/3] bg-muted flex items-center justify-center relative">
+          {v.soldOut && (
+            <span className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-full bg-foreground/80 text-background text-[11px] font-sans font-semibold">
+              {t('shop.soldOut')}
+            </span>
+          )}
           <ShoppingBag className="w-10 h-10 text-muted-foreground/30" />
         </div>
       )}
@@ -66,7 +188,7 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
           </span>
           {listing.price && (
             <span className="text-sm font-semibold text-foreground font-sans whitespace-nowrap text-right">
-              {listing.price} {listing.priceCurrency}
+              {formatPrice(listing.price, v.currency, locale)}
               {listing.unit && <span className="text-xs text-muted-foreground font-normal">/{tTag('lunit', listing.unit)}</span>}
             </span>
           )}
@@ -128,10 +250,14 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
           </div>
         )}
 
-        {/* Stock */}
-        {listing.stock && (
+        {/* Stock — what is left after paid orders when the server knows it;
+            sold out is the badge on the image */}
+        {listing.stock && !v.soldOut && (
           <div className="text-[10px] text-muted-foreground font-sans">
-            {t('common.inStock')} {listing.stock} {listing.unit ? tTag('lunit', listing.unit) : ''}
+            {t('common.inStock')}{' '}
+            {/^\d+$/.test(String(listing.stock).trim())
+              ? formatQty(v.availableQty ?? parseInt(String(listing.stock).trim(), 10), listing.unit, locale)
+              : `${listing.stock} ${listing.unit ? tTag('lunit', listing.unit) : ''}`}
           </div>
         )}
 
@@ -160,8 +286,12 @@ export function ListingCard({ listing, showActions, onEdit, onDelete, isDeleting
   if (showActions) return card;
 
   return (
-    <Link to={`/ponudba/${listing.pubkey}/${listing.listingId}`} className="block">
-      {card}
-    </Link>
+    <div className="relative">
+      <Link to={`/ponudba/${listing.pubkey}/${listing.listingId}`} className="block">
+        {card}
+      </Link>
+      {/* Same 4:3 box as the photo, so the "+" sits on its bottom-right corner. */}
+      <QuickAddOverlay listing={listing} frame="inset-x-0 top-0 aspect-[4/3]" />
+    </div>
   );
 }
