@@ -108,6 +108,8 @@ export interface ListingOpts {
   status?: string;
   title?: string;
   unit?: string;
+  /** `delivery` tags, one per value (KIND 36500); absent = no tag. */
+  delivery?: string[];
   created_at?: number;
 }
 
@@ -125,6 +127,7 @@ export function listingEvent(owner: Key, o: ListingOpts = {}): NostrEvent {
   if (o.stock !== undefined) tags.push(['stock', o.stock]);
   if (o.minOrder !== undefined) tags.push(['min_order', o.minOrder]);
   if (o.maxOrder !== undefined) tags.push(['max_order', o.maxOrder]);
+  for (const d of o.delivery ?? []) tags.push(['delivery', d]);
   return signed(owner, LISTING_KIND, tags, 'opis', o.created_at);
 }
 

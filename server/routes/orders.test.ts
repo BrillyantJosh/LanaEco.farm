@@ -613,3 +613,87 @@ function signedLike(ev: { pubkey: string; created_at: number; content: string },
   if (ev.pubkey !== buyer.pk) throw new Error('signedLike: only the test buyer');
   return signed(buyer, 36520, tags, ev.content, ev.created_at);
 }
+
+describe('hand-over on lanaeco.farm: the listing\'s own delivery tag', () => {
+  const BEETS = 'lst-beets';
+  const itemBeets = () => `${LISTING_KIND}:${owner.pk}:${BEETS}`;
+  /** 5.00 shipping; apples (no delivery tag) + beetroot (delivery = pickup only). */
+  function seedFarm(unit: UnitOpts = {}, beets: ListingOpts = {}) {
+    ingestEvent(unitEvent(owner, { fee: '5.00', pickup: true, ...unit }));
+    ingestEvent(suspensionEvent(processor, owner));
+    ingestEvent(listingEvent(owner, { price: '5.00' }));
+    ingestEvent(listingEvent(owner, { listingId: BEETS, title: 'Rdeča pesa', price: '4.00', delivery: ['pickup'], ...beets }));
+  }
+  const beets = (qty = 1) => ({ pubkey: owner.pk, listingId: BEETS, qty });
+
+  it('a pickup-only listing is quoted for pickup only: no shipping fee, never as shipped goods', async () => {
+    seedFarm();
+    const ship = await quote({ ...beets(), fulfillment: 'shipping' });
+    expect(ship.status).toBe(400);
+    expect(ship.body).toMatchObject({ code: 'INVALID_REQUEST', reason: 'fulfillment' });
+    const pick = await quote({ ...beets(2), fulfillment: 'pickup' });
+    expect(pick.status).toBe(200);
+    expect(pick.body.fulfillmentModes).toEqual(['pickup']);
+    expect(pick.body.shipping).toBe('0.00');
+    expect(pick.body.total).toBe('8.00');
+  });
+  it('a pickup-only listing of a shop without online pickup cannot be bought (pickup_only)', async () => {
+    seedFarm({ pickup: false });
+    for (const fulfillment of ['shipping', 'pickup']) {
+      const r = await quote({ ...beets(), fulfillment });
+      expect(r.status).toBe(409);
+      expect(r.body).toMatchObject({ code: 'NOT_BUYABLE', reason: 'pickup_only' });
+    }
+    // the shop's other listing (no delivery tag) is unchanged
+    expect((await quote({ pubkey: owner.pk, listingId: LISTING_ID, qty: 1, fulfillment: 'shipping' })).status).toBe(200);
+  });
+  it('local delivery or shipping in the tag keeps the shop\'s terms; farmers\' market or box scheme alone is pickup', async () => {
+    seedFarm({}, { delivery: ['pickup', 'local_delivery'] });
+    expect((await quote({ ...beets(), fulfillment: 'shipping' })).body.fulfillmentModes).toEqual(['shipping', 'pickup']);
+    ingestEvent(listingEvent(owner, { listingId: BEETS, title: 'Rdeča pesa', price: '4.00', delivery: ['farmers_market', 'box_scheme'], created_at: Math.floor(Date.now() / 1000) + 5 }));
+    expect((await quote({ ...beets(), fulfillment: 'shipping' })).body.reason).toBe('fulfillment');
+    expect((await quote({ ...beets(), fulfillment: 'pickup' })).body.fulfillmentModes).toEqual(['pickup']);
+  });
+  it('a cart with one pickup-only line is a pickup order; the pickup-only line is named when pickup is off', async () => {
+    seedFarm();
+    const cart = [{ pubkey: owner.pk, listingId: LISTING_ID, qty: 1 }, beets()];
+    expect((await quote({ lines: cart, fulfillment: 'shipping' })).body.reason).toBe('fulfillment');
+    const r = await quote({ lines: cart, fulfillment: 'pickup' });
+    expect(r.body.fulfillmentModes).toEqual(['pickup']);
+    expect(r.body.total).toBe('9.00');
+    ingestEvent(unitEvent(owner, { fee: '5.00', pickup: false, created_at: Math.floor(Date.now() / 1000) + 5 }));
+    const off = await quote({ lines: cart, fulfillment: 'shipping' });
+    expect(off.body).toMatchObject({ code: 'NOT_BUYABLE', reason: 'pickup_only', line: 1 });
+  });
+  it('an order that ships a pickup-only listing is refused; the pickup order is forwarded', async () => {
+    seedFarm();
+    const fetchMock = stubBroker(201);
+    const shipped = goodOrder({ items: [['item', itemBeets(), '2', 'kg', '4.00', 'EUR']], shipping: '5.00', total: '13.00' });
+    const r = await request(app).post('/api/orders').send({ order: shipped.order, delivery: shipped.delivery });
+    expect(r.status).toBeGreaterThanOrEqual(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+    const picked = goodOrder({ items: [['item', itemBeets(), '2', 'kg', '4.00', 'EUR']], shipping: '0.00', total: '8.00', fulfillment: 'pickup' });
+    expect((await request(app).post('/api/orders').send({ order: picked.order, delivery: picked.delivery })).status).toBe(201);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('broker that does not know this portal yet', () => {
+  it('"unknown portal_id" is told as ordering not switched on, not as "try again"', async () => {
+    seedShop();
+    stubBroker(400, { error: { code: 'INVALID_EVENT', message: 'unknown portal_id' } });
+    const { order, delivery } = goodOrder();
+    const r = await request(app).post('/api/orders').send({ order, delivery });
+    expect(r.status).toBe(503);
+    expect(r.body).toMatchObject({ code: 'ORDERING_UNAVAILABLE', reason: 'portal_unknown' });
+    expect(db.prepare('SELECT COUNT(*) AS n FROM orders').get()).toEqual({ n: 0 });
+  });
+  it('any other INVALID_EVENT from the broker still passes through', async () => {
+    seedShop();
+    stubBroker(400, { error: { code: 'INVALID_EVENT', message: 'sig' } });
+    const { order, delivery } = goodOrder();
+    const r = await request(app).post('/api/orders').send({ order, delivery });
+    expect(r.status).toBe(400);
+    expect(r.body.code).toBe('INVALID_EVENT');
+  });
+});

@@ -35,7 +35,7 @@ const KEYS = [
   'durationMin', 'bookingRequired', 'images', 'thumbs', 'payment', 'lud16', 'geoLat', 'geoLon',
   'geoLabel', 'sprayLog', 'soilTestYear', 'youtubeUrl', 'url', 'language', 'cashbackPercent',
   'featured', 'featuredAt', 'buyable', 'notBuyableReason', 'unitCurrency', 'unitOwnerHex', 'unitName',
-  'shippingFee', 'pickup', 'availableQty',
+  'shippingFee', 'pickup', 'availableQty', 'fulfillmentModes', 'freeShippingFrom',
 ];
 
 const T0 = Math.floor(Date.now() / 1000) - 10_000;
@@ -194,6 +194,29 @@ describe('GET /api/listings/:pubkey/:listingId — product page', () => {
     expect((await get(`/api/listings/${owner.pk}/apples`)).status).toBe(404);
     ingestEvent(suspensionEvent(processor, owner, UNIT_ID, 'quota_blocked', Math.floor(Date.now() / 1000) + 1));
     expect((await get(`/api/listings/${owner.pk}/eggs`)).status).toBe(404);
+  });
+});
+
+describe('how a listing can be handed over (its own delivery tag)', () => {
+  const BEETS: L = { id: 'beets', title: 'Rdeča pesa', price: '4.00', unit: 'kg', created_at: T0 + 6, extra: [['delivery', 'pickup']] };
+  const BOX: L = { id: 'box', title: 'Zabojček', price: '20.00', created_at: T0 + 7, extra: [['delivery', 'pickup'], ['delivery', 'local_delivery']] };
+
+  it('pickup-only listings say so; a listing without the tag keeps the shop\'s terms; the free-shipping threshold is shown', async () => {
+    seedFarm({ freeFrom: '30.00' });
+    ingestEvent(listing(BEETS));
+    ingestEvent(listing(BOX));
+    const by = byId((await get('/api/listings')).body);
+    expect(by.beets).toMatchObject({ buyable: true, fulfillmentModes: ['pickup'], freeShippingFrom: '30.00' });
+    expect(by.box).toMatchObject({ buyable: true, fulfillmentModes: ['shipping', 'pickup'] });
+    expect(by.granola).toMatchObject({ buyable: true, fulfillmentModes: ['shipping', 'pickup'], shippingFee: '4.50' });
+  });
+
+  it('a pickup-only listing of a shop without online pickup is not buyable, with its own reason', async () => {
+    seedFarm({ pickup: false });
+    ingestEvent(listing(BEETS));
+    const by = byId((await get('/api/listings')).body);
+    expect(by.beets).toMatchObject({ buyable: false, notBuyableReason: 'pickup_only', fulfillmentModes: [] });
+    expect(by.granola).toMatchObject({ buyable: true, fulfillmentModes: ['shipping'], freeShippingFrom: null });
   });
 });
 

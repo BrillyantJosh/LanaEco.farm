@@ -168,6 +168,13 @@ export type NotBuyableReason =
   | 'unit_unknown' | 'online_shop_off' | 'unit_inactive' | 'registration_inactive'
   | 'category' | 'blocked' | 'owner_mismatch' | 'listing_unknown' | 'listing_inactive'
   | 'sold_out' | 'currency_mismatch' | 'price_invalid'
+  /**
+   * lanaeco.farm: the listing's own `delivery` tag offers no delivery to the
+   * buyer (pickup, farmers' market, box scheme only) and the shop offers no
+   * pickup for online orders — no way to hand it over that the producer
+   * agreed to (see listingFulfillmentModes).
+   */
+  | 'pickup_only'
   /** Not from isBuyable: this portal has no broker (SHOP_ORDERS_URL unset). */
   | 'ordering_unavailable';
 
@@ -209,7 +216,34 @@ export function isBuyable(
   if (opts.availableQty !== undefined && opts.availableQty !== null && opts.availableQty <= 0) {
     return { buyable: false, reason: 'sold_out' };
   }
+  if (listingFulfillmentModes(unit, listing).length === 0) return { buyable: false, reason: 'pickup_only' };
   return { buyable: true };
+}
+
+/**
+ * Listing `delivery` values (KIND 36500) that bring the goods to the buyer's
+ * address — what the checkout calls 'shipping' (address required, the shop's
+ * shipping fee). 'pickup', 'farmers_market' and 'box_scheme' do not.
+ */
+const DELIVERS_TO_BUYER: ReadonlySet<string> = new Set(['shipping', 'local_delivery']);
+
+/**
+ * How THIS listing can be handed over, inside the shop's online terms
+ * (fulfillmentModes). On a farm most listings are pickup-only (`delivery` =
+ * ['pickup']): quoting them as shipped goods charged the shop's shipping fee
+ * for beetroot the farmer only hands over at the farm. A listing that names
+ * no delivery to the buyer may only be picked up — and only when the shop
+ * offers pickup ([] = not buyable, 'pickup_only'). No `delivery` tag at all
+ * = the shop's terms. Narrowing here never changes a verdict: the resolver
+ * judges pickup and shipping from the shop's own terms (orderJoin).
+ */
+export function listingFulfillmentModes(unit: UnitMeta, listing: Pick<ParsedListing, 'delivery'>): string[] {
+  const shop = fulfillmentModes(unit);
+  const delivery = (Array.isArray(listing.delivery) ? listing.delivery : [])
+    .map(d => String(d || '').trim().toLowerCase())
+    .filter(Boolean);
+  if (delivery.length === 0 || delivery.some(d => DELIVERS_TO_BUYER.has(d))) return shop;
+  return shop.filter(m => m === 'pickup');
 }
 
 // ─────────────────────────────────────────── quote (SPEC §9.3)
@@ -379,6 +413,8 @@ export function buildCartQuote(db: Database.Database, req: CartQuoteRequest, now
   let firstListingCreatedAt = 0;
   let subtotal = 0;
   const items: QuoteItem[] = [];
+  /** The hand-over every line allows (one order = one hand-over). */
+  let lineModes: string[] | null = null;
   lines.forEach((l, i) => {
     const listing = loadListing(db, l.pubkey, l.listingId);
     if (!listing) throw new QuoteError(409, 'NOT_BUYABLE', 'listing_unknown', i);
@@ -420,6 +456,8 @@ export function buildCartQuote(db: Database.Database, req: CartQuoteRequest, now
     }
 
     if (!shop) { shop = unit; shopKey = key; firstListingCreatedAt = listing.createdAt; }
+    const own = listingFulfillmentModes(unit, listing);
+    lineModes = lineModes === null ? own : lineModes.filter(m => own.includes(m));
     const priceCents = toCents(listing.price) as number; // isBuyable guarantees > 0
     subtotal += priceCents * l.qty;
     items.push({
@@ -434,7 +472,9 @@ export function buildCartQuote(db: Database.Database, req: CartQuoteRequest, now
   });
 
   const unit = shop as unknown as UnitMeta;
-  const modes = fulfillmentModes(unit);
+  // Every line passed isBuyable, so each allows at least one mode and every
+  // line's modes ⊆ the shop's; a pickup-only line makes the order pickup.
+  const modes = lineModes ?? fulfillmentModes(unit);
   if (!modes.includes(req.fulfillment)) throw new QuoteError(400, 'INVALID_REQUEST', 'fulfillment');
 
   // Shipping ONCE per order, from the subtotal of ALL lines.

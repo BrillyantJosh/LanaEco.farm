@@ -273,6 +273,14 @@ function passThrough(res: Response, status: number, body: any): void {
     || 'BROKER_ERROR';
   const detail = typeof body?.error?.message === 'string' ? body.error.message : '';
   if (detail) console.warn(`[orders] broker ${status} ${code}: ${detail.slice(0, 200)}`);
+  // The broker does not know this portal (its PORTAL_ORIGINS has no entry
+  // for PORTAL_ID): no retry can succeed, so the shopper is told ordering is
+  // not switched on here — not "try again".
+  if (status === 400 && code === 'INVALID_EVENT' && detail === 'unknown portal_id') {
+    console.warn(`[orders] the broker does not know portal id '${portalId()}' — add it to the broker's PORTAL_ORIGINS`);
+    sendError(res, 503, 'ORDERING_UNAVAILABLE', 'portal_unknown');
+    return;
+  }
   sendError(res, status >= 400 && status < 600 ? status : 502, code);
 }
 

@@ -3,7 +3,7 @@ import Database from 'better-sqlite3';
 import { parseListing } from '../lib/parsers.js';
 import {
   loadUnitMeta, isBuyable, availableQty, unitKey, listingOwnsUnitRef, orderingConfigured, PORTAL_CATEGORIES,
-  type Buyability,
+  listingFulfillmentModes, type Buyability,
 } from '../lib/onlineShop.js';
 
 // The categories this portal serves live in lib/onlineShop.ts (one copy for
@@ -16,7 +16,10 @@ const DEFAULT_CASHBACK = 5;
  * Every listing this portal shows, newest first, in the shape GET
  * /api/listings has always returned — plus the Lana Online Shop fields
  * (SPEC §9.3): kind, buyable, notBuyableReason, unitCurrency, unitOwnerHex,
- * unitName, shippingFee, pickup, availableQty.
+ * unitName, shippingFee, pickup, availableQty — and, on this portal,
+ * fulfillmentModes (how THIS listing can be handed over: its own `delivery`
+ * tag inside the shop's terms, the same rule the quote applies) and
+ * freeShippingFrom (the shop's free-shipping threshold, null = none).
  *
  * Filters out:
  *   - listings whose unit is globally suspended (KIND 30903 with status='suspended' and not expired)
@@ -173,6 +176,8 @@ function visibleListings(db: Database.Database, now: number): any[] {
       shippingFee: meta?.shippingFee || '0.00',
       pickup: meta?.pickup === true,
       availableQty: avail,
+      fulfillmentModes: meta && fresh ? listingFulfillmentModes(meta, fresh) : [],
+      freeShippingFrom: meta?.freeFrom ?? null,
     });
   }
   return listings;
