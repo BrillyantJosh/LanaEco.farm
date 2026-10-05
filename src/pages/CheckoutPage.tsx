@@ -34,7 +34,7 @@ import {
 } from '@/lib/checkoutValidation';
 import { useCart, cartStore } from '@/contexts/CartContext';
 import { lineKey, lineTotal, shopKey, sumLines, toQuoteLines } from '@/lib/cart';
-import { fetchCartQuote, sameQuote, QuoteFailure, type Quote, type QuoteLine } from '@/lib/cartQuote';
+import { fetchCartQuote, fetchCartQuoteAnyMode, sameQuote, QuoteFailure, type Quote, type QuoteLine } from '@/lib/cartQuote';
 import { formatPrice } from '@/lib/format';
 
 /** The old order's items (public view) as quote lines — for a retry of a cart order. */
@@ -115,23 +115,29 @@ export default function CheckoutPage() {
     if (current.length === 0) { setQuote(null); setQuoteError('EMPTY'); setLoading(false); return; }
     let alive = true;
     setLoading(true);
-    fetchCartQuote(current, fulfillment, undefined, quoteUnitId)
+    // A pickup-only product (farm) is never shipped: when only the hand-over
+    // is refused, the other one is priced and becomes the choice.
+    fetchCartQuoteAnyMode(current, fulfillment, undefined, quoteUnitId)
       .then(q => {
         if (!alive) return;
         setQuote(q);
         setQuoteError(null);
+        if (q.fulfillment !== fulfillment && (q.fulfillment === 'shipping' || q.fulfillment === 'pickup')) setFulfillment(q.fulfillment);
       })
       .catch(err => {
         if (!alive) return;
         setQuote(null);
-        // A producer that has not turned on online selling is told apart.
-        setQuoteError(err instanceof QuoteFailure && err.reason === 'online_shop_off' ? 'ONLINE_SHOP_OFF' : String(err?.message || 'NOT_BUYABLE'));
+        // A producer that has not turned on online selling is told apart,
+        // and so is a pickup-only product of a producer without pickup.
+        const reason = err instanceof QuoteFailure ? err.reason : undefined;
+        setQuoteError(reason === 'online_shop_off' ? 'ONLINE_SHOP_OFF' : reason === 'pickup_only' ? 'PICKUP_ONLY' : String(err?.message || 'NOT_BUYABLE'));
       })
       .finally(() => alive && setLoading(false));
     return () => { alive = false; };
   }, [linesKey, fulfillment, quoteUnitId]);
 
   const canPickup = quote?.fulfillmentModes?.includes('pickup') ?? false;
+  const canShip = quote?.fulfillmentModes?.includes('shipping') ?? true;
   const items = quote?.items ?? [];
   // How many different products ONE order may carry right now (server gate).
   const maxItems = quote?.maxItems ?? 1;
@@ -139,7 +145,8 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (quote && !canPickup && fulfillment === 'pickup') setFulfillment('shipping');
-  }, [quote, canPickup, fulfillment]);
+    if (quote && !canShip && canPickup && fulfillment === 'shipping') setFulfillment('pickup');
+  }, [quote, canPickup, canShip, fulfillment]);
 
   // Name, e-mail and phone always; the address only when shipping.
   const errors = useMemo(() => validateCheckout(form, fulfillment), [form, fulfillment]);
@@ -164,6 +171,7 @@ export default function CheckoutPage() {
   const quoteErrorText = (code: string) => {
     if (code === 'EMPTY') return t('cart.empty');
     if (code === 'ONLINE_SHOP_OFF') return t('shop.onlineShopOff');
+    if (code === 'PICKUP_ONLY') return t('shop.pickupOnly');
     if (code === 'CURRENCY_MISMATCH') return t('shop.currencyMismatch');
     if (code === 'QTY_UNAVAILABLE') return t('shop.soldOut');
     return t('shop.notBuyable');
@@ -251,7 +259,8 @@ export default function CheckoutPage() {
         unitName: q.unitName,
         title: q.items[0].title,
         qty: q.items[0].qty,
-        items: q.items.map(qi => ({ title: qi.title, qty: qi.qty })),
+        saleUnit: q.items[0].saleUnit,
+        items: q.items.map(qi => ({ title: qi.title, qty: qi.qty, saleUnit: qi.saleUnit })),
         total: q.total,
         currency: q.currency,
         createdAt: order.created_at,
@@ -309,10 +318,12 @@ export default function CheckoutPage() {
             <fieldset>
               <legend className="text-xs font-sans font-medium text-muted-foreground mb-2 uppercase tracking-wider">{t('checkout.fulfillment')}</legend>
               <div className="flex gap-2">
-                <button type="button" onClick={() => setFulfillment('shipping')}
-                  className={`flex-1 inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-sans transition ${fulfillment === 'shipping' ? 'border-primary bg-primary/10 text-primary' : 'border-input text-muted-foreground hover:bg-muted'}`}>
-                  <Truck className="w-4 h-4" /> {t('checkout.shipping')}
-                </button>
+                {canShip && (
+                  <button type="button" onClick={() => setFulfillment('shipping')}
+                    className={`flex-1 inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-sans transition ${fulfillment === 'shipping' ? 'border-primary bg-primary/10 text-primary' : 'border-input text-muted-foreground hover:bg-muted'}`}>
+                    <Truck className="w-4 h-4" /> {t('checkout.shipping')}
+                  </button>
+                )}
                 {canPickup && (
                   <button type="button" onClick={() => setFulfillment('pickup')}
                     className={`flex-1 inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-sans transition ${fulfillment === 'pickup' ? 'border-primary bg-primary/10 text-primary' : 'border-input text-muted-foreground hover:bg-muted'}`}>
@@ -320,6 +331,9 @@ export default function CheckoutPage() {
                   </button>
                 )}
               </div>
+              {!canShip && (
+                <p className="mt-2 text-xs font-sans text-muted-foreground" data-testid="checkout-pickup-only">{t('cart.pickupOnly')}</p>
+              )}
             </fieldset>
 
             {/* Contact + address */}

@@ -12,6 +12,7 @@ export function notBuyableKey(reason: string | null | undefined): TranslationKey
     case 'sold_out': return 'shop.soldOut';
     case 'currency_mismatch': return 'shop.currencyMismatch';
     case 'ordering_unavailable': return 'shop.orderingUnavailable';
+    case 'pickup_only': return 'shop.pickupOnly';
     default: return 'shop.notBuyable';
   }
 }

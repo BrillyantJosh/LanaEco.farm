@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { Package, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { listStoredOrders, pruneExpiredOrders, type StoredOrder } from '@/lib/shopOrder';
+import { formatPrice, formatQty } from '@/lib/format';
 
 export default function MyOrdersPage() {
   const { t, locale } = useLanguage();
@@ -37,7 +38,7 @@ export default function MyOrdersPage() {
                   <div className="flex min-w-0 items-baseline gap-1 text-sm font-sans font-medium">
                     <span className="min-w-0 truncate">{o.title}</span>
                     <span className="shrink-0 whitespace-nowrap">
-                      × {o.qty}
+                      × {formatQty(o.qty, o.saleUnit, locale)}
                       {(o.items?.length ?? 1) > 1 && (
                         <span className="text-muted-foreground font-normal" data-testid="more-items"> {t('myOrders.moreItems', { n: (o.items?.length ?? 1) - 1 })}</span>
                       )}
@@ -47,7 +48,7 @@ export default function MyOrdersPage() {
                     {o.unitName} · {new Date((o.createdAt || 0) * 1000).toLocaleString(locale === 'sl' ? 'sl-SI' : 'en-GB')}
                   </div>
                 </div>
-                <div className="text-sm font-sans font-medium whitespace-nowrap">{o.total} {o.currency}</div>
+                <div className="text-sm font-sans font-medium whitespace-nowrap" data-testid="my-order-total">{formatPrice(o.total, o.currency, locale)}</div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </Link>
             </li>

@@ -235,6 +235,59 @@ describe('CheckoutPage — e-mail and phone are required', () => {
   });
 });
 
+describe('CheckoutPage — a pickup-only product (lanaeco.farm)', () => {
+  /** The stub server for a listing whose delivery tag is pickup only. */
+  function pickupOnlyServer(orderBody: any = { pay_url: 'https://pay.test/checkout/x' }, orderStatus = 200) {
+    const quoted: string[] = [];
+    fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const body = init?.body ? JSON.parse(String(init.body)) : null;
+      if (url === '/api/orders/quote') {
+        quoted.push(body.fulfillment);
+        if (body.fulfillment !== 'pickup') return { ok: false, status: 400, json: async () => ({ code: 'INVALID_REQUEST', reason: 'fulfillment' }) };
+        return { ok: true, status: 200, json: async () => ({ ...quoteFor('pickup'), fulfillmentModes: ['pickup'] }) };
+      }
+      posted.push({ url, body });
+      return { ok: orderStatus < 400, status: orderStatus, json: async () => orderBody };
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    return quoted;
+  }
+
+  it('starts on pickup, offers no shipping, says so, and asks for no address', async () => {
+    const quoted = pickupOnlyServer();
+    await renderPage();
+    expect(quoted[0]).toBe('shipping');
+    expect(quoted).toContain('pickup');
+    const buttons = Array.from(container.querySelectorAll('fieldset button')).map(b => b.textContent?.trim());
+    expect(buttons).toEqual(['Prevzem pri pridelovalcu']);
+    expect(container.querySelector('[data-testid="checkout-pickup-only"]')?.textContent).toBe('Ti izdelki so le za prevzem pri pridelovalcu — brez poštnine.');
+    expect(input('line1').required).toBe(false);
+    await type('name', 'Ana Kupec');
+    await type('email', 'ana@primer.si');
+    await type('phone', '040 123 456');
+    await submit();
+    expect(toast.error).not.toHaveBeenCalled();
+    const orders = orderPosts();
+    expect(orders).toHaveLength(1);
+    const tags = orders[0].body.order.tags as string[][];
+    expect(tags.find(t => t[0] === 'fulfillment')).toEqual(['fulfillment', 'pickup']);
+    expect(tags.find(t => t[0] === 'shipping')?.[1]).toBe('0.00');
+    // the stored order knows its sale unit (Moja naročila shows "× 1 kos")
+    expect(listStoredOrders()[0].saleUnit).toBe('piece');
+  });
+
+  it('a broker that does not know this portal yet: "not switched on", not "try again"', async () => {
+    pickupOnlyServer({ code: 'ORDERING_UNAVAILABLE', reason: 'portal_unknown' }, 503);
+    await renderPage();
+    await type('name', 'Ana Kupec');
+    await type('email', 'ana@primer.si');
+    await type('phone', '040 123 456');
+    await submit();
+    expect(toast.error).toHaveBeenCalledWith('Spletno naročanje na lanaeco.farm še ni vklopljeno.');
+    expect(listStoredOrders()).toEqual([]);
+  });
+});
+
 describe('CheckoutPage — the cart of one shop becomes ONE order', () => {
   const OTHER_HEX = 'e'.repeat(64);
   const OTHER_UNIT = 'f'.repeat(32);

@@ -385,6 +385,10 @@ export interface EcoListing {
   shippingFee?: string;
   pickup?: boolean;
   availableQty?: number | null;
+  /** How THIS listing can be handed over ('shipping' / 'pickup'); absent on older servers. */
+  fulfillmentModes?: string[];
+  /** The shop's free-shipping threshold (order subtotal), null = none. */
+  freeShippingFrom?: string | null;
 }
 
 /**

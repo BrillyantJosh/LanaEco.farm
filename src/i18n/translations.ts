@@ -531,6 +531,9 @@ const en = {
   'shop.shippingFee': 'Shipping: {fee}',
   'shop.shippingFree': 'No shipping fee',
   'shop.pickupAvailable': 'Pickup at the producer possible',
+  'shop.pickupOnly': 'This product is for pickup at the producer only, and the producer does not offer pickup for online orders yet.',
+  'shop.pickupOnlyTerms': 'Pickup at the producer only — not shipped',
+  'shop.shippingFeeFreeFrom': 'Shipping: {fee} (free from {from})',
   'cart.title': 'Cart',
   'cart.add': 'Add to cart',
   'cart.addAria': 'Add {title} to cart',
@@ -542,6 +545,7 @@ const en = {
   'cart.removeAria': 'Remove {title}',
   'cart.subtotal': 'Subtotal',
   'cart.pickupFree': 'Pickup at the producer is free — you choose shipping or pickup at checkout.',
+  'cart.pickupOnly': 'These products are for pickup at the producer only — no shipping fee.',
   'cart.checkout': 'Checkout',
   'cart.checkoutAria': 'Checkout at {shop}',
   'cart.separateOrders': 'Products from different producers are ordered and paid separately: one order per producer.',
@@ -622,6 +626,10 @@ const en = {
   'myOrders.title': 'My orders',
   'myOrders.empty': 'No orders on this device yet.',
   'myOrders.moreItems': '+ {n} more',
+  'order.notCancellable': 'This order can no longer be cancelled.',
+  'order.cancelFailed': 'The order could not be cancelled. Please try again.',
+  'order.busy': 'Too many requests right now. Please wait a minute and try again.',
+  'order.refreshPaused': 'Checking the status again shortly…',
 };
 
 const sl: typeof en = {
@@ -1155,6 +1163,9 @@ const sl: typeof en = {
   'shop.shippingFee': 'Poštnina: {fee}',
   'shop.shippingFree': 'Brez poštnine',
   'shop.pickupAvailable': 'Možen prevzem pri pridelovalcu',
+  'shop.pickupOnly': 'Ta izdelek je le za prevzem pri pridelovalcu, pridelovalec pa prevzema pri spletnih naročilih še ne ponuja.',
+  'shop.pickupOnlyTerms': 'Le prevzem pri pridelovalcu — brez pošiljanja',
+  'shop.shippingFeeFreeFrom': 'Poštnina: {fee} (brezplačna od {from})',
   'cart.title': 'Košarica',
   'cart.add': 'Dodaj v košarico',
   'cart.addAria': 'Dodaj {title} v košarico',
@@ -1166,6 +1177,7 @@ const sl: typeof en = {
   'cart.removeAria': 'Odstrani {title}',
   'cart.subtotal': 'Vmesni seštevek',
   'cart.pickupFree': 'Prevzem pri pridelovalcu je brezplačen — dostavo ali prevzem izberete na blagajni.',
+  'cart.pickupOnly': 'Ti izdelki so le za prevzem pri pridelovalcu — brez poštnine.',
   'cart.checkout': 'Na blagajno',
   'cart.checkoutAria': 'Na blagajno – {shop}',
   'cart.separateOrders': 'Izdelke različnih pridelovalcev naročite in plačate ločeno: eno naročilo na pridelovalca.',
@@ -1246,6 +1258,10 @@ const sl: typeof en = {
   'myOrders.title': 'Moja naročila',
   'myOrders.empty': 'Na tej napravi še ni naročil.',
   'myOrders.moreItems': '+ še {n}',
+  'order.notCancellable': 'Tega naročila ni več mogoče preklicati.',
+  'order.cancelFailed': 'Naročila ni bilo mogoče preklicati. Poskusite znova.',
+  'order.busy': 'Trenutno je preveč zahtev. Počakajte minuto in poskusite znova.',
+  'order.refreshPaused': 'Stanje bomo kmalu znova preverili …',
 };
 
 export const translations: Record<Locale, typeof en> = { en, sl };

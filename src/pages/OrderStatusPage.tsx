@@ -1,7 +1,9 @@
 /**
  * /narocilo/:orderId — PUBLIC order status (no PII anywhere in the view).
  *
- * Polls GET /api/orders/:id every 5 s while unpaid, every 30 s afterwards.
+ * Polls GET /api/orders/:id every 10 s while unpaid, every 30 s afterwards
+ * (the route allows 120 per 15 min: 10 s = 90). A 429 is not dropped
+ * silently: the page says it checks again shortly and waits 60 s.
  * `?src=pay` (set by the gateway return_url) is passed through to the
  * server as a hint ONLY — nothing on this page trusts gateway URL params;
  * the payment state always comes from our server's relay-derived verdict.
@@ -15,6 +17,20 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import { buildCancelEvent, getStoredOrder, loadOrderKey } from '@/lib/shopOrder';
 import type { TranslationKey } from '@/i18n/translations';
 import { lineTotal } from '@/lib/cart';
+import { formatPrice, formatQty } from '@/lib/format';
+
+/** Poll intervals (ms): unpaid / settled / after a 429 from the route's limiter. */
+const POLL_UNPAID_MS = 10_000;
+const POLL_SETTLED_MS = 30_000;
+const POLL_THROTTLED_MS = 60_000;
+
+/** A refused cancel in the shopper's words, never a bare server code. */
+function cancelErrorKey(status: number, code: string | undefined): TranslationKey {
+  if (code === 'NOT_CANCELLABLE') return 'order.notCancellable';
+  if (code === 'ORDERING_UNAVAILABLE') return 'shop.orderingUnavailable';
+  if (status === 429) return 'order.busy';
+  return 'order.cancelFailed';
+}
 
 interface OrderView {
   orderId: string;
@@ -57,12 +73,14 @@ function reachedStep(v: OrderView): number {
 }
 
 export default function OrderStatusPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { orderId = '' } = useParams<{ orderId: string }>();
   const [params] = useSearchParams();
   const [view, setView] = useState<OrderView | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  /** The route's limiter answered 429: say so and poll less often. */
+  const [throttled, setThrottled] = useState(false);
   const firstLoad = useRef(true);
   const stored = getStoredOrder(orderId);
   const hasKey = !!loadOrderKey(orderId);
@@ -73,10 +91,12 @@ export default function OrderStatusPage() {
     try {
       const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}${hint}`);
       if (res.status === 404) { setNotFound(true); return; }
+      if (res.status === 429) { setThrottled(true); return; }
       if (!res.ok) return;
       const body = (await res.json()) as OrderView;
       setView(body);
       setNotFound(false);
+      setThrottled(false);
     } catch {}
   }, [orderId, params]);
 
@@ -85,10 +105,10 @@ export default function OrderStatusPage() {
   }, [load]);
 
   useEffect(() => {
-    const ms = !view || view.paymentState === 'unpaid' ? 5000 : 30000;
+    const ms = throttled ? POLL_THROTTLED_MS : !view || view.paymentState === 'unpaid' ? POLL_UNPAID_MS : POLL_SETTLED_MS;
     const id = setInterval(load, ms);
     return () => clearInterval(id);
-  }, [load, view?.paymentState]);
+  }, [load, view?.paymentState, throttled]);
 
   const cancel = async () => {
     const privHex = loadOrderKey(orderId);
@@ -103,11 +123,12 @@ export default function OrderStatusPage() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        toast.error(body?.code || `HTTP_${res.status}`);
+        toast.error(t(cancelErrorKey(res.status, typeof body?.code === 'string' ? body.code : undefined)));
       }
       await load();
     } catch (err: any) {
-      toast.error(String(err?.message || err));
+      console.error('[order] cancel', err?.message || err);
+      toast.error(t('order.cancelFailed'));
     } finally {
       setCancelling(false);
     }
@@ -123,7 +144,12 @@ export default function OrderStatusPage() {
     );
   }
   if (!view) {
-    return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>;
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        {throttled && <p className="text-xs font-sans text-muted-foreground" role="status" data-testid="refresh-paused">{t('order.refreshPaused')}</p>}
+      </div>
+    );
   }
 
   const step = reachedStep(view);
@@ -150,7 +176,10 @@ export default function OrderStatusPage() {
         <h1 className="font-display text-2xl font-bold">{t('order.title')}</h1>
         <span className="text-xs font-mono text-muted-foreground truncate">{orderId.slice(-12)}</span>
       </div>
-      <p className="text-sm text-muted-foreground font-sans mb-6">{view.unitName}</p>
+      <p className={`text-sm text-muted-foreground font-sans ${throttled ? 'mb-2' : 'mb-6'}`}>{view.unitName}</p>
+      {throttled && (
+        <p className="mb-6 text-xs font-sans text-muted-foreground" role="status" data-testid="refresh-paused">{t('order.refreshPaused')}</p>
+      )}
 
       {/* State banner */}
       {view.paymentState === 'unpaid' && (
@@ -224,19 +253,19 @@ export default function OrderStatusPage() {
         {view.items.map((it, i) => (
           <div key={i} className="flex justify-between gap-3" data-testid="order-line">
             <span className="min-w-0">
-              {it.title || it.a} × {it.qty}
-              <span className="block text-xs text-muted-foreground">{it.qty} × {it.unitPrice} {it.currency}</span>
+              {it.title || it.a} × {formatQty(it.qty, it.saleUnit, locale)}
+              <span className="block text-xs text-muted-foreground">{formatQty(it.qty, it.saleUnit, locale)} × {formatPrice(it.unitPrice, it.currency, locale)}</span>
             </span>
-            <span className="whitespace-nowrap">{lineTotal(it.unitPrice, it.qty) || it.unitPrice} {it.currency}</span>
+            <span className="whitespace-nowrap">{formatPrice(lineTotal(it.unitPrice, it.qty) || it.unitPrice, it.currency, locale)}</span>
           </div>
         ))}
         <div className="flex justify-between text-muted-foreground">
           <span>{t('checkout.shippingFee')}</span>
-          <span>{view.shipping} {view.currency}</span>
+          <span>{formatPrice(view.shipping, view.currency, locale)}</span>
         </div>
         <div className="flex justify-between font-bold border-t pt-2">
           <span>{t('order.total')}</span>
-          <span>{view.total} {view.currency}</span>
+          <span data-testid="order-total">{formatPrice(view.total, view.currency, locale)}</span>
         </div>
         {view.lanaAmount && view.paymentState === 'paid' && (
           <div className="text-xs text-muted-foreground">{view.lanaAmount} LANA</div>

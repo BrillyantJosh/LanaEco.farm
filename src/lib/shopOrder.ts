@@ -260,8 +260,10 @@ export interface StoredOrder {
   /** First item (orders stored before the cart have only this). */
   title: string;
   qty: number;
+  /** The first item's sale unit ('kg', 'piece' …); absent on older entries. */
+  saleUnit?: string;
   /** Every item of the order (cart orders); absent on older entries. */
-  items?: Array<{ title: string; qty: number }>;
+  items?: Array<{ title: string; qty: number; saleUnit?: string }>;
   total: string;
   currency: string;
   /** unix seconds of the 36520 */

@@ -141,6 +141,19 @@ export default function ListingDetailPage() {
   // than the smallest order gets the general text (still a reason).
   const notBuyableText = buyable ? null : t(notBuyableKey(listing.buyable === true ? null : listing.notBuyableReason));
   const shippingFee = String(listing.shippingFee || '0.00');
+  // How THIS listing is handed over (server: its own delivery tag inside the
+  // producer's terms). Older servers send no modes: the producer's terms.
+  const modes = Array.isArray(listing.fulfillmentModes)
+    ? listing.fulfillmentModes
+    : ['shipping', ...(listing.pickup ? ['pickup'] : [])];
+  const ships = modes.includes('shipping');
+  const canPickUp = modes.includes('pickup');
+  const freeFrom = String(listing.freeShippingFrom || '').trim();
+  const shippingText = shippingFee === '0.00'
+    ? t('shop.shippingFree')
+    : freeFrom
+      ? t('shop.shippingFeeFreeFrom', { fee: formatPrice(shippingFee, currency, locale), from: formatPrice(freeFrom, currency, locale) })
+      : t('shop.shippingFee', { fee: formatPrice(shippingFee, currency, locale) });
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-5xl">
@@ -253,11 +266,17 @@ export default function ListingDetailPage() {
               )}
               {/* What the producer charges for delivery, and whether pickup is offered */}
               <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-sans text-muted-foreground" data-testid="shipping-terms">
-                <span className="inline-flex items-center gap-1">
-                  <Truck className="w-3.5 h-3.5" />
-                  {shippingFee === '0.00' ? t('shop.shippingFree') : t('shop.shippingFee', { fee: formatPrice(shippingFee, currency, locale) })}
-                </span>
-                {listing.pickup && (
+                {ships ? (
+                  <span className="inline-flex items-center gap-1" data-testid="shipping-fee">
+                    <Truck className="w-3.5 h-3.5" />
+                    {shippingText}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1" data-testid="pickup-only">
+                    <Store className="w-3.5 h-3.5" /> {t('shop.pickupOnlyTerms')}
+                  </span>
+                )}
+                {ships && canPickUp && (
                   <span className="inline-flex items-center gap-1"><Store className="w-3.5 h-3.5" /> {t('shop.pickupAvailable')}</span>
                 )}
               </p>

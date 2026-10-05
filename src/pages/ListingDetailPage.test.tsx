@@ -160,6 +160,7 @@ describe('ListingDetailPage — a reason instead of a missing button', () => {
     const cases: Array<[Record<string, unknown>, string]> = [
       [{ buyable: false, notBuyableReason: 'currency_mismatch' }, 'Spletni nakup ni mogoč: valuta ponudbe se razlikuje od valute pridelovalca'],
       [{ buyable: false, notBuyableReason: 'ordering_unavailable' }, 'Spletno naročanje na lanaeco.farm še ni vklopljeno.'],
+      [{ buyable: false, notBuyableReason: 'pickup_only' }, 'Ta izdelek je le za prevzem pri pridelovalcu, pridelovalec pa prevzema pri spletnih naročilih še ne ponuja.'],
       [{ buyable: false, notBuyableReason: 'registration_inactive' }, 'Ni na voljo za spletni nakup'],
       [{ buyable: undefined, notBuyableReason: undefined }, 'Ni na voljo za spletni nakup'],
       // buyable, but less left than the smallest order
@@ -201,6 +202,23 @@ describe('ListingDetailPage — "Dodaj v košarico" and "Kupi zdaj"', () => {
     mockDetail(detail({ shippingFee: '0.00', pickup: false }));
     await renderPage();
     expect(byTestId('shipping-terms')?.textContent).toBe('Brez poštnine');
+  });
+
+  it('a pickup-only listing shows no shipping fee — it is not shipped', async () => {
+    mockDetail(detail({ fulfillmentModes: ['pickup'] }));
+    await renderPage();
+    const terms = plain(byTestId('shipping-terms')?.textContent).trim();
+    expect(terms).toBe('Le prevzem pri pridelovalcu — brez pošiljanja');
+    expect(terms).not.toContain('Poštnina');
+    expect(button('Dodaj v košarico')).toBeDefined();
+  });
+
+  it('the free-shipping threshold is shown next to the fee', async () => {
+    mockDetail(detail({ fulfillmentModes: ['shipping', 'pickup'], freeShippingFrom: '30.00' }));
+    await renderPage();
+    const terms = plain(byTestId('shipping-terms')?.textContent);
+    expect(terms).toContain('Poštnina: 4,50 € (brezplačna od 30,00 €)');
+    expect(terms).toContain('Možen prevzem pri pridelovalcu');
   });
 
   it('what is already in the cart counts against the stock', async () => {

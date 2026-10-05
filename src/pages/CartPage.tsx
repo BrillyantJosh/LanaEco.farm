@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
 import { limitKind, lineKey, lineTotal, qtyBounds, sumLines, toQuoteLines, type CartLine, type ShopGroup } from '@/lib/cart';
-import { fetchCartQuote, itemMatchesLine, QuoteFailure, type Quote } from '@/lib/cartQuote';
+import { fetchCartQuoteAnyMode, itemMatchesLine, QuoteFailure, type Quote } from '@/lib/cartQuote';
 import { formatPrice, formatQty } from '@/lib/format';
 import type { TranslationKey } from '@/i18n/translations';
 
@@ -69,7 +69,9 @@ function ShopCart({ group }: { group: ShopGroup }) {
   useEffect(() => {
     const ctl = new AbortController();
     const timer = setTimeout(() => {
-      fetchCartQuote(JSON.parse(linesKey), 'shipping', ctl.signal, group.unitId)
+      // Shipping when the products allow it; a pickup-only product (farm)
+      // makes the whole order pickup — priced without a shipping fee.
+      fetchCartQuoteAnyMode(JSON.parse(linesKey), 'shipping', ctl.signal, group.unitId)
         .then(quote => { if (!ctl.signal.aborted) setState({ forKey: linesKey, quote, failure: null }); })
         .catch(err => {
           if (ctl.signal.aborted) return;
@@ -98,6 +100,7 @@ function ShopCart({ group }: { group: ShopGroup }) {
   const shopName = quote?.unitName || group.unitName;
   const currency = quote?.currency || group.currency;
   const canPickup = !!quote?.fulfillmentModes?.includes('pickup');
+  const pickupOnly = !!quote && !quote.fulfillmentModes?.includes('shipping');
 
   return (
     <section className="rounded-xl border bg-card" aria-labelledby={`shop-${group.unitKey}`} data-testid="cart-shop">
@@ -132,11 +135,17 @@ function ShopCart({ group }: { group: ShopGroup }) {
               <span>{t('cart.subtotal')}</span>
               <span data-testid="cart-subtotal">{formatPrice(sumLines(quote.items), currency, locale)}</span>
             </div>
-            <div className="flex justify-between text-muted-foreground">
-              <span>{t('checkout.shippingFee')}</span>
-              <span data-testid="cart-shipping">{formatPrice(quote.shipping, currency, locale)}</span>
-            </div>
-            {canPickup && <p className="text-xs text-muted-foreground">{t('cart.pickupFree')}</p>}
+            {pickupOnly ? (
+              <p className="text-xs text-muted-foreground" data-testid="cart-pickup-only">{t('cart.pickupOnly')}</p>
+            ) : (
+              <>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>{t('checkout.shippingFee')}</span>
+                  <span data-testid="cart-shipping">{formatPrice(quote.shipping, currency, locale)}</span>
+                </div>
+                {canPickup && <p className="text-xs text-muted-foreground">{t('cart.pickupFree')}</p>}
+              </>
+            )}
             <div className="flex justify-between font-bold border-t pt-2">
               <span>{t('checkout.total')}</span>
               <span data-testid="cart-total">{formatPrice(quote.total, currency, locale)}</span>
@@ -270,7 +279,7 @@ function CartRow({ line, item, loading, failure, orderAlone }: {
               </>
             ) : (
               <>
-                <span>{t('cart.lineUnavailable')}</span>
+                <span>{failure.reason === 'pickup_only' ? t('shop.pickupOnly') : t('cart.lineUnavailable')}</span>
                 <Button size="sm" variant="outline" className="min-h-[44px] px-3 text-xs" onClick={() => cart.remove(key)}>{t('cart.remove')}</Button>
               </>
             )}

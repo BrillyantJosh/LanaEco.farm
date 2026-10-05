@@ -288,6 +288,44 @@ describe('CartPage', () => {
     expect(container.querySelector('button[aria-label="+"]')).toBeNull();
   });
 
+  it('a pickup-only product (farm) makes that shop\'s order pickup: no shipping fee, and it says so', async () => {
+    seed();
+    // The stub server: OWNER_A's products are pickup-only, so shipping is refused.
+    const pickupOnly = (body: any) => {
+      if (body.lines[0].pubkey !== OWNER_A) return null;
+      if (body.fulfillment === 'shipping') return { status: 400, body: { code: 'INVALID_REQUEST', reason: 'fulfillment' } };
+      override = null;
+      const r = quoteResponse(body);
+      override = pickupOnly;
+      const sub = cents(r.body.total) - cents(r.body.shipping);
+      return { status: 200, body: { ...r.body, shipping: '0.00', total: str(sub), fulfillmentModes: ['pickup'], fulfillment: 'pickup' } };
+    };
+    override = pickupOnly;
+    await render();
+    await settle();
+    await wait(0);
+    const [a, b] = shops();
+    expect(posted.filter(p => p.lines[0].pubkey === OWNER_A).map(p => p.fulfillment)).toEqual(['shipping', 'pickup']);
+    expect(a.querySelector('[data-testid="cart-pickup-only"]')?.textContent).toBe('Ti izdelki so le za prevzem pri pridelovalcu — brez poštnine.');
+    expect(a.querySelector('[data-testid="cart-shipping"]')).toBeNull();
+    expect(text(a.querySelector('[data-testid="cart-total"]'))).toBe('21,46 €'); // 13.50 + 7.96, no fee
+    expect(a.querySelector('[data-testid="cart-checkout"]')?.tagName).toBe('A');
+    // the other shop still ships
+    expect(b.querySelector('[data-testid="cart-shipping"]')).not.toBeNull();
+    expect(b.querySelector('[data-testid="cart-pickup-only"]')).toBeNull();
+  });
+
+  it('a pickup-only product of a producer without pickup says why, not just "no longer available"', async () => {
+    seed();
+    override = (body) => (body.lines[0].pubkey === OWNER_A
+      ? { status: 409, body: { code: 'NOT_BUYABLE', reason: 'pickup_only', line: 1 } }
+      : null);
+    await render();
+    await settle();
+    const problem = shops()[0].querySelector('[data-testid="line-problem"]');
+    expect(problem?.textContent).toContain('Ta izdelek je le za prevzem pri pridelovalcu');
+  });
+
   it('"Odstrani" takes the line out of the cart (and out of storage)', async () => {
     seed();
     await render();

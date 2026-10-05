@@ -86,6 +86,26 @@ export async function fetchCartQuote(lines: QuoteLine[], fulfillment: 'shipping'
   return body as Quote;
 }
 
+/** Was this refusal only about the hand-over (shipping / pickup), not the products? */
+export function isFulfillmentRefusal(err: unknown): boolean {
+  return err instanceof QuoteFailure && err.code === 'INVALID_REQUEST' && err.reason === 'fulfillment';
+}
+
+/**
+ * Price these lines, preferring `preferred`; when ONLY the hand-over is
+ * refused — on lanaeco.farm a pickup-only product is never shipped — price
+ * the other one. The quote's `fulfillment` says which was priced and
+ * `fulfillmentModes` which are allowed. Any other refusal is thrown as is.
+ */
+export async function fetchCartQuoteAnyMode(lines: QuoteLine[], preferred: 'shipping' | 'pickup', signal?: AbortSignal, unitId?: string): Promise<Quote> {
+  try {
+    return await fetchCartQuote(lines, preferred, signal, unitId);
+  } catch (err) {
+    if (!isFulfillmentRefusal(err)) throw err;
+    return fetchCartQuote(lines, preferred === 'shipping' ? 'pickup' : 'shipping', signal, unitId);
+  }
+}
+
 /** Does a quote item belong to this request line? (a = '<kind>:<pubkey>:<listing id>') */
 export function itemMatchesLine(item: Pick<QuoteItem, 'a'> | undefined, line: QuoteLine): boolean {
   if (!item) return false;
