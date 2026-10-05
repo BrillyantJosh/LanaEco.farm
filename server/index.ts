@@ -12,6 +12,7 @@ import { createEcoUnitsRouter } from './routes/ecoUnits.js';
 import { createRegisterRouter } from './routes/register.js';
 import { createListingsRouter } from './routes/listings.js';
 import { createAdminRouter } from './routes/admin.js';
+import { createOrdersRouter } from './routes/orders.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,16 +50,29 @@ app.use((req, res, next) => {
 });
 
 // Rate limiting
-const globalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500, standardHeaders: true, legacyHeaders: false });
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for static assets — the order status page polls
+    // every 5 s and must never be starved by its own JS/CSS bundle.
+    const url = req.url;
+    return url.startsWith('/assets/') || url.endsWith('.js') || url.endsWith('.css') || url.endsWith('.png') || url.endsWith('.ico') || url.endsWith('.jpg') || url.endsWith('.jpeg') || url.endsWith('.svg') || url.endsWith('.woff') || url.endsWith('.woff2') || url.endsWith('.webp');
+  },
+});
 app.use(globalLimiter);
 
-// Request logging
+// Request logging. originalUrl, not url: by 'finish' a mounted router has
+// stripped its prefix from req.url, so every /api/listings call was logged
+// as 'GET /' and could not be told apart from index.html.
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
-    if (!req.url.includes('/health')) {
-      console.log(`${req.method} ${req.url} ${res.statusCode} ${duration}ms`);
+    if (!req.originalUrl.includes('/health')) {
+      console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`);
     }
   });
   next();
@@ -73,6 +87,14 @@ app.use('/api/uploads', createUploadsRouter());
 app.use('/api/eco-units', createEcoUnitsRouter(db));
 app.use('/api/listings', createListingsRouter(db));
 app.use('/api/admin', createAdminRouter(db));
+// Lana Online Shop (SPEC §9.3). Env: SHOP_ORDERS_URL (broker; unset ⇒ 503
+// ORDERING_UNAVAILABLE), PORTAL_ID (default lanaeco-farm), PORTAL_PUBLIC_URL.
+// Dev-only LANA_RELAYS_OVERRIDE / LANA_TRUSTED_SIGNERS_OVERRIDE /
+// KIND_38888_PUBKEY (loopback relay only — see lib/devOverrides.ts).
+app.use('/api/orders', createOrdersRouter(db));
+if (!process.env.SHOP_ORDERS_URL) {
+  console.warn('[orders] SHOP_ORDERS_URL not set — ordering disabled (503 ORDERING_UNAVAILABLE)');
+}
 
 // Registration with strict rate limiting
 const registerLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
@@ -100,7 +122,10 @@ app.get('/{*path}', (req, res) => {
 app.listen(PORT, () => {
   console.log(`LanaEco.farm server running on port ${PORT}`);
   // lanaeco.farm is specialised for the "Producer / Eco Farm" category.
-  // shop.lanapays.us publishes those listings as KIND 36500 only.
+  // shop.lanapays.us publishes those listings as KIND 36500 only, so this is
+  // the only listing kind we subscribe to (and the only one whose orders the
+  // mirror keeps). KIND 30901 / 30902 / 30903 / 5 / 36520 / 36521 / 30933
+  // stay broad — they apply portal-agnostically.
   startLiveSync(db, { listingKinds: [36500] }).catch(err => console.error('[liveSync] start failed:', err));
 });
 

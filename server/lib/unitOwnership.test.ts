@@ -1,3 +1,4 @@
+// @vitest-environment node
 /**
  * A shop is (30901 signer, unit id), never the unit id alone. Ported from
  * lanaeco-shop 74ba516 (25 Sep 2026).
@@ -8,7 +9,7 @@
  * - A stranger's 30901 that reuses a shop's unit id is a DIFFERENT unit: it
  *   must not let that stranger's listings into the portal's category.
  */
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { describe, it, beforeEach, afterEach } from 'vitest';
 import assert from 'node:assert/strict';
 import type Database from 'better-sqlite3';
 import { initLiveSyncDb, ingestEvent } from './liveSync.js';
@@ -18,6 +19,7 @@ import {
   key, makeDb, seed38888, signed, unitEvent, suspensionEvent, listingEvent,
   UNIT_ID, LISTING_ID, type Key,
 } from '../test/fixtures.js';
+import { LISTING_KIND } from '../test/portal.js';
 
 let db: Database.Database;
 let api: TestApi;
@@ -53,7 +55,7 @@ describe('a listing may name only its signer\'s own shop', () => {
   });
 
   it('a listing with no `a` tag is not mirrored', () => {
-    ingestEvent(signed(stranger, 36502, [['d', 'noa'], ['title', 'Brez enote'], ['status', 'active']]));
+    ingestEvent(signed(stranger, LISTING_KIND, [['d', 'noa'], ['title', 'Brez enote'], ['status', 'active']]));
     assert.deepEqual(db.prepare('SELECT COUNT(*) AS n FROM listings WHERE pubkey = ?').get(stranger.pk), { n: 0 });
   });
 

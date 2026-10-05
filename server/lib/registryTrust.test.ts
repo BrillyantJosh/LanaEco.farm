@@ -1,3 +1,4 @@
+// @vitest-environment node
 /**
  * KIND 30902 / 30903 are the registrar's word, about ONE shop. Ported from
  * lanaeco-shop f1d100d (27 Sep 2026); on this portal the holes were still
@@ -13,13 +14,13 @@
  *   by `a` = 30903:<the deleter>:<unit id>, since the `a` path deleted by unit id.
  * - No kind was signature-checked: every event trusted the pubkey a relay put on it.
  */
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { describe, it, beforeEach, afterEach } from 'vitest';
 import assert from 'node:assert/strict';
 import type Database from 'better-sqlite3';
 import { ADMIN_HEXES } from '../routes/admin.js';
 import { initLiveSyncDb, ingestEvent, migrateRegistryRows } from './liveSync.js';
 import { unitKey } from './shopIdentity.js';
-import { UNITS_PATH } from '../test/portal.js';
+import { UNITS_PATH, LISTING_KIND } from '../test/portal.js';
 import { startApi, type TestApi } from '../test/http.js';
 import {
   key, makeDb, seed38888, signed, unitEvent, suspensionEvent, feePolicyEvent, listingEvent,
@@ -234,7 +235,7 @@ describe('every kind is signature-checked', () => {
 
   it('a stranger\'s KIND 5 bearing the owner\'s pubkey with a broken signature does not delete the listing', async () => {
     ingestEvent(suspensionEvent(processor, owner, UNIT_ID, 'active', T - 40));
-    ingestEvent(brokenSig(deletionEvent(owner, [{ a: `36502:${owner.pk}:${LISTING_ID}` }], T)));
+    ingestEvent(brokenSig(deletionEvent(owner, [{ a: `${LISTING_KIND}:${owner.pk}:${LISTING_ID}` }], T)));
     assert.deepEqual(await visible(), [LISTING_ID]);
   });
 });

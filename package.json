@@ -10,9 +10,8 @@
     "build": "vite build",
     "start": "tsx server/index.ts",
     "lint": "eslint .",
-    "test": "tsx --test 'server/**/*.test.ts'",
-    "test:client": "vitest run",
-    "typecheck": "tsc -p tsconfig.server.json"
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.server.json && tsc -p tsconfig.app.json"
   },
   "dependencies": {
     "@noble/hashes": "^1.4.0",
@@ -50,6 +49,7 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
     "@types/better-sqlite3": "^7.6.8",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.17",
@@ -59,14 +59,18 @@
     "@types/node": "^22.16.5",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
+    "@types/supertest": "^6.0.3",
     "@types/ws": "^8.5.10",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.1.0",
+    "jsdom": "^20.0.3",
     "postcss": "^8.5.6",
+    "supertest": "^7.2.2",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.2",
     "typescript": "^5.8.3",
-    "vite": "^5.4.19"
+    "vite": "^5.4.19",
+    "vitest": "^3.2.7"
   }
 }

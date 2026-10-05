@@ -6,13 +6,28 @@
 
 import WebSocket from 'ws';
 import { signatureOk } from './relaySync.js';
+import { devRelays, dev38888Author } from './devOverrides.js';
 
-const LANA_RELAYS = [
+const PROD_LANA_RELAYS = [
   'wss://relay.lanavault.space',
   'wss://relay.lanacoin-eternity.com'
 ];
 
-const KIND_38888_PUBKEY = '9eb71bf1e9c3189c78800e4c3831c1c1a93ab43b61118818c32e4490891a35b3';
+const PROD_KIND_38888_PUBKEY = '9eb71bf1e9c3189c78800e4c3831c1c1a93ab43b61118818c32e4490891a35b3';
+
+/**
+ * Where KIND 38888 is read from: the dev loopback relay override when it is
+ * on (see ./devOverrides.ts — never in production), else the production
+ * relays. Read at call time, like getEffectiveRelays in liveSync.
+ */
+function bootstrapRelays(): string[] {
+  return devRelays.length ? devRelays : PROD_LANA_RELAYS;
+}
+
+/** The KIND 38888 author: KIND_38888_PUBKEY with the dev override, else the production key. */
+function kind38888Author(): string {
+  return dev38888Author || PROD_KIND_38888_PUBKEY;
+}
 
 export interface NostrEvent {
   id: string;
@@ -81,8 +96,8 @@ async function fetchFromRelay(relayUrl: string, author: string, timeout = 15000)
           const event = message[2] as NostrEvent;
           if (!event || event.pubkey !== author) return;
           if (event.kind !== 38888) return;
-          // The relay list and the trusted signers (registry) come from here:
-          // the pubkey a relay puts on it proves nothing.
+          // The relay list and the trusted signers (money + registry) come
+          // from here: the pubkey a relay puts on it proves nothing.
           if (!signatureOk(event)) {
             console.warn(`Dropped KIND 38888 ${String(event.id || '').slice(0, 12)} from ${relayUrl}: bad signature`);
             return;
@@ -157,7 +172,7 @@ function parseKind38888Event(event: NostrEvent): Kind38888Data {
     event_id: event.id,
     pubkey: event.pubkey,
     created_at: event.created_at,
-    relays: relays.length > 0 ? relays : content.relays || LANA_RELAYS,
+    relays: relays.length > 0 ? relays : content.relays || bootstrapRelays(),
     electrum_servers: electrum_servers.length > 0 ? electrum_servers : content.electrum || [],
     exchange_rates,
     split,
@@ -174,7 +189,7 @@ function parseKind38888Event(event: NostrEvent): Kind38888Data {
 }
 
 export async function fetchKind38888(): Promise<Kind38888Data | null> {
-  return fetchKind38888From(LANA_RELAYS, KIND_38888_PUBKEY);
+  return fetchKind38888From(bootstrapRelays(), kind38888Author());
 }
 
 /** fetchKind38888 against the given relays and author (tests use a loopback relay and their own key). */
@@ -273,5 +288,5 @@ export async function publishEventToRelays(
 }
 
 export function getLanaRelays(): string[] {
-  return LANA_RELAYS;
+  return bootstrapRelays();
 }

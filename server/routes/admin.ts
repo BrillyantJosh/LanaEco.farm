@@ -7,16 +7,15 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import Database from 'better-sqlite3';
-import { unitKey } from '../lib/shopIdentity.js';
+import { invalidateCatalogue } from '../lib/catalogueCache.js';
+// Same set as server/routes/listings.ts — admin only shows units/listings
+// whose category matches this portal. One copy, in lib/onlineShop.ts.
+import { unitKey, PORTAL_CATEGORIES } from '../lib/onlineShop.js';
 
 export const ADMIN_HEXES = [
   '16a970069d63ca1f739c4e3b9a5f34bca6a93ead182dbf1e438a801aa03f4ef3',
   '56e8670aa65491f8595dc3a71c94aa7445dcdca755ca5f77c07218498a362061',
 ];
-
-// Same set as server/routes/listings.ts — admin only shows units/listings
-// whose category matches this portal. Keep in sync with listings.ts.
-const PORTAL_CATEGORIES = new Set(['producer','eco farm','eco farming','farmer']);
 
 interface AdminRequest extends Request {
   adminHex?: string;
@@ -193,6 +192,7 @@ export function createAdminRouter(db: Database.Database): Router {
           req.adminHex,
           Math.floor(Date.now() / 1000)
         ) as any;
+      invalidateCatalogue();
       res.json({ ok: true, id: result?.id });
     } catch (error: any) {
       console.error('Feature insert failed:', error);
@@ -205,6 +205,7 @@ export function createAdminRouter(db: Database.Database): Router {
     const id = parseInt(String(req.params.id), 10);
     if (isNaN(id)) return res.status(400).json({ error: 'invalid id' });
     db.prepare('DELETE FROM local_features WHERE id = ?').run(id);
+    invalidateCatalogue();
     res.json({ ok: true });
   });
 
@@ -255,6 +256,7 @@ export function createAdminRouter(db: Database.Database): Router {
           reason || null,
           Math.floor(Date.now() / 1000)
         ) as any;
+      invalidateCatalogue();
       res.json({ ok: true, id: result?.id });
     } catch (error: any) {
       console.error('Block insert failed:', error);
@@ -267,6 +269,7 @@ export function createAdminRouter(db: Database.Database): Router {
     const id = parseInt(String(req.params.id), 10);
     if (isNaN(id)) return res.status(400).json({ error: 'invalid id' });
     db.prepare('DELETE FROM local_blocks WHERE id = ?').run(id);
+    invalidateCatalogue();
     res.json({ ok: true });
   });
 

@@ -1,3 +1,4 @@
+// @vitest-environment node
 /**
  * What a relay hands us is not trusted until its signature checks out.
  * Ported from lanaeco-shop f1d100d (27 Sep 2026).
@@ -9,7 +10,7 @@
  * - KIND 38888 (relays + the trusted signers every registry check relies on)
  *   was taken on its pubkey alone.
  */
-import { describe, it, afterEach } from 'node:test';
+import { describe, it, afterEach } from 'vitest';
 import assert from 'node:assert/strict';
 import { fetchEvents } from './relaySync.js';
 import { fetchKind38888From } from './nostr.js';

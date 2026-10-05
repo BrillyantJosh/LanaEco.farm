@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import Database from 'better-sqlite3';
+// Categories this portal serves. Units (and their listings) outside this set
+// are excluded from the public API. One copy, in lib/onlineShop.ts.
+import { PORTAL_CATEGORIES } from '../lib/onlineShop.js';
 
 const DEFAULT_CASHBACK = 5;
-// Categories this portal serves. Units (and their listings) outside this set
-// are excluded from the public API. Edit per portal.
-const PORTAL_CATEGORIES = new Set(['producer','eco farm','eco farming','farmer']);
 
 /**
  * GET /api/eco-units — read from local SQLite (populated by heartbeat).
@@ -96,6 +96,8 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
         const unitFeat = unitFeatures.get(`${r.pubkey}:${r.unit_id}`) || null;
         units.push({
           ...parsed,
+          // KIND 30901 v1.2.0 opt-in (SPEC §6) — absent tag == false.
+          onlineShop: parsed.onlineShop === true,
           cashbackPercent: cashback,
           featured: unitFeat?.type || null,
           featuredAt: unitFeat?.createdAt || 0,
