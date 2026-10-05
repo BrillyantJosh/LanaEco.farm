@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Upload, X, Loader2 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/i18n/LanguageContext';
+import type { TranslationKey } from '@/i18n/translations';
 import { useAuth } from '@/contexts/AuthContext';
 import { uploadImageWithThumb, generateEphemeralPrivateKey } from '@/lib/mediaUpload';
 
@@ -21,7 +22,13 @@ export function ImageUpload({ onUpload, onUploadingChange, currentUrl, label = '
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const { t } = useTranslation();
+  // react-i18next was never a dependency of this portal; the house i18n is
+  // useLanguage(). Keys missing from translations fall back to the given text.
+  const { t: tr } = useLanguage();
+  const t = (key: string, fallback?: string) => {
+    const v = tr(key as TranslationKey);
+    return v === key && fallback ? fallback : v;
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -16,6 +16,7 @@ interface EcoUnit {
   category: string;
   categoryDetail: string;
   images: string[];
+  thumbs?: string[];
   status: string;
   registeredAt?: number;
   longitude: string;
@@ -43,6 +44,7 @@ interface EcoListing {
   unit: string;
   content: string;
   images: string[];
+  thumbs?: string[];
   eco: string[];
   tags: string[];
   status: string;

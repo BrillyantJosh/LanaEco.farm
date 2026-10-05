@@ -21,6 +21,7 @@ interface EcoListing {
   unitRef?: string;
   content: string;
   images: string[];
+  thumbs?: string[];
   eco: string[];
   tags: string[];
   cashbackPercent: number;
@@ -35,6 +36,7 @@ interface EcoUnit {
   receiverCity: string;
   receiverCountry?: string;
   images: string[];
+  thumbs?: string[];
   content: string;
   status: string;
   registeredAt?: number;

@@ -278,7 +278,6 @@ const en = {
   'cat.flowers': 'flowers',
   'cat.seeds': 'seeds',
   'cat.nuts': 'nuts',
-  'cat.other': 'other',
 
   // Delivery
   'del.pickup': 'pickup',
@@ -437,6 +436,11 @@ const en = {
   'form.biweekly': 'Biweekly',
   'form.monthly': 'Monthly',
   'form.boxContents': 'Box contents',
+  'form.boxContentsPlaceholder': 'What is in the box',
+  'form.descriptionPlaceholder': 'Describe the product',
+  'form.seasonAvailability': 'Season & availability',
+  'form.certificateUrl': 'Certificate URL',
+  'form.cancel': 'Cancel',
   'form.boxPlaceholder': 'Mixed seasonal veg ~8 kg + 6 eggs',
   'form.experience': 'Experience',
   'form.capacity': 'Capacity',
@@ -795,7 +799,6 @@ const sl: typeof en = {
   'cat.flowers': 'rože',
   'cat.seeds': 'semena',
   'cat.nuts': 'oreščki',
-  'cat.other': 'drugo',
 
   // Delivery
   'del.pickup': 'prevzem',
@@ -954,6 +957,11 @@ const sl: typeof en = {
   'form.biweekly': 'Dvotedensko',
   'form.monthly': 'Mesečno',
   'form.boxContents': 'Vsebina paketa',
+  'form.boxContentsPlaceholder': 'Kaj je v paketu',
+  'form.descriptionPlaceholder': 'Opišite izdelek',
+  'form.seasonAvailability': 'Sezona in razpoložljivost',
+  'form.certificateUrl': 'Povezava do certifikata',
+  'form.cancel': 'Prekliči',
   'form.boxPlaceholder': 'Mešana sezonska zelenjava ~8 kg + 6 jajc',
   'form.experience': 'Doživetje',
   'form.capacity': 'Kapaciteta',

@@ -14,6 +14,7 @@ interface EcoUnit {
   receiverCity: string;
   receiverCountry: string;
   images: string[];
+  thumbs?: string[];
   content: string;
   status: string;
   registeredAt?: number;
