@@ -49,7 +49,7 @@ export function createRegisterRouter(): Router {
         })
       });
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       if (!response.ok) {
         console.error('Registration API error:', response.status, data);
@@ -119,7 +119,7 @@ export function createRegisterRouter(): Router {
         body: JSON.stringify(requestBody)
       });
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       if (!response.ok) {
         console.error('Wallet registration API error:', response.status, data);

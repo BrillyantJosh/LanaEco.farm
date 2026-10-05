@@ -30,8 +30,8 @@ export function createEcoUnitsRouter(db: Database.Database): Router {
             gs.status AS suspension_status,
             gs.active_until AS suspension_active_until
           FROM business_units u
-          LEFT JOIN fee_policies fp ON fp.unit_id = u.unit_id
-          LEFT JOIN global_suspensions gs ON gs.unit_id = u.unit_id
+          LEFT JOIN fee_policies fp ON fp.unit_id = u.unit_id AND fp.owner_pubkey = u.pubkey
+          LEFT JOIN global_suspensions gs ON gs.unit_id = u.unit_id AND gs.owner_pubkey = u.pubkey
         `
         )
         .all() as any[];

@@ -10,7 +10,9 @@
     "build": "vite build",
     "start": "tsx server/index.ts",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "tsx --test 'server/**/*.test.ts'",
+    "test:client": "vitest run",
+    "typecheck": "tsc -p tsconfig.server.json"
   },
   "dependencies": {
     "@noble/hashes": "^1.4.0",

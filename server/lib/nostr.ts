@@ -5,6 +5,7 @@
  */
 
 import WebSocket from 'ws';
+import { signatureOk } from './relaySync.js';
 
 const LANA_RELAYS = [
   'wss://relay.lanavault.space',
@@ -42,7 +43,7 @@ export interface Kind38888Data {
   raw_event: string;
 }
 
-async function fetchFromRelay(relayUrl: string, timeout = 15000): Promise<NostrEvent | null> {
+async function fetchFromRelay(relayUrl: string, author: string, timeout = 15000): Promise<NostrEvent | null> {
   return new Promise((resolve) => {
     const timeoutId = setTimeout(() => {
       console.log(`Timeout connecting to ${relayUrl}`);
@@ -66,7 +67,7 @@ async function fetchFromRelay(relayUrl: string, timeout = 15000): Promise<NostrE
       console.log(`Connected to ${relayUrl}`);
       const filter = {
         kinds: [38888],
-        authors: [KIND_38888_PUBKEY],
+        authors: [author],
         '#d': ['main'],
         limit: 1
       };
@@ -78,12 +79,23 @@ async function fetchFromRelay(relayUrl: string, timeout = 15000): Promise<NostrE
         const message = JSON.parse(data.toString());
         if (message[0] === 'EVENT' && message[1] === subscriptionId) {
           const event = message[2] as NostrEvent;
-          if (event.pubkey !== KIND_38888_PUBKEY) return;
+          if (!event || event.pubkey !== author) return;
           if (event.kind !== 38888) return;
+          // The relay list and the trusted signers (registry) come from here:
+          // the pubkey a relay puts on it proves nothing.
+          if (!signatureOk(event)) {
+            console.warn(`Dropped KIND 38888 ${String(event.id || '').slice(0, 12)} from ${relayUrl}: bad signature`);
+            return;
+          }
           console.log(`Got valid KIND 38888 event from ${relayUrl}, id: ${event.id}`);
           clearTimeout(timeoutId);
           ws.close();
           resolve(event);
+        } else if (message[0] === 'EOSE' && message[1] === subscriptionId) {
+          // Stored events are all in and none was valid.
+          clearTimeout(timeoutId);
+          ws.close();
+          resolve(null);
         }
       } catch (error) {
         console.error(`Error parsing message from ${relayUrl}:`, error);
@@ -162,10 +174,15 @@ function parseKind38888Event(event: NostrEvent): Kind38888Data {
 }
 
 export async function fetchKind38888(): Promise<Kind38888Data | null> {
+  return fetchKind38888From(LANA_RELAYS, KIND_38888_PUBKEY);
+}
+
+/** fetchKind38888 against the given relays and author (tests use a loopback relay and their own key). */
+export async function fetchKind38888From(relays: string[], author: string, timeout = 15000): Promise<Kind38888Data | null> {
   console.log('Fetching KIND 38888 from Lana relays...');
 
   const results = await Promise.all(
-    LANA_RELAYS.map(relay => fetchFromRelay(relay))
+    relays.map(relay => fetchFromRelay(relay, author, timeout))
   );
 
   const validEvents = results.filter((e): e is NostrEvent => e !== null);

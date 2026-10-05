@@ -31,10 +31,12 @@ import WebSocket from 'ws';
 import type Database from 'better-sqlite3';
 import { parseUnit, parseListing, parseFeePolicy, parseSuspension } from './parsers.js';
 import { fetchKind38888 } from './nostr.js';
-import { fetchEvents, type NostrEvent } from './relaySync.js';
+import { fetchEvents, signatureOk, getTag, type NostrEvent } from './relaySync.js';
+import { listingOwnsUnitRef, registrarSigners, registryOwner } from './shopIdentity.js';
 
-const PROCESSOR_PUBKEY =
-  '79730aba75d71584e8a4f9d0cc1173085e75590ce489760078d2bf6f5210d692';
+/** Registry kinds: the registrar's word about one shop (fee policy, registration status). */
+const KIND_FEE_POLICY = 30902;
+const KIND_REGISTRATION = 30903;
 
 /**
  * The full set of "listing" kinds we recognise. shop.lanapays.us maps
@@ -71,6 +73,11 @@ export interface LiveSyncConfig {
    * lana-events uses 'lana-event'.
    */
   listingHashtag?: string;
+  /**
+   * Tests only: these relays instead of KIND 38888's, and no KIND 38888
+   * fetch at all (a loopback relay; nothing may reach the real ones).
+   */
+  relays?: string[];
 }
 
 interface ResolvedConfig {
@@ -79,7 +86,12 @@ interface ResolvedConfig {
 }
 
 interface SubIds {
+  /** {kinds:[30901,5]} */
   misc: string;
+  /** {kinds:[30902], authors: registrar signers} */
+  fees: string;
+  /** {kinds:[30903], authors: registrar signers} */
+  registrations: string;
   listings: string;
   cal31923?: string;
 }
@@ -155,7 +167,8 @@ function saveKind38888(db: Database.Database, p: any): void {
   // Single-row invariant: we always write id=1, and every read is
   // `ORDER BY id DESC LIMIT 1`. Purge any legacy higher-id rows (e.g. from the
   // old per-poll auto-increment heartbeat) so a stale row can never shadow the
-  // fresh one — and to keep the table from bloating.
+  // fresh one — and to keep the table from bloating. The registrar signers
+  // (who may publish 30902/30903) are read from this row.
   db.prepare('DELETE FROM kind_38888 WHERE id != 1').run();
 }
 
@@ -203,7 +216,8 @@ function recordTombstone(kind: number, pubkey: string, dTag: string, tombstoneCr
 
 /**
  * Process a KIND 5 (NIP-09) deletion event. The deleting pubkey MUST equal
- * the target pubkey — relays enforce this, but we double-check.
+ * the target's signer. Relays do NOT enforce this — they store and forward
+ * a KIND 5 naming anybody's event — so every delete below checks it.
  *
  * `e` tags reference event IDs directly; `a` tags reference replaceable
  * coordinates (kind:pubkey:d). For each, we delete the corresponding row
@@ -215,17 +229,16 @@ function handleDeletion(ev: NostrEvent, now: number): void {
     if (!Array.isArray(tag) || tag.length < 2) continue;
     if (tag[0] === 'e' && tag[1]) {
       const eventId = tag[1];
-      // Ownership check via `AND pubkey = ?` clause; tables that aren't
-      // keyed on pubkey (fee_policies, global_suspensions) match by event_id
-      // only — relays already enforce NIP-09 ownership.
+      // Only the key that signed a row may delete it: `pubkey` for units and
+      // listings, `signer` (the registrar) for fee policies and 30903s.
       dbRef.prepare('DELETE FROM business_units WHERE event_id = ? AND pubkey = ?')
         .run(eventId, deleterPubkey);
       dbRef.prepare('DELETE FROM listings WHERE event_id = ? AND pubkey = ?')
         .run(eventId, deleterPubkey);
-      dbRef.prepare('DELETE FROM fee_policies WHERE event_id = ?')
-        .run(eventId);
-      dbRef.prepare('DELETE FROM global_suspensions WHERE event_id = ?')
-        .run(eventId);
+      dbRef.prepare('DELETE FROM fee_policies WHERE event_id = ? AND signer = ?')
+        .run(eventId, deleterPubkey);
+      dbRef.prepare('DELETE FROM global_suspensions WHERE event_id = ? AND signer = ?')
+        .run(eventId, deleterPubkey);
     } else if (tag[0] === 'a' && tag[1]) {
       const parts = tag[1].split(':');
       if (parts.length < 3) continue;
@@ -240,14 +253,16 @@ function handleDeletion(ev: NostrEvent, now: number): void {
         dbRef.prepare(
           `DELETE FROM business_units WHERE pubkey = ? AND unit_id = ? AND event_created_at <= ?`
         ).run(targetPubkey, dTag, ev.created_at);
-      } else if (kind === 30902) {
+      } else if (kind === KIND_FEE_POLICY) {
+        // The row the registrar signed under this address — never the row
+        // of whatever unit id a stranger writes as "its own" d tag.
         dbRef.prepare(
-          `DELETE FROM fee_policies WHERE unit_id = ? AND event_created_at <= ?`
-        ).run(dTag, ev.created_at);
-      } else if (kind === 30903) {
+          `DELETE FROM fee_policies WHERE signer = ? AND d_tag = ? AND event_created_at <= ?`
+        ).run(targetPubkey, dTag, ev.created_at);
+      } else if (kind === KIND_REGISTRATION) {
         dbRef.prepare(
-          `DELETE FROM global_suspensions WHERE unit_id = ? AND event_created_at <= ?`
-        ).run(dTag, ev.created_at);
+          `DELETE FROM global_suspensions WHERE signer = ? AND d_tag = ? AND event_created_at <= ?`
+        ).run(targetPubkey, dTag, ev.created_at);
       } else if (LISTING_KIND_SET.has(kind)) {
         dbRef.prepare(
           `DELETE FROM listings WHERE pubkey = ? AND listing_id = ? AND event_created_at <= ?`
@@ -279,6 +294,9 @@ function upsertUnit(ev: NostrEvent, now: number): void {
 function upsertListing(ev: NostrEvent, now: number): void {
   const parsed = parseListing(ev);
   if (!parsed.listingId) return;
+  // Only the shop's own key may list on it: a stranger's listing whose `a`
+  // names someone else's 30901 would otherwise join that shop's page.
+  if (!listingOwnsUnitRef(ev.pubkey, parsed.unitRef)) return;
   if (isTombstoned(ev.kind, ev.pubkey, parsed.listingId, ev.created_at)) return;
   const unitId = parsed.unitRef?.split(':')[2] || null;
   dbRef.prepare(`
@@ -295,32 +313,52 @@ function upsertListing(ev: NostrEvent, now: number): void {
   `).run(ev.pubkey, parsed.listingId, unitId, ev.id, ev.created_at, JSON.stringify(parsed), JSON.stringify(ev), now);
 }
 
+/**
+ * KIND 30902 — the registrar's fee policy for ONE shop. One row per unit id
+ * (newest wins); readers join it by (owner_pubkey, unit_id).
+ */
 function upsertFeePolicy(ev: NostrEvent, now: number): void {
-  if (ev.pubkey !== PROCESSOR_PUBKEY) return; // only processor publishes fees
+  if (!registrarSigners(dbRef).has(ev.pubkey)) return; // only the registrar publishes fees
   const parsed = parseFeePolicy(ev);
   if (!parsed.unitId) return;
-  if (isTombstoned(30902, ev.pubkey, parsed.unitId, ev.created_at)) return;
+  const owner = registryOwner(ev, parsed.unitId);
+  if (!owner) return;
+  const dTag = getTag(ev, 'd') || parsed.unitId; // policy_<unit8>_<quarter>
+  if (isTombstoned(KIND_FEE_POLICY, ev.pubkey, dTag, ev.created_at)) return;
   dbRef.prepare(`
-    INSERT INTO fee_policies (unit_id, event_id, event_created_at, lana_discount_per, status, raw_event, fetched_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO fee_policies (unit_id, event_id, event_created_at, lana_discount_per, status, raw_event, fetched_at, owner_pubkey, signer, d_tag)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(unit_id) DO UPDATE SET
       event_id = excluded.event_id,
       event_created_at = excluded.event_created_at,
       lana_discount_per = excluded.lana_discount_per,
       status = excluded.status,
       raw_event = excluded.raw_event,
-      fetched_at = excluded.fetched_at
+      fetched_at = excluded.fetched_at,
+      owner_pubkey = excluded.owner_pubkey,
+      signer = excluded.signer,
+      d_tag = excluded.d_tag
     WHERE excluded.event_created_at > fee_policies.event_created_at
-  `).run(parsed.unitId, ev.id, ev.created_at, parsed.lanaDiscountPer, parsed.status, JSON.stringify(ev), now);
+  `).run(parsed.unitId, ev.id, ev.created_at, parsed.lanaDiscountPer, parsed.status, JSON.stringify(ev), now, owner, ev.pubkey, dTag);
 }
 
+/**
+ * KIND 30903 — the registrar's word on whether ONE shop may be public
+ * (a missing status tag reads as `suspended`). Only the registrar signs it
+ * (d = unit id), so the registrar also decides which owner holds a unit id.
+ * One row per unit id (newest wins); readers join it by (owner_pubkey, unit_id).
+ */
 function upsertSuspension(ev: NostrEvent, now: number): void {
+  if (!registrarSigners(dbRef).has(ev.pubkey)) return;
   const parsed = parseSuspension(ev);
   if (!parsed.unitId) return;
-  if (isTombstoned(30903, ev.pubkey, parsed.unitId, ev.created_at)) return;
+  const owner = registryOwner(ev, parsed.unitId);
+  if (!owner) return;
+  const dTag = getTag(ev, 'd') || parsed.unitId;
+  if (isTombstoned(KIND_REGISTRATION, ev.pubkey, dTag, ev.created_at)) return;
   dbRef.prepare(`
-    INSERT INTO global_suspensions (unit_id, event_id, event_created_at, status, reason, active_until, raw_event, fetched_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO global_suspensions (unit_id, event_id, event_created_at, status, reason, active_until, raw_event, fetched_at, owner_pubkey, signer, d_tag)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(unit_id) DO UPDATE SET
       event_id = excluded.event_id,
       event_created_at = excluded.event_created_at,
@@ -328,20 +366,34 @@ function upsertSuspension(ev: NostrEvent, now: number): void {
       reason = excluded.reason,
       active_until = excluded.active_until,
       raw_event = excluded.raw_event,
-      fetched_at = excluded.fetched_at
+      fetched_at = excluded.fetched_at,
+      owner_pubkey = excluded.owner_pubkey,
+      signer = excluded.signer,
+      d_tag = excluded.d_tag
     WHERE excluded.event_created_at > global_suspensions.event_created_at
-  `).run(parsed.unitId, ev.id, ev.created_at, parsed.status, parsed.reason, parsed.activeUntil, JSON.stringify(ev), now);
+  `).run(parsed.unitId, ev.id, ev.created_at, parsed.status, parsed.reason, parsed.activeUntil, JSON.stringify(ev), now, owner, ev.pubkey, dTag);
 }
 
 function dispatchEvent(ev: NostrEvent, relayUrl: string, skipDedup = false): void {
-  if (!skipDedup && !dedupRemember(ev.id)) return;
+  if (!ev || typeof ev !== 'object') return;
+  if (!skipDedup && seenEventIds.has(ev.id)) return;
+  // EVERY kind: the pubkey a relay puts on an event means nothing until its
+  // signature checks out (registry: 30902/30903; shops: 30901 and listings,
+  // whose signer rules everything else; KIND 5). Checked BEFORE the id is
+  // remembered, so a copy that reuses a real event's id cannot make the live
+  // path drop the real event as a duplicate.
+  if (!signatureOk(ev)) {
+    console.warn(`[liveSync] dropped kind=${ev.kind} id=${String(ev.id || '').slice(0, 12)} from ${relayUrl}: bad signature`);
+    return;
+  }
+  if (!skipDedup) dedupRemember(ev.id);
   const now = Math.floor(Date.now() / 1000);
   try {
     switch (ev.kind) {
       case 5: handleDeletion(ev, now); break;
       case 30901: upsertUnit(ev, now); break;
-      case 30902: upsertFeePolicy(ev, now); break;
-      case 30903: upsertSuspension(ev, now); break;
+      case KIND_FEE_POLICY: upsertFeePolicy(ev, now); break;
+      case KIND_REGISTRATION: upsertSuspension(ev, now); break;
       default:
         if (LISTING_KIND_SET.has(ev.kind)) upsertListing(ev, now);
         return;
@@ -367,7 +419,7 @@ function openConnection(url: string): void {
     reconnectTimer: null,
     pingTimer: null,
     lastPongAt: Date.now(),
-    subIds: { misc: genId('m'), listings: genId('l') },
+    subIds: { misc: genId('m'), fees: genId('f'), registrations: genId('r'), listings: genId('l') },
   };
   if (cfg.listingHashtag) r.subIds.cal31923 = genId('c');
   relays.set(url, r);
@@ -424,9 +476,22 @@ function sendSubscriptions(r: RelayState): void {
     ? { since: r.lastSeenCreatedAt - SINCE_OVERLAP }
     : {};
 
-  // unit + fee + suspension + KIND 5 deletions (no hashtag scoping)
+  // units + KIND 5 deletions (no hashtag scoping)
   r.ws.send(JSON.stringify(['REQ', r.subIds.misc, {
-    kinds: [30901, 30902, 30903, 5],
+    kinds: [30901, 5],
+    ...sinceObj,
+  }]));
+  // Registry kinds, ONLY from the registrar (the upserts check it again).
+  // One REQ each: a relay answers at most 500 events per REQ.
+  const registrars = Array.from(registrarSigners(dbRef));
+  r.ws.send(JSON.stringify(['REQ', r.subIds.registrations, {
+    kinds: [KIND_REGISTRATION],
+    authors: registrars,
+    ...sinceObj,
+  }]));
+  r.ws.send(JSON.stringify(['REQ', r.subIds.fees, {
+    kinds: [KIND_FEE_POLICY],
+    authors: registrars,
     ...sinceObj,
   }]));
 
@@ -459,8 +524,7 @@ function handleMessage(r: RelayState, msg: any): void {
   if (!Array.isArray(msg) || msg.length < 1) return;
   switch (msg[0]) {
     case 'EVENT': {
-      const ev = msg[2] as NostrEvent;
-      if (ev && typeof ev === 'object') dispatchEvent(ev, r.url);
+      dispatchEvent(msg[2] as NostrEvent, r.url);
       break;
     }
     case 'EOSE':
@@ -518,7 +582,7 @@ async function runSafetyNet(): Promise<void> {
   console.log('[liveSync] safety net sweep');
   const relayList = getRelayList(dbRef);
   if (relayList.length === 0) return;
-  const allKinds = Array.from(new Set([5, 30901, 30902, 30903, ...cfg.listingKinds]));
+  const allKinds = Array.from(new Set([5, 30901, ...cfg.listingKinds]));
   try {
     const events = await fetchEvents(relayList, { kinds: allKinds });
     let n = 0;
@@ -529,10 +593,76 @@ async function runSafetyNet(): Promise<void> {
       dispatchEvent(ev, '<safetynet>', /* skipDedup */ true);
       n++;
     }
+    // Registry kinds from the registrar only, one fetch each (500 per REQ).
+    const registrars = Array.from(registrarSigners(dbRef));
+    for (const kind of [KIND_REGISTRATION, KIND_FEE_POLICY]) {
+      for (const ev of await fetchEvents(relayList, { kinds: [kind], authors: registrars })) {
+        dispatchEvent(ev, '<safetynet>', /* skipDedup */ true);
+        n++;
+      }
+    }
     console.log(`[liveSync] safety net processed ${n} events`);
   } catch (err: any) {
     console.error('[liveSync] safety net failed:', err.message || err);
   }
+}
+
+// ─────────────────────────────────────────── registry rows mirrored before the check
+
+/**
+ * fee_policies / global_suspensions rows mirrored before liveSync checked who
+ * signed them (no `signer` yet): re-run today's ingest rule on each one's
+ * raw event. The registrar's rows keep their place and get owner / signer /
+ * d tag; anything else — a stranger's, a broken signature, no `a` naming the
+ * owner — is dropped, and the registrar's own event comes back with the live
+ * subscription or the hourly safety net. Rows that have a signer are not
+ * looked at again.
+ */
+export function migrateRegistryRows(db: Database.Database): { kept: number; dropped: number } {
+  const signers = registrarSigners(db);
+  let kept = 0;
+  let dropped = 0;
+  const tables = [
+    { table: 'fee_policies', kind: KIND_FEE_POLICY, unitIdOf: (ev: NostrEvent) => parseFeePolicy(ev).unitId },
+    { table: 'global_suspensions', kind: KIND_REGISTRATION, unitIdOf: (ev: NostrEvent) => parseSuspension(ev).unitId },
+  ];
+  db.transaction(() => {
+    for (const { table, kind, unitIdOf } of tables) {
+      const rows = db.prepare(`SELECT unit_id, raw_event FROM ${table} WHERE signer IS NULL`)
+        .all() as Array<{ unit_id: string; raw_event: string }>;
+      for (const r of rows) {
+        let ev: NostrEvent | null = null;
+        try { ev = JSON.parse(r.raw_event); } catch { ev = null; }
+        const owner = ev && ev.kind === kind && signatureOk(ev) && signers.has(ev.pubkey) && unitIdOf(ev) === r.unit_id
+          ? registryOwner(ev, r.unit_id)
+          : null;
+        if (!ev || !owner) {
+          db.prepare(`DELETE FROM ${table} WHERE unit_id = ?`).run(r.unit_id);
+          dropped++;
+          continue;
+        }
+        db.prepare(`UPDATE ${table} SET owner_pubkey = ?, signer = ?, d_tag = ? WHERE unit_id = ?`)
+          .run(owner, ev.pubkey, getTag(ev, 'd') || r.unit_id, r.unit_id);
+        kept++;
+      }
+    }
+  })();
+  if (kept || dropped) console.log(`[liveSync] registry rows checked: kept ${kept}, dropped ${dropped}`);
+  return { kept, dropped };
+}
+
+// ─────────────────────────────────────────── test hooks
+
+/** Bind the DB without opening any relay connection (tests, one-off ingest). */
+export function initLiveSyncDb(db: Database.Database): void {
+  dbRef = db;
+  if (!cfg) cfg = { listingKinds: ALL_LISTING_KINDS.slice() };
+  migrateRegistryRows(db);
+}
+
+/** Feed one already-fetched event through the same dispatch as the live sub. */
+export function ingestEvent(ev: NostrEvent): void {
+  dispatchEvent(ev, '<ingest>', /* skipDedup */ true);
 }
 
 // ─────────────────────────────────────────── public API
@@ -554,6 +684,18 @@ export async function startLiveSync(
     `[liveSync] start; listingKinds=${JSON.stringify(cfg.listingKinds)}`
     + (cfg.listingHashtag ? ` hashtag=${cfg.listingHashtag}` : ''),
   );
+
+  // Synchronous, before the first await: no request is served from rows
+  // that have not been checked.
+  try { migrateRegistryRows(dbRef); } catch (err: any) {
+    console.error('[liveSync] registry row check failed:', err.message || err);
+  }
+
+  // Tests: a loopback relay, and no KIND 38888 fetch or poll.
+  if (config?.relays) {
+    for (const url of config.relays) openConnection(url);
+    return;
+  }
 
   // Determine initial relay list from KIND 38888 (refresh + persist).
   let relayList = await refreshKind38888();

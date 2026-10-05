@@ -5,6 +5,7 @@
  */
 
 import WebSocket from 'ws';
+import { verifyEvent } from 'nostr-tools/pure';
 
 export interface NostrEvent {
   id: string;
@@ -22,6 +23,22 @@ export function getTag(event: NostrEvent, name: string): string {
 
 export function getTags(event: NostrEvent, name: string): string[] {
   return event.tags.filter(t => t[0] === name).map(t => t[1]);
+}
+
+const HEX64_RE = /^[0-9a-f]{64}$/;
+
+/**
+ * True when the event is signed by the pubkey it carries and its id is the
+ * hash of its content. A relay chooses what it sends us; this is the only
+ * thing that makes `ev.pubkey` mean anything.
+ */
+export function signatureOk(ev: NostrEvent): boolean {
+  if (!ev || typeof ev !== 'object' || !HEX64_RE.test(String(ev.pubkey)) || !Array.isArray(ev.tags)) return false;
+  // Verify a PLAIN copy: nostr-tools caches its verdict on the object under a
+  // symbol that survives `{...ev}` — a tampered copy of a once-verified event
+  // would otherwise verify itself.
+  const plain = { id: ev.id, pubkey: ev.pubkey, created_at: ev.created_at, kind: ev.kind, tags: ev.tags, content: ev.content, sig: ev.sig };
+  try { return verifyEvent(plain as any) === true; } catch { return false; }
 }
 
 interface FetchOpts {
@@ -82,8 +99,10 @@ function fetchFromRelay(relayUrl: string, filter: FetchOpts): Promise<NostrEvent
 }
 
 /**
- * Fetch events from multiple relays in parallel, deduplicate by (pubkey, d-tag),
- * keep newest by created_at.
+ * Fetch events from multiple relays in parallel, drop any whose signature
+ * does not check out, deduplicate by (kind, pubkey, d-tag), keep newest by
+ * created_at. Verifying first matters: a forged copy with a newer created_at,
+ * or reusing the real event's id, must not push the real event out.
  */
 export async function fetchEvents(
   relays: string[],
@@ -96,11 +115,12 @@ export async function fetchEvents(
 
   for (const relayEvents of results) {
     for (const event of relayEvents) {
-      if (seenIds.has(event.id)) continue;
+      if (seenIds.has(event?.id)) continue;
+      if (!signatureOk(event)) continue;
       seenIds.add(event.id);
 
       const dTag = event.tags.find(t => t[0] === 'd')?.[1] || event.id;
-      const key = `${event.pubkey}:${dTag}`;
+      const key = `${event.kind}:${event.pubkey}:${dTag}`;
       const existing = byKey.get(key);
       if (!existing || event.created_at > existing.created_at) {
         byKey.set(key, event);

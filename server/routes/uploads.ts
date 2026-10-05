@@ -149,7 +149,7 @@ export function createUploadsRouter(): Router {
 
   // Serve uploaded files publicly
   router.get('/:filename', (req: Request, res: Response) => {
-    const { filename } = req.params;
+    const filename = String(req.params.filename);
 
     // Path traversal protection
     const safeName = path.basename(filename);

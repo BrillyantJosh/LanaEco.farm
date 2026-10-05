@@ -62,7 +62,10 @@ export function initializeSchema(db: Database.Database): void {
       lana_discount_per REAL,
       status TEXT,
       raw_event TEXT NOT NULL,
-      fetched_at INTEGER NOT NULL
+      fetched_at INTEGER NOT NULL,
+      owner_pubkey TEXT,
+      signer TEXT,
+      d_tag TEXT
     );
 
     CREATE TABLE IF NOT EXISTS global_suspensions (
@@ -73,7 +76,10 @@ export function initializeSchema(db: Database.Database): void {
       reason TEXT,
       active_until INTEGER,
       raw_event TEXT NOT NULL,
-      fetched_at INTEGER NOT NULL
+      fetched_at INTEGER NOT NULL,
+      owner_pubkey TEXT,
+      signer TEXT,
+      d_tag TEXT
     );
 
     CREATE TABLE IF NOT EXISTS local_blocks (
@@ -126,4 +132,16 @@ export function initializeSchema(db: Database.Database): void {
   // Migration: KIND 38888 v3 fields (split_approaching + retail wallet freeze threshold)
   try { db.exec(`ALTER TABLE kind_38888 ADD COLUMN split_approaching INTEGER DEFAULT 0`); } catch {}
   try { db.exec(`ALTER TABLE kind_38888 ADD COLUMN freeze_lana_retail_account_above INTEGER DEFAULT 0`); } catch {}
+
+  // KIND 30902 / 30903 rows record the owner their `a` tag names (joins go by
+  // owner + unit id), the key that signed them (only it may delete them) and
+  // their d tag (what a NIP-09 `a` deletion addresses). Databases created
+  // before these columns get them here; liveSync's migrateRegistryRows fills
+  // them in for rows mirrored earlier.
+  for (const table of ['fee_policies', 'global_suspensions']) {
+    const have = new Set((db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>).map(c => c.name));
+    for (const col of ['owner_pubkey', 'signer', 'd_tag']) {
+      if (!have.has(col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} TEXT`);
+    }
+  }
 }

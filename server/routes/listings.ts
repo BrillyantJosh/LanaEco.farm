@@ -1,10 +1,11 @@
 import { Router, Request, Response } from 'express';
 import Database from 'better-sqlite3';
+import { unitKey, listingOwnsUnitRef } from '../lib/shopIdentity.js';
 
 const DEFAULT_CASHBACK = 5;
 // Categories this portal serves. Listings whose unit category is outside this
 // set are excluded. Edit per portal (must match ecoUnits.ts PORTAL_CATEGORIES).
-const PORTAL_CATEGORIES = new Set(['producer','eco farm','eco farming','farmer']);
+export const PORTAL_CATEGORIES = new Set(['producer','eco farm','eco farming','farmer']);
 
 /**
  * GET /api/listings — read from local SQLite (populated by heartbeat).
@@ -34,25 +35,27 @@ export function createListingsRouter(db: Database.Database): Router {
             gs.status AS suspension_status,
             gs.active_until AS suspension_active_until
           FROM listings l
-          LEFT JOIN fee_policies fp ON fp.unit_id = l.unit_id
-          LEFT JOIN global_suspensions gs ON gs.unit_id = l.unit_id
+          LEFT JOIN fee_policies fp ON fp.unit_id = l.unit_id AND fp.owner_pubkey = l.pubkey
+          LEFT JOIN global_suspensions gs ON gs.unit_id = l.unit_id AND gs.owner_pubkey = l.pubkey
           ORDER BY l.event_created_at DESC
         `
         )
         .all() as any[];
 
-      // Build set of unit_ids whose category matches this portal — listings
-      // whose unit isn't in this set are excluded.
-      const allowedUnitIds = new Set<string>();
+      // Build set of units (unitKey: signer + unit id) whose category matches
+      // this portal — listings whose unit isn't in this set are excluded. A
+      // listing's unit is its SIGNER's 30901, never another key's 30901 that
+      // reuses the unit id.
+      const allowedUnits = new Set<string>();
       const unitRows = db
-        .prepare(`SELECT unit_id, parsed_json FROM business_units`)
+        .prepare(`SELECT pubkey, unit_id, parsed_json FROM business_units`)
         .all() as any[];
       for (const u of unitRows) {
         try {
           const p = JSON.parse(u.parsed_json);
           const cat = String(p.category || '').trim().toLowerCase();
           if (p.status && p.status !== 'active') continue; // archived/non-active unit → hide its listings too
-          if (PORTAL_CATEGORIES.has(cat)) allowedUnitIds.add(u.unit_id);
+          if (PORTAL_CATEGORIES.has(cat)) allowedUnits.add(unitKey(u.pubkey, u.unit_id));
         } catch {}
       }
 
@@ -105,7 +108,7 @@ export function createListingsRouter(db: Database.Database): Router {
           (!r.suspension_active_until || r.suspension_active_until > now);
         if (!statusActive) continue;
         // portal category filter (skip listings whose unit isn't in this portal's categories)
-        if (!allowedUnitIds.has(r.unit_id)) continue;
+        if (!allowedUnits.has(unitKey(r.pubkey, r.unit_id))) continue;
         // local block check
         if (providerBlocks.has(r.pubkey)) continue;
         if (unitBlocks.has(`${r.pubkey}:${r.unit_id}`)) continue;
@@ -119,6 +122,9 @@ export function createListingsRouter(db: Database.Database): Router {
         }
         if (parsed.status && parsed.status !== 'active') continue;
         if (!parsed.title) continue;
+        // `a` must name the signer's own shop. liveSync no longer stores other
+        // listings; this keeps out rows mirrored before it checked.
+        if (!listingOwnsUnitRef(r.pubkey, parsed.unitRef)) continue;
 
         const cashback =
           r.fee_status === 'active' &&

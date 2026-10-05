@@ -7,6 +7,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import Database from 'better-sqlite3';
+import { unitKey } from '../lib/shopIdentity.js';
 
 export const ADMIN_HEXES = [
   '16a970069d63ca1f739c4e3b9a5f34bca6a93ead182dbf1e438a801aa03f4ef3',
@@ -70,7 +71,7 @@ export function createAdminRouter(db: Database.Database): Router {
            WHERE lf.target_type='unit' AND lf.target_pubkey=u.pubkey AND lf.target_id=u.unit_id AND lf.feature_type='new'
            LIMIT 1) AS new_feature_id
         FROM business_units u
-        LEFT JOIN global_suspensions gs ON gs.unit_id = u.unit_id
+        LEFT JOIN global_suspensions gs ON gs.unit_id = u.unit_id AND gs.owner_pubkey = u.pubkey
         ORDER BY u.event_created_at DESC
       `
       )
@@ -103,17 +104,18 @@ export function createAdminRouter(db: Database.Database): Router {
   // GET /api/admin/listings — listings (scoped to this portal's categories)
   // with block + suspension + feature status
   router.get('/listings', requireAdmin, (req: Request, res: Response) => {
-    // Build set of unit_ids whose category matches this portal — listings
-    // whose unit isn't in this set are excluded (same rule as public route).
-    const allowedUnitIds = new Set<string>();
+    // Units (signer + unit id) whose category matches this portal — listings
+    // whose OWN unit isn't in this set are excluded (same rule as public
+    // route); another key's 30901 reusing the unit id does not let them in.
+    const allowedUnits = new Set<string>();
     const unitRows = db
-      .prepare(`SELECT unit_id, parsed_json FROM business_units`)
+      .prepare(`SELECT pubkey, unit_id, parsed_json FROM business_units`)
       .all() as any[];
     for (const u of unitRows) {
       try {
         const p = JSON.parse(u.parsed_json);
         const cat = String(p.category || '').trim().toLowerCase();
-        if (PORTAL_CATEGORIES.has(cat)) allowedUnitIds.add(u.unit_id);
+        if (PORTAL_CATEGORIES.has(cat)) allowedUnits.add(unitKey(u.pubkey, u.unit_id));
       } catch {}
     }
 
@@ -136,12 +138,12 @@ export function createAdminRouter(db: Database.Database): Router {
            LIMIT 1) AS new_feature_id,
           gs.status AS suspension_status
         FROM listings l
-        LEFT JOIN global_suspensions gs ON gs.unit_id = l.unit_id
+        LEFT JOIN global_suspensions gs ON gs.unit_id = l.unit_id AND gs.owner_pubkey = l.pubkey
         ORDER BY l.event_created_at DESC
       `
       )
       .all() as any[];
-    const filtered = rows.filter((r) => allowedUnitIds.has(r.unit_id));
+    const filtered = rows.filter((r) => allowedUnits.has(unitKey(r.pubkey, r.unit_id)));
     const result = filtered.map((r) => {
       let parsed: any = {};
       try { parsed = JSON.parse(r.parsed_json); } catch {}
